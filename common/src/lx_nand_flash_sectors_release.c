@@ -39,114 +39,66 @@
 /*                                                                        */ 
 /*  FUNCTION                                               RELEASE        */ 
 /*                                                                        */ 
-/*    _lx_nand_flash_driver_extra_bytes_get               PORTABLE C      */ 
-/*                                                           6.1.7        */
+/*    _lx_nand_flash_sectors_release                      PORTABLE C      */ 
+/*                                                           6.2.1       */
 /*  AUTHOR                                                                */
 /*                                                                        */
-/*    William E. Lamie, Microsoft Corporation                             */
+/*    Xiuwen Cai, Microsoft Corporation                                   */
 /*                                                                        */
 /*  DESCRIPTION                                                           */ 
 /*                                                                        */ 
-/*    This function calls the driver to get the extra bytes of a NAND     */ 
-/*    page.                                                               */ 
+/*    This function releases multiple logical sectors from being managed  */ 
+/*    in the NAND flash.                                                  */ 
 /*                                                                        */ 
 /*  INPUT                                                                 */ 
 /*                                                                        */ 
 /*    nand_flash                            NAND flash instance           */ 
-/*    block                                 Block number                  */ 
-/*    page                                  Page number                   */ 
-/*    destination                           Pointer to destination buffer */ 
-/*    words                                 Number of words to read       */ 
+/*    logical_sector                        Logical sector number         */ 
+/*    sector_count                          Number of sector to release   */
 /*                                                                        */ 
 /*  OUTPUT                                                                */ 
 /*                                                                        */ 
-/*    Completion Status                                                   */ 
+/*    return status                                                       */ 
 /*                                                                        */ 
 /*  CALLS                                                                 */ 
 /*                                                                        */ 
-/*    (lx_nand_flash_driver_extra_bytes_get)Get extra bytes from spare    */ 
+/*    _lx_nand_flash_sector_release         Release one sector            */ 
 /*                                                                        */ 
 /*  CALLED BY                                                             */ 
 /*                                                                        */ 
-/*    Internal LevelX                                                     */ 
+/*    Application Code                                                    */ 
 /*                                                                        */ 
 /*  RELEASE HISTORY                                                       */ 
 /*                                                                        */ 
 /*    DATE              NAME                      DESCRIPTION             */
 /*                                                                        */
-/*  05-19-2020     William E. Lamie         Initial Version 6.0           */
-/*  09-30-2020     William E. Lamie         Modified comment(s),          */
-/*                                            resulting in version 6.1    */
-/*  06-02-2021     Bhupendra Naphade        Modified comment(s),          */
-/*                                            resulting in version 6.1.7  */
+/*  03-08-2023     Xiuwen Cai               Initial Version 6.2.1        */
 /*                                                                        */
 /**************************************************************************/
-UINT  _lx_nand_flash_driver_extra_bytes_get(LX_NAND_FLASH *nand_flash, ULONG block, ULONG page, UCHAR *destination, UINT size)
+UINT  _lx_nand_flash_sectors_release(LX_NAND_FLASH *nand_flash, ULONG logical_sector, ULONG sector_count)
 {
 
-ULONG                   *source_ptr;
-ULONG                   *destination_ptr;
-ULONG                   cache_index;
-UINT                    status;
+UINT status = LX_SUCCESS;
+UINT i;
 
 
-    /* Determine if the page extra bytes cache is disabled.  */
-    if (nand_flash -> lx_nand_flash_page_extra_bytes_cache == LX_NULL)
+    /* Loop to release all the sectors.  */
+    for (i = 0; i < sector_count; i++)
     {
 
-        /* Increment the page extra bytes get count.  */
-        nand_flash -> lx_nand_flash_diagnostic_page_extra_bytes_gets++;
+        /* Release one sector.  */
+        status = _lx_nand_flash_sector_release(nand_flash, logical_sector + i);
 
-        /* Call driver extra bytes get function.  */
-        status =  (nand_flash -> lx_nand_flash_driver_extra_bytes_get)(block, page, destination, size);
-    }
-    else
-    {
-    
-        /* Calculate the cache index.  */
-        cache_index =  (block * nand_flash -> lx_nand_flash_pages_per_block) + page;
-
-        /* Setup the destination pointer.  */
-        destination_ptr =  (ULONG *) destination;
-        
-        /* Determine if this cache entry is valid.  */
-        if (nand_flash -> lx_nand_flash_page_extra_bytes_cache[cache_index].lx_nand_page_extra_info_logical_sector != 0)
+        /* Check return status.  */
+        if (status)
         {
-    
-            /* Simply return this value.  */
-            *destination_ptr =  nand_flash -> lx_nand_flash_page_extra_bytes_cache[cache_index].lx_nand_page_extra_info_logical_sector;
-        
-            /* Increment the number of page extra bytes cache hits.  */
-            nand_flash -> lx_nand_flash_diagnostic_page_extra_bytes_cache_hits++;
-        
-            /* Return successful status.  */
-            status =  LX_SUCCESS;
-        }
-        else
-        {
-        
-            /* Increment the page extra bytes get count.  */
-            nand_flash -> lx_nand_flash_diagnostic_page_extra_bytes_gets++;
 
-            /* Call driver extra bytes get function.  */
-            status =  (nand_flash -> lx_nand_flash_driver_extra_bytes_get)(block, page, destination, size);
-
-            /* Increment the number of page extra bytes cache misses.  */
-            nand_flash -> lx_nand_flash_diagnostic_page_extra_bytes_cache_misses++;
-
-            /* Setup destination pointer.  */
-            destination_ptr =  &nand_flash -> lx_nand_flash_page_extra_bytes_cache[cache_index].lx_nand_page_extra_info_logical_sector;
-    
-            /* Setup source pointer.  */
-            source_ptr =  (ULONG *) destination;
-        
-            /* Save the value in the page extra bytes cache.  */
-            *destination_ptr =  *source_ptr;
+            /* Error, break the loop.  */
+            break;
         }
     }
-    
+
     /* Return status.  */
     return(status);
 }
-
 

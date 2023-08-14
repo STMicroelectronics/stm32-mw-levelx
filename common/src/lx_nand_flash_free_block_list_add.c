@@ -15,7 +15,7 @@
 /**                                                                       */ 
 /** LevelX Component                                                      */ 
 /**                                                                       */
-/**   NOR Flash                                                           */
+/**   NAND Flash                                                          */
 /**                                                                       */
 /**************************************************************************/
 /**************************************************************************/
@@ -39,22 +39,20 @@
 /*                                                                        */ 
 /*  FUNCTION                                               RELEASE        */ 
 /*                                                                        */ 
-/*    _lx_nor_flash_driver_write                          PORTABLE C      */ 
+/*    _lx_nand_flash_free_block_list_add                  PORTABLE C      */ 
 /*                                                           6.2.1       */
 /*  AUTHOR                                                                */
 /*                                                                        */
-/*    William E. Lamie, Microsoft Corporation                             */
+/*    Xiuwen Cai, Microsoft Corporation                                   */
 /*                                                                        */
 /*  DESCRIPTION                                                           */ 
 /*                                                                        */ 
-/*    This function performs a write of the NOR flash memory.             */ 
+/*    This function adds a block to free block list.                      */ 
 /*                                                                        */ 
 /*  INPUT                                                                 */ 
 /*                                                                        */ 
-/*    nor_flash                             NOR flash instance            */ 
-/*    flash_address                         Address of NOR flash to write */ 
-/*    source                                Source for the write          */ 
-/*    words                                 Number of words to write      */ 
+/*    nand_flash                            NAND flash instance           */ 
+/*    block                                 Block number                  */ 
 /*                                                                        */ 
 /*  OUTPUT                                                                */ 
 /*                                                                        */ 
@@ -62,95 +60,62 @@
 /*                                                                        */ 
 /*  CALLS                                                                 */ 
 /*                                                                        */ 
-/*    (lx_nor_flash_driver_write)           Actual driver write           */ 
+/*    None                                                                */ 
 /*                                                                        */ 
 /*  CALLED BY                                                             */ 
 /*                                                                        */ 
-/*    Application Code                                                    */ 
+/*    Internal LevelX                                                     */ 
 /*                                                                        */ 
 /*  RELEASE HISTORY                                                       */ 
 /*                                                                        */ 
 /*    DATE              NAME                      DESCRIPTION             */
 /*                                                                        */
-/*  05-19-2020     William E. Lamie         Initial Version 6.0           */
-/*  09-30-2020     William E. Lamie         Modified comment(s),          */
-/*                                            resulting in version 6.1    */
-/*  06-02-2021     Bhupendra Naphade        Modified comment(s),          */
-/*                                            resulting in version 6.1.7  */
-/*  03-08-2023     Xiuwen Cai               Modified comment(s),          */
-/*                                            added new driver interface, */
-/*                                            resulting in version 6.2.1 */
+/*  03-08-2023     Xiuwen Cai               Initial Version 6.2.1        */
 /*                                                                        */
 /**************************************************************************/
-UINT  _lx_nor_flash_driver_write(LX_NOR_FLASH *nor_flash, ULONG *flash_address, ULONG *source, ULONG words)
+UINT  _lx_nand_flash_free_block_list_add(LX_NAND_FLASH* nand_flash, ULONG block)
 {
 
-#ifndef LX_NOR_DISABLE_EXTENDED_CACHE
-
-UINT    status;
-UINT    i;
-ULONG   *cache_entry_start;
-ULONG   *cache_entry_end;
-ULONG   cache_offset;
+ULONG insert_position;
+INT search_position;
+UCHAR new_block_erase_count;
 
 
-    /* Is the request a whole sector or a partial sector.  */
-    if ((words == 1) && (nor_flash -> lx_nor_flash_extended_cache_entries))
+    /* Get insert position for the free block list.  */
+    insert_position = nand_flash -> lx_nand_flash_free_block_list_tail;
+
+    /* Check if the list if full.  */
+    if (insert_position > nand_flash -> lx_nand_flash_mapped_block_list_head)
     {
 
-        /* One word request, which implies that it is a NOR flash metadata write.  */
-
-        /* Loop through the cache entries to see if there is a sector in cache.  */
-        for (i = 0; i < nor_flash -> lx_nor_flash_extended_cache_entries; i++)
-        {
-        
-            /* Search through the cache to see if there is a cache entry.  */
-                
-            /* Determine the cache entry addresses.  */
-            cache_entry_start =  nor_flash -> lx_nor_flash_extended_cache[i].lx_nor_flash_extended_cache_entry_sector_address;
-            cache_entry_end =    cache_entry_start + LX_NOR_SECTOR_SIZE;
-                
-            /* Determine if the flash address in in the cache entry.  */
-            if ((cache_entry_start) && (flash_address >= cache_entry_start) && (flash_address < cache_entry_end))
-            {
-                
-                /* Yes, we found the entry.  */
-                    
-                /* Calculate the offset into the cache entry.  */
-                cache_offset =  (ULONG)(flash_address - cache_entry_start);
-                    
-                /* Copy the word into the cache.  */
-                *(nor_flash -> lx_nor_flash_extended_cache[i].lx_nor_flash_extended_cache_entry_sector_memory + cache_offset) =  *source;
-                
-                /* Get out of the loop.  */
-                break;
-            }
-        }
+        /* Return an error.  */
+        return(LX_ERROR);
     }
-    
-    /* In any case, call the actual driver write function.  */
-#ifdef LX_NOR_ENABLE_CONTROL_BLOCK_FOR_DRIVER_INTERFACE
-    status =  (nor_flash -> lx_nor_flash_driver_write)(nor_flash, flash_address, source, words);
-#else
-    status =  (nor_flash -> lx_nor_flash_driver_write)(flash_address, source, words);
-#endif
 
-    /* Return completion status.  */
-    return(status);   
-   
-#else
-UINT    status;
+    /* Get the erase count.  */
+    new_block_erase_count = nand_flash -> lx_nand_flash_erase_count_table[block];
 
+    /* Add one block to the free list.  */
+    nand_flash -> lx_nand_flash_free_block_list_tail++;
 
-    /* Call the actual driver write function.  */
-#ifdef LX_NOR_ENABLE_CONTROL_BLOCK_FOR_DRIVER_INTERFACE
-    status =  (nor_flash -> lx_nor_flash_driver_write)(nor_flash, flash_address, source, words);
-#else
-    status =  (nor_flash -> lx_nor_flash_driver_write)(flash_address, source, words);
-#endif
-    
-    /* Return completion status.  */
-    return(status);   
-#endif
+    /* Initialize the search pointer.  */
+    search_position = (INT)insert_position - 1;
+
+    /* Loop to search the insert position by block erase count.  */
+    while ((search_position >= 0) && 
+           (nand_flash -> lx_nand_flash_erase_count_table[nand_flash -> lx_nand_flash_block_list[search_position]] < new_block_erase_count))
+    {
+
+        /* Move the item in the list.  */
+        nand_flash -> lx_nand_flash_block_list[insert_position] = nand_flash -> lx_nand_flash_block_list[search_position];
+        search_position--;
+        insert_position--;
+    }
+
+    /* Insert the new block to the list.  */
+    nand_flash -> lx_nand_flash_block_list[insert_position] = (USHORT)block;
+
+    /* Return successful completion.  */
+    return(LX_SUCCESS);
 }
 
