@@ -722,7 +722,7 @@ status += lx_nor_flash_extended_cache_enable(&nor_sim_flash, nor_cache_memory, s
     }
 
     /* Simulate a power interruption after a new sector is allocated, after data
-       had been copied, and the superceeded bit is clear, but before the new entry can be
+       had been copied, and the superseded bit is clear, but before the new entry can be
        setup.  */
     word_ptr[3] =  0x7FFC;
     word_ptr[(16*128)+6] =  word_ptr[(16*128)+6] & ~((ULONG) 0x40000000);
@@ -750,7 +750,7 @@ status += lx_nor_flash_extended_cache_enable(&nor_sim_flash, nor_cache_memory, s
     lx_nor_flash_close(&nor_sim_flash);
     
     /* Simulate a power interruption after a new sector is allocated, after data
-       had been copied, and the superceeded bit is clear, the new entry is setup, but the old entry
+       had been copied, and the superseded bit is clear, the new entry is setup, but the old entry
        has not been invalidated.  */
     word_ptr[3] =  0x7FF8;
     word_ptr[6] =  0xC0000070;

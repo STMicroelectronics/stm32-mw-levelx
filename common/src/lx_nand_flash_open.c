@@ -1,19 +1,18 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   NAND Flash                                                          */
 /**                                                                       */
@@ -35,54 +34,54 @@
 #include "lx_api.h"
 
 
-/**************************************************************************/ 
-/*                                                                        */ 
-/*  FUNCTION                                               RELEASE        */ 
-/*                                                                        */ 
-/*    _lx_nand_flash_open                                 PORTABLE C      */ 
+/**************************************************************************/
+/*                                                                        */
+/*  FUNCTION                                               RELEASE        */
+/*                                                                        */
+/*    _lx_nand_flash_open                                 PORTABLE C      */
 /*                                                           6.3.0        */
 /*  AUTHOR                                                                */
 /*                                                                        */
 /*    Xiuwen Cai, Microsoft Corporation                                   */
 /*                                                                        */
-/*  DESCRIPTION                                                           */ 
-/*                                                                        */ 
-/*    This function opens a NAND flash instance and ensures the           */ 
-/*    NAND flash is in a coherent state.                                  */ 
-/*                                                                        */ 
-/*  INPUT                                                                 */ 
-/*                                                                        */ 
-/*    nand_flash                            NAND flash instance           */ 
-/*    name                                  Name of NAND flash instance   */ 
-/*    nand_driver_initialize                Driver initialize             */ 
+/*  DESCRIPTION                                                           */
+/*                                                                        */
+/*    This function opens a NAND flash instance and ensures the           */
+/*    NAND flash is in a coherent state.                                  */
+/*                                                                        */
+/*  INPUT                                                                 */
+/*                                                                        */
+/*    nand_flash                            NAND flash instance           */
+/*    name                                  Name of NAND flash instance   */
+/*    nand_driver_initialize                Driver initialize             */
 /*    memory_ptr                            Pointer to memory used by the */
 /*                                            LevelX for this NAND.       */
 /*    memory_size                           Size of memory - must at least*/
 /*                                            7 * total block count +     */
 /*                                            2 * page size               */
-/*                                                                        */ 
-/*  OUTPUT                                                                */ 
-/*                                                                        */ 
-/*    return status                                                       */ 
-/*                                                                        */ 
-/*  CALLS                                                                 */ 
-/*                                                                        */ 
-/*    (nand_driver_initialize)              Driver initialize             */ 
-/*    _lx_nand_flash_memory_initialize      Initialize buffer             */ 
-/*    _lx_nand_flash_driver_block_status_get                              */ 
-/*                                          Get block status              */ 
-/*    lx_nand_flash_driver_pages_read       Read pages                    */ 
+/*                                                                        */
+/*  OUTPUT                                                                */
+/*                                                                        */
+/*    return status                                                       */
+/*                                                                        */
+/*  CALLS                                                                 */
+/*                                                                        */
+/*    (nand_driver_initialize)              Driver initialize             */
+/*    _lx_nand_flash_memory_initialize      Initialize buffer             */
+/*    _lx_nand_flash_driver_block_status_get                              */
+/*                                          Get block status              */
+/*    lx_nand_flash_driver_pages_read       Read pages                    */
 /*    _lx_nand_flash_free_block_list_add    Add free block to list        */
 /*    _lx_nand_flash_mapped_block_list_add  Add mapped block to list      */
-/*    _lx_nand_flash_system_error           System error handler          */ 
-/*    tx_mutex_create                       Create thread-safe mutex      */ 
-/*                                                                        */ 
-/*  CALLED BY                                                             */ 
-/*                                                                        */ 
-/*    Application Code                                                    */ 
-/*                                                                        */ 
-/*  RELEASE HISTORY                                                       */ 
-/*                                                                        */ 
+/*    _lx_nand_flash_system_error           System error handler          */
+/*    lx_os_mutex_create                    Create thread-safe mutex      */
+/*                                                                        */
+/*  CALLED BY                                                             */
+/*                                                                        */
+/*    Application Code                                                    */
+/*                                                                        */
+/*  RELEASE HISTORY                                                       */
+/*                                                                        */
 /*    DATE              NAME                      DESCRIPTION             */
 /*                                                                        */
 /*  03-08-2023     Xiuwen Cai               Initial Version 6.2.1         */
@@ -167,17 +166,17 @@ LX_INTERRUPT_SAVE_AREA
     /* Loop through the blocks to check for bad blocks and determine the minimum and maximum erase count for each good block.  */
     for (block = 0; block < nand_flash -> lx_nand_flash_total_blocks; block++)
     {
-    
+
         /* First, check to make sure this block is good.  */
         status =  _lx_nand_flash_driver_block_status_get(nand_flash, block, &block_status);
 
         /* Check for an error from flash driver.   */
         if (status)
         {
-        
+
             /* Call system error handler.  */
             _lx_nand_flash_system_error(nand_flash, status, block, 0);
-            
+
             /* Return an error.  */
             return(LX_ERROR);
         }
@@ -185,9 +184,9 @@ LX_INTERRUPT_SAVE_AREA
         /* Is this block bad?  */
         if (block_status != LX_NAND_GOOD_BLOCK)
         {
-        
+
             /* Yes, this block is bad.  */
-                
+
             /* Increment the number of bad blocks.  */
             nand_flash -> lx_nand_flash_bad_blocks++;
 
@@ -208,14 +207,14 @@ LX_INTERRUPT_SAVE_AREA
         /* Check for an error from flash driver.   */
         if (status)
         {
-        
+
             /* Call system error handler.  */
             _lx_nand_flash_system_error(nand_flash, status, block, 0);
 
             /* Determine if the error is fatal.  */
             if (status != LX_NAND_ERROR_CORRECTED)
             {
-                            
+
                 /* Return an error.  */
                 return(LX_ERROR);
             }
@@ -244,7 +243,7 @@ LX_INTERRUPT_SAVE_AREA
 
         }
 
-    }    
+    }
 
     /* Check if we have found the metadata block.  */
     if (nand_flash -> lx_nand_flash_metadata_block_number == LX_NAND_BLOCK_UNMAPPED)
@@ -267,13 +266,13 @@ LX_INTERRUPT_SAVE_AREA
     block_count = 0;
 
     do
-    { 
+    {
 
         /* Initialize next block to unmapped.  */
         nand_flash -> lx_nand_flash_metadata_block_number_next = LX_NAND_BLOCK_UNMAPPED;
         nand_flash -> lx_nand_flash_backup_metadata_block_number_next = LX_NAND_BLOCK_UNMAPPED;
 
-        /* Loop to read pages in the metadata block.  */        
+        /* Loop to read pages in the metadata block.  */
         for (page = 0; page < nand_flash -> lx_nand_flash_pages_per_block ; page++)
         {
 
@@ -394,7 +393,7 @@ LX_INTERRUPT_SAVE_AREA
                 /* Unknown type, return error.  */
                 status = LX_ERROR;
             }
-            
+
             /* Check status.  */
             if (status == LX_ERROR)
             {
@@ -456,7 +455,7 @@ LX_INTERRUPT_SAVE_AREA
             /* Add the block to free block list.  */
             _lx_nand_flash_free_block_list_add(nand_flash, block);
         }
-        
+
         /* Check for mapped blocks.  */
         if (nand_flash -> lx_nand_flash_block_mapping_table[block] != LX_NAND_BLOCK_UNMAPPED)
         {
@@ -469,17 +468,17 @@ LX_INTERRUPT_SAVE_AREA
 
 #ifdef LX_THREAD_SAFE_ENABLE
 
-    /* If the thread safe option is enabled, create a ThreadX mutex that will be used in all external APIs 
+    /* If the thread safe option is enabled, create a ThreadX mutex that will be used in all external APIs
        in order to provide thread-safe operation.  */
-    status =  tx_mutex_create(&nand_flash -> lx_nand_flash_mutex, "NAND Flash Mutex", TX_NO_INHERIT);
+    status =  lx_os_mutex_create(&nand_flash -> lx_nand_flash_mutex, "NAND Flash Mutex");
 
     /* Determine if the mutex creation encountered an error.  */
     if (status != LX_SUCCESS)
     {
-    
+
         /* Call system error handler, since this should not happen.  */
         _lx_nand_flash_system_error(nand_flash, LX_SYSTEM_MUTEX_CREATE_FAILED, 0, 0);
-    
+
         /* Return error to caller.  */
         return(LX_ERROR);
     }
@@ -488,7 +487,7 @@ LX_INTERRUPT_SAVE_AREA
     /* Lockout interrupts.  */
     LX_DISABLE
 
-    /* At this point, the NAND flash has been opened successfully.  Place the 
+    /* At this point, the NAND flash has been opened successfully.  Place the
        NAND flash control block on the linked list of currently opened NAND flashes.  */
 
     /* Set the NAND flash state to open.  */
@@ -510,7 +509,7 @@ LX_INTERRUPT_SAVE_AREA
 
         /* Setup this NAND flash's opened links.  */
         nand_flash -> lx_nand_flash_open_previous =  tail_ptr;
-        nand_flash -> lx_nand_flash_open_next =      _lx_nand_flash_opened_ptr;   
+        nand_flash -> lx_nand_flash_open_next =      _lx_nand_flash_opened_ptr;
     }
     else
     {

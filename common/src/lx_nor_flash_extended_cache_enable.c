@@ -1,19 +1,18 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   NOR Flash                                                           */
 /**                                                                       */
@@ -35,40 +34,40 @@
 #include "lx_api.h"
 
 
-/**************************************************************************/ 
-/*                                                                        */ 
-/*  FUNCTION                                               RELEASE        */ 
-/*                                                                        */ 
-/*    _lx_nor_flash_extended_cache_enable                 PORTABLE C      */ 
+/**************************************************************************/
+/*                                                                        */
+/*  FUNCTION                                               RELEASE        */
+/*                                                                        */
+/*    _lx_nor_flash_extended_cache_enable                 PORTABLE C      */
 /*                                                           6.3.0        */
 /*  AUTHOR                                                                */
 /*                                                                        */
 /*    William E. Lamie, Microsoft Corporation                             */
 /*                                                                        */
-/*  DESCRIPTION                                                           */ 
-/*                                                                        */ 
-/*    This function enables or disables the extended cache.               */ 
-/*                                                                        */ 
-/*  INPUT                                                                 */ 
-/*                                                                        */ 
-/*    nor_flash                             NOR flash instance            */ 
-/*    memory                                Address of RAM for cache      */ 
-/*    size                                  Size of the RAM for cache     */ 
-/*                                                                        */ 
-/*  OUTPUT                                                                */ 
-/*                                                                        */ 
-/*    return status                                                       */ 
-/*                                                                        */ 
-/*  CALLS                                                                 */ 
-/*                                                                        */ 
-/*    None                                                                */ 
-/*                                                                        */ 
-/*  CALLED BY                                                             */ 
-/*                                                                        */ 
-/*    Application Code                                                    */ 
-/*                                                                        */ 
-/*  RELEASE HISTORY                                                       */ 
-/*                                                                        */ 
+/*  DESCRIPTION                                                           */
+/*                                                                        */
+/*    This function enables or disables the extended cache.               */
+/*                                                                        */
+/*  INPUT                                                                 */
+/*                                                                        */
+/*    nor_flash                             NOR flash instance            */
+/*    memory                                Address of RAM for cache      */
+/*    size                                  Size of the RAM for cache     */
+/*                                                                        */
+/*  OUTPUT                                                                */
+/*                                                                        */
+/*    return status                                                       */
+/*                                                                        */
+/*  CALLS                                                                 */
+/*                                                                        */
+/*    None                                                                */
+/*                                                                        */
+/*  CALLED BY                                                             */
+/*                                                                        */
+/*    Application Code                                                    */
+/*                                                                        */
+/*  RELEASE HISTORY                                                       */
+/*                                                                        */
 /*    DATE              NAME                      DESCRIPTION             */
 /*                                                                        */
 /*  05-19-2020     William E. Lamie         Initial Version 6.0           */
@@ -118,7 +117,7 @@ ULONG   block_word;
     /* Determine if memory was specified but with an invalid size (less than one NOR sector).  */
     if ((memory) && (size < LX_NOR_SECTOR_SIZE))
     {
-    
+
         /* Error in memory size supplied.  */
         return(LX_ERROR);
     }
@@ -126,7 +125,7 @@ ULONG   block_word;
 #ifdef LX_THREAD_SAFE_ENABLE
 
     /* Obtain the thread safe mutex.  */
-    tx_mutex_get(&nor_flash -> lx_nor_flash_mutex, TX_WAIT_FOREVER);
+    lx_os_mutex_get(&nor_flash -> lx_nor_flash_mutex);
 #endif
 
     /* Initialize the internal NOR cache.  */
@@ -147,7 +146,7 @@ ULONG   block_word;
 
         /* Get the mapping bitmap cache size.  */
         mapping_bitmap_words = (nor_flash -> lx_nor_flash_total_physical_sectors + 31) / 32;
-        
+
         /* Check if the mapping bitmap cache fits in the suppiled cache memory.  */
         if (cache_size < mapping_bitmap_words)
         {
@@ -155,13 +154,13 @@ ULONG   block_word;
             /* Update the cache size.  */
             mapping_bitmap_words = cache_size;
         }
-        
+
         /* Setup the mapping bitmap cache.  */
         nor_flash -> lx_nor_flash_extended_cache_mapping_bitmap =  cache_memory;
 
         /* Setup the mapping bitmap cache size.  */
         nor_flash -> lx_nor_flash_extended_cache_mapping_bitmap_max_logical_sector =  mapping_bitmap_words * 32;
-        
+
         /* Clear the mapping bitmap cache.  */
         for (i = 0; i < mapping_bitmap_words; i++)
         {
@@ -177,12 +176,12 @@ ULONG   block_word;
         /* Update the cache memory pointer.  */
         cache_memory =  cache_memory + mapping_bitmap_words;
 #endif
-        
+
 #if defined(LX_NOR_ENABLE_OBSOLETE_COUNT_CACHE)
 
         /* Get the obsolete count cache size.  */
         obsolete_count_words = nor_flash -> lx_nor_flash_total_blocks * sizeof(LX_NOR_OBSOLETE_COUNT_CACHE_TYPE) / 4;
-        
+
         /* Check if the obsolete count cache fits in the suppiled cache memory.  */
         if (cache_size < obsolete_count_words)
         {
@@ -190,7 +189,7 @@ ULONG   block_word;
             /* Update the cache size.  */
             obsolete_count_words = cache_size;
         }
-        
+
         /* Setup the obsolete count cache.  */
         nor_flash -> lx_nor_flash_extended_cache_obsolete_count =  (LX_NOR_OBSOLETE_COUNT_CACHE_TYPE*)cache_memory;
 
@@ -219,10 +218,10 @@ ULONG   block_word;
             /* Now walk the list of logical-physical sector mapping.  */
             for (j = 0; j < nor_flash ->lx_nor_flash_physical_sectors_per_block; j++)
             {
-                
+
                 /* Read this word of the sector mapping list.  */
 #ifdef LX_DIRECT_READ
-    
+
                 /* Read the word directly.  */
                 block_word =  *(block_word_ptr + nor_flash -> lx_nor_flash_block_physical_sector_mapping_offset + j);
 #else
@@ -231,7 +230,7 @@ ULONG   block_word;
                 /* Check for an error from flash driver. Drivers should never return an error..  */
                 if (status)
                 {
-    
+
                     /* Call system error handler.  */
                     _lx_nor_flash_system_error(nor_flash, status);
 
@@ -244,7 +243,7 @@ ULONG   block_word;
                 {
                     break;
                 }
-                
+
                 /* Is this entry valid?  */
                 if ((block_word & (LX_NOR_PHYSICAL_SECTOR_VALID | LX_NOR_PHYSICAL_SECTOR_MAPPING_NOT_VALID)) == LX_NOR_PHYSICAL_SECTOR_VALID)
                 {
@@ -252,10 +251,10 @@ ULONG   block_word;
 
                     /* Yes, get the logical sector.  */
                     logical_sector = block_word & LX_NOR_LOGICAL_SECTOR_MASK;
-                    
+
                     /* Get the mapping bitmap word.  */
                     mapping_bitmap_word = logical_sector >> 5;
-                    
+
                     /* Check if the mapping bitmap word is within the cache.  */
                     if (mapping_bitmap_word < mapping_bitmap_words)
                     {
@@ -264,7 +263,7 @@ ULONG   block_word;
                         mapping_bitmap_ptr[mapping_bitmap_word] |=  (ULONG)(1 << (logical_sector & 31));
                     }
 #endif
-                    
+
                 }
                 else
                 {
@@ -288,27 +287,27 @@ ULONG   block_word;
         }
     }
 #endif
-    
+
     /* Loop through the memory supplied and assign to cache entries.  */
     i =  0;
     while (cache_size >= LX_NOR_SECTOR_SIZE)
     {
-    
+
         /* Setup this cache entry.  */
         nor_flash -> lx_nor_flash_extended_cache[i].lx_nor_flash_extended_cache_entry_sector_address =  LX_NULL;
         nor_flash -> lx_nor_flash_extended_cache[i].lx_nor_flash_extended_cache_entry_sector_memory =   cache_memory;
         nor_flash -> lx_nor_flash_extended_cache[i].lx_nor_flash_extended_cache_entry_access_count =    0;
-        
+
         /* Move the cache memory forward.   */
         cache_memory =  cache_memory + LX_NOR_SECTOR_SIZE;
-        
+
         /* Decrement the size.  */
         cache_size =  cache_size - LX_NOR_SECTOR_SIZE;
-    
+
         /* Move to next cache entry.  */
         i++;
     }
-    
+
     /* Save the number of cache entries.  */
     if(i > LX_NOR_EXTENDED_CACHE_SIZE)
     {
@@ -319,12 +318,12 @@ ULONG   block_word;
     {
 
         nor_flash -> lx_nor_flash_extended_cache_entries =  i;
-    }  
+    }
 
 #ifdef LX_THREAD_SAFE_ENABLE
 
     /* Release the thread safe mutex.  */
-    tx_mutex_put(&nor_flash -> lx_nor_flash_mutex);
+    lx_os_mutex_put(&nor_flash -> lx_nor_flash_mutex);
 #endif
 
     /* Return successful completion.  */

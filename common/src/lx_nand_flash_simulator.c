@@ -1,19 +1,18 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   NAND Flash Simulator                                                */
 /**                                                                       */
@@ -29,13 +28,13 @@
 
 #define TOTAL_BLOCKS                        1024
 #define PHYSICAL_PAGES_PER_BLOCK            256         /* Min value of 2                                               */
-#define BYTES_PER_PHYSICAL_PAGE             512         /* 512 bytes per page                                           */ 
-#define WORDS_PER_PHYSICAL_PAGE             512 / 4     /* Words per page                                               */ 
+#define BYTES_PER_PHYSICAL_PAGE             512         /* 512 bytes per page                                           */
+#define WORDS_PER_PHYSICAL_PAGE             512 / 4     /* Words per page                                               */
 #define SPARE_BYTES_PER_PAGE                16          /* 16 "spare" bytes per page                                    */
-                                                        /* For 2048 byte block spare area:                              */ 
-#define BAD_BLOCK_POSITION                  0           /*      0 is the bad block byte postion                         */ 
-#define EXTRA_BYTE_POSITION                 0           /*      0 is the extra bytes starting byte postion              */ 
-#define ECC_BYTE_POSITION                   8           /*      8 is the ECC starting byte position                     */ 
+                                                        /* For 2048 byte block spare area:                              */
+#define BAD_BLOCK_POSITION                  0           /*      0 is the bad block byte position                         */
+#define EXTRA_BYTE_POSITION                 0           /*      0 is the extra bytes starting byte position              */
+#define ECC_BYTE_POSITION                   8           /*      8 is the ECC starting byte position                     */
 #define SPARE_DATA1_OFFSET                  4
 #define SPARE_DATA1_LENGTH                  4
 #define SPARE_DATA2_OFFSET                  2
@@ -43,29 +42,29 @@
 
 
 
-/* Definition of the spare area is relative to the block size of the NAND part and perhaps manufactures of the NAND part. 
+/* Definition of the spare area is relative to the block size of the NAND part and perhaps manufactures of the NAND part.
    Here are some common definitions:
-   
+
    256 Byte Block
-   
+
         Bytes               Meaning
-        
+
         0,1,2           ECC bytes
         3,4,6,7         Extra
         5               Bad block flag
-        
+
     512 Byte Block
-    
+
         Bytes               Meaning
-        
+
         0,1,2,3,6,7     ECC bytes
         8-15            Extra
         5               Bad block flag
-    
+
     2048 Byte Block
-    
+
         Bytes               Meaning
-        
+
         0               Bad block flag
         2-39            Extra
         40-63           ECC bytes
@@ -284,7 +283,7 @@ UINT    ecc_status = LX_SUCCESS;
 #else
         status = _lx_nand_flash_simulator_extra_bytes_get(block, page + i, spare_buffer + i * SPARE_BYTES_PER_PAGE, SPARE_BYTES_PER_PAGE);
 #endif
-    }    
+    }
     return (ecc_status);
 }
 
@@ -324,32 +323,32 @@ ULONG   *page_ptr = &(nand_memory_area[block].physical_pages[page].memory[0]);
            in a NAND device.  */
         if ((*source & *flash_address) != *source)
            return(LX_INVALID_WRITE);
-      
+
         /* Copy word.  */
         *flash_address++ =  *source++;
     }
 
     /* Loop to compute the ECC over the entire NAND flash page.  */
     bytes_computed =  0;
-    
+
     while (bytes_computed < BYTES_PER_PHYSICAL_PAGE)
-    { 
-    
+    {
+
         /* Compute the ECC for this 256 byte piece of the page.  */
         _lx_nand_flash_256byte_ecc_compute((UCHAR *)page_ptr, (UCHAR *)new_ecc_buffer_ptr);
-        
+
         /* Move to the next 256 byte portion of the page.  */
         bytes_computed =  bytes_computed + 256;
-        
+
         /* Move the page buffer forward.  */
         page_ptr =  page_ptr + 64;
-    
+
         ecc_bytes = ecc_bytes + 3;
 
         /* Move the ECC buffer forward, note there are 3 bytes of ECC per page. */
         new_ecc_buffer_ptr =   new_ecc_buffer_ptr + 3;
     }
-    
+
     /* Setup destination pointer in the spare area.  */
     flash_spare_address =  (UCHAR *) &(nand_memory_area[block].physical_pages[page].spare[ECC_BYTE_POSITION]);
     while(ecc_bytes--)
@@ -460,7 +459,7 @@ UINT    i;
     words =  sizeof(NAND_FLASH_BLOCK)/sizeof(ULONG);
     while (words--)
     {
-        
+
         /* Erase word of block.  */
         *pointer++ =  (ULONG) 0xFFFFFFFF;
     }
@@ -484,7 +483,7 @@ UINT    i, j;
     for (j = 0; j < PHYSICAL_PAGES_PER_BLOCK;j++)
         nand_block_diag[i].page_writes[j] = 0;
     }
-    
+
     /* Setup pointer.  */
     pointer =  (ULONG *) &nand_memory_area[0];
 
@@ -492,7 +491,7 @@ UINT    i, j;
     words =  sizeof(nand_memory_area)/(sizeof(ULONG));
     while (words--)
     {
-        
+
         /* Erase word of block.  */
         *pointer++ =  (ULONG) 0xFFFFFFFF;
     }
@@ -516,22 +515,22 @@ ULONG   words;
 #endif
 
     /* Determine if the block is completely erased.  */
-    
+
     /* Pickup the pointer to the first word of the block.  */
     word_ptr =  (ULONG *) &nand_memory_area[block];
-    
+
     /* Calculate the number of words in a block.  */
     words =  sizeof(NAND_FLASH_BLOCK)/sizeof(ULONG);
-    
+
     /* Loop to check if the block is erased.  */
     while (words--)
     {
-    
+
         /* Is this word erased?  */
         if (*word_ptr++ != 0xFFFFFFFF)
             return(LX_ERROR);
     }
-    
+
     /* Return success.  */
     return(LX_SUCCESS);
 }
@@ -551,22 +550,22 @@ ULONG   words;
 #endif
 
     /* Determine if the block is completely erased.  */
-    
+
     /* Pickup the pointer to the first word of the block's page.  */
     word_ptr =  (ULONG *) &nand_memory_area[block].physical_pages[page];
-    
+
     /* Calculate the number of words in a block.  */
     words =  WORDS_PER_PHYSICAL_PAGE;
-    
+
     /* Loop to check if the page is erased.  */
     while (words--)
     {
-    
+
         /* Is this word erased?  */
         if (*word_ptr++ != 0xFFFFFFFF)
             return(LX_ERROR);
     }
-    
+
     /* Return success.  */
     return(LX_SUCCESS);
 }
@@ -584,7 +583,7 @@ UINT  _lx_nand_flash_simulator_block_status_get(ULONG block, UCHAR *bad_block_by
 
     /* Pickup the bad block byte and return it.  */
     *bad_block_byte =  nand_memory_area[block].physical_pages[0].spare[BAD_BLOCK_POSITION];
-    
+
     /* Return success.  */
     return(LX_SUCCESS);
 }
@@ -602,7 +601,7 @@ UINT  _lx_nand_flash_simulator_block_status_set(ULONG block, UCHAR bad_block_byt
 
     /* Set the bad block byte.  */
     nand_memory_area[block].physical_pages[0].spare[BAD_BLOCK_POSITION] =  bad_block_byte;
-    
+
     /* Return success.  */
     return(LX_SUCCESS);
 }
@@ -620,14 +619,14 @@ UCHAR   *source;
 #ifdef LX_NAND_ENABLE_CONTROL_BLOCK_FOR_DRIVER_INTERFACE
     LX_PARAMETER_NOT_USED(nand_flash);
 #endif
-    
+
     /* Setup source pointer in the spare area.  */
     source =  (UCHAR *) &(nand_memory_area[block].physical_pages[page].spare[EXTRA_BYTE_POSITION]);
-    
+
     /* Loop to return the extra bytes requested.  */
     while (size--)
     {
-    
+
         /* Retrieve an extra byte from the spare area.  */
         *destination++ =  *source++;
     }
@@ -648,19 +647,19 @@ UCHAR   *destination;
 #ifdef LX_NAND_ENABLE_CONTROL_BLOCK_FOR_DRIVER_INTERFACE
     LX_PARAMETER_NOT_USED(nand_flash);
 #endif
-    
+
     /* Increment the diag info.  */
     nand_block_diag[block].page_writes[page]++;
     if (nand_block_diag[block].page_writes[page] > nand_block_diag[block].max_page_writes[page])
         nand_block_diag[block].max_page_writes[page] =  nand_block_diag[block].page_writes[page];
-    
+
     /* Setup destination pointer in the spare area.  */
     destination =  (UCHAR *) &(nand_memory_area[block].physical_pages[page].spare[EXTRA_BYTE_POSITION]);
-    
+
     /* Loop to set the extra bytes.  */
     while (size--)
     {
-    
+
         /* Set an extra byte in the spare area.  */
         *destination++ =  *source++;
     }

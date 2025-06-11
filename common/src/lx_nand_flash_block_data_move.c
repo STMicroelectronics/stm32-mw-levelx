@@ -1,19 +1,18 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   NAND Flash                                                          */
 /**                                                                       */
@@ -35,52 +34,50 @@
 #include "lx_api.h"
 
 
-/**************************************************************************/ 
-/*                                                                        */ 
-/*  FUNCTION                                               RELEASE        */ 
-/*                                                                        */ 
-/*    _lx_nand_flash_block_data_move                      PORTABLE C      */ 
+/**************************************************************************/
+/*                                                                        */
+/*  FUNCTION                                               RELEASE        */
+/*                                                                        */
+/*    _lx_nand_flash_block_data_move                      PORTABLE C      */
 /*                                                           6.2.1       */
 /*  AUTHOR                                                                */
 /*                                                                        */
 /*    Xiuwen Cai, Microsoft Corporation                                   */
 /*                                                                        */
-/*  DESCRIPTION                                                           */ 
-/*                                                                        */ 
-/*    This function finds a block with less erase count and copies pages  */ 
-/*    into new block.                                                     */ 
-/*                                                                        */ 
-/*  INPUT                                                                 */ 
-/*                                                                        */ 
-/*    nand_flash                            NAND flash instance           */ 
-/*    new_block                             New block number              */ 
-/*                                                                        */ 
-/*  OUTPUT                                                                */ 
-/*                                                                        */ 
-/*    return status                                                       */ 
-/*                                                                        */ 
-/*  CALLS                                                                 */ 
-/*                                                                        */ 
-/*    _lx_nand_flash_mapped_block_list_get  Get mapped block index        */ 
-/*    _lx_nand_flash_block_find             Find the mapped block         */ 
-/*    _lx_nand_flash_data_page_copy         Copy data pages               */ 
+/*  DESCRIPTION                                                           */
+/*                                                                        */
+/*    This function finds a block with less erase count and copies pages  */
+/*    into new block.                                                     */
+/*                                                                        */
+/*  INPUT                                                                 */
+/*                                                                        */
+/*    nand_flash                            NAND flash instance           */
+/*    new_block                             New block number              */
+/*                                                                        */
+/*  OUTPUT                                                                */
+/*                                                                        */
+/*    return status                                                       */
+/*                                                                        */
+/*  CALLS                                                                 */
+/*                                                                        */
+/*    _lx_nand_flash_mapped_block_list_get  Get mapped block index        */
+/*    _lx_nand_flash_block_find             Find the mapped block         */
+/*    _lx_nand_flash_data_page_copy         Copy data pages               */
 /*    _lx_nand_flash_free_block_list_add    Add free block to list        */
-/*    _lx_nand_flash_block_status_set       Set block status              */ 
-/*    _lx_nand_flash_block_mapping_set      Set block mapping             */ 
+/*    _lx_nand_flash_block_status_set       Set block status              */
+/*    _lx_nand_flash_block_mapping_set      Set block mapping             */
 /*    _lx_nand_flash_mapped_block_list_add  Add mapped block to list      */
-/*    _lx_nand_flash_driver_block_erase     Erase block                   */ 
+/*    _lx_nand_flash_driver_block_erase     Erase block                   */
 /*    _lx_nand_flash_erase_count_set        Set erase count               */
 /*    _lx_nand_flash_free_block_list_add    Add free block to list        */
-/*    _lx_nand_flash_system_error           Internal system error handler */ 
-/*    tx_mutex_get                          Get thread protection         */ 
-/*    tx_mutex_put                          Release thread protection     */ 
-/*                                                                        */ 
-/*  CALLED BY                                                             */ 
-/*                                                                        */ 
-/*    Application Code                                                    */ 
-/*                                                                        */ 
-/*  RELEASE HISTORY                                                       */ 
-/*                                                                        */ 
+/*    _lx_nand_flash_system_error           Internal system error handler */
+/*                                                                        */
+/*  CALLED BY                                                             */
+/*                                                                        */
+/*    Application Code                                                    */
+/*                                                                        */
+/*  RELEASE HISTORY                                                       */
+/*                                                                        */
 /*    DATE              NAME                      DESCRIPTION             */
 /*                                                                        */
 /*  03-08-2023     Xiuwen Cai               Initial Version 6.2.1        */

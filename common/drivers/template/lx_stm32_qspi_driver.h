@@ -1,13 +1,13 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+  * Copyright (c) 2024 Microsoft Corporation
+  * Copyright (c) 2024 STMicroelectronics
+  *
+  * This program and the accompanying materials are made available under the
+  * terms of the MIT License which is available at
+  * https://opensource.org/licenses/MIT.
+  *
+  * SPDX-License-Identifier: MIT
+  **************************************************************************/
 
 #ifndef LX_STM32_QSPI_DRIVER_H
 #define LX_STM32_QSPI_DRIVER_H
@@ -38,7 +38,7 @@ extern "C" {
    It must be a multiple of LX_STM32_QSPI_SECTOR_SIZE, default value set to 0.
  */
 #define LX_STM32_QSPI_BASE_ADDRESS                       0
-#define LX_STM32_QSPI_DEFAULT_TIMEOUT                    10 * TX_TIMER_TICKS_PER_SECOND
+#define LX_STM32_QSPI_DEFAULT_TIMEOUT                    10 * configTICK_RATE_HZ
 #define LX_STM32_DEFAULT_SECTOR_SIZE                     LX_STM32_QSPI_SECTOR_SIZE
 #define LX_STM32_QSPI_DMA_API                            0
 
@@ -62,7 +62,7 @@ extern "C" {
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
 
-#define LX_STM32_QSPI_CURRENT_TIME                              tx_time_get
+#define LX_STM32_QSPI_CURRENT_TIME                              xTaskGetTickCount
 
 #define LX_STM32_QSPI_POST_INIT()
 

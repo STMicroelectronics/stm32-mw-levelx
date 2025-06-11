@@ -1,19 +1,18 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   Application Interface (API)                                         */
 /**                                                                       */
@@ -26,7 +25,7 @@
 /*  APPLICATION INTERFACE DEFINITION                       RELEASE        */
 /*                                                                        */
 /*    lx_api.h                                            PORTABLE C      */
-/*                                                           6.4.0        */
+/*                                                           6.4.1        */
 /*  AUTHOR                                                                */
 /*                                                                        */
 /*    William E. Lamie, Microsoft Corporation                             */
@@ -89,6 +88,9 @@
 /*  12-31-2023     Xiuwen Cai               Modified comment(s),          */
 /*                                            added configuration checks, */
 /*                                            resulting in version 6.4.0  */
+/*  03-01-2024      Tiejun Zhou             Modified comment(s),          */
+/*                                            update version number,      */
+/*                                            resulting in version 6.4.1  */
 /*                                                                        */
 /**************************************************************************/
 
@@ -106,90 +108,7 @@ extern   "C" {
 
 #endif
 
-/* Determine if the optional LevelX user define file should be used.  */
-
-#ifdef LX_INCLUDE_USER_DEFINE_FILE
-
-
-/* Yes, include the user defines in lx_user.h. The defines in this file may 
-   alternately be defined on the command line.  */
-
-#include "lx_user.h"
-#endif
-
-/* Include the ThreadX api file.  */
-
-#ifndef LX_STANDALONE_ENABLE
-#include "tx_api.h"
-#endif
-
-
-#ifdef LX_STANDALONE_ENABLE
-
-/* Define compiler library include files.  */
-
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-
-#ifndef VOID
-#define VOID                                    void
-typedef char                                    CHAR;
-typedef char                                    BOOL;
-typedef unsigned char                           UCHAR;
-typedef int                                     INT;
-typedef unsigned int                            UINT;
-typedef long                                    LONG;
-typedef unsigned long                           ULONG;
-typedef short                                   SHORT;
-typedef unsigned short                          USHORT;
-#endif
-
-#ifndef ULONG64_DEFINED
-#define ULONG64_DEFINED
-typedef unsigned long long                      ULONG64;
-#endif
-
-/* Define basic alignment type used in block and byte pool operations. This data type must
-   be at least 32-bits in size and also be large enough to hold a pointer type.  */
-
-#ifndef ALIGN_TYPE_DEFINED
-#define ALIGN_TYPE_DEFINED
-#define ALIGN_TYPE                              ULONG
-#endif
-
-/* Define the LX_MEMSET macro to the standard library function, if not already defined.  */
-#ifndef LX_MEMSET
-#define LX_MEMSET(a,b,c)                        memset((a),(b),(c))
-#endif
-
-#ifndef LX_MEMCPY
-#define LX_MEMCPY(a,b,c)                        memcpy((a),(b),(c))
-#endif
-
-/* Disable usage of ThreadX mutex in standalone mode */
-#ifdef LX_THREAD_SAFE_ENABLE
-#undef LX_THREAD_SAFE_ENABLE
-#endif
-
-#define LX_INTERRUPT_SAVE_AREA
-#define LX_DISABLE
-#define LX_RESTORE
-
-#else
-
-#define LX_MEMSET                               TX_MEMSET
-#ifndef LX_MEMCPY
-#include <string.h>
-#define LX_MEMCPY(a,b,c)                        memcpy((a),(b),(c))
-#endif
-
-#define LX_INTERRUPT_SAVE_AREA                  TX_INTERRUPT_SAVE_AREA
-#define LX_DISABLE                              TX_DISABLE
-#define LX_RESTORE                              TX_RESTORE
-
-#endif
-
+#include "lx_port.h"
 
 /* Disable warning of parameter not used. */
 #ifndef LX_PARAMETER_NOT_USED
@@ -201,7 +120,7 @@ typedef unsigned long long                      ULONG64;
 #define AZURE_RTOS_LEVELX
 #define LEVELX_MAJOR_VERSION                        6
 #define LEVELX_MINOR_VERSION                        4
-#define LEVELX_PATCH_VERSION                        0
+#define LEVELX_PATCH_VERSION                        1
 
 
 /* Define general LevelX Constants.  */
@@ -235,7 +154,7 @@ typedef unsigned long long                      ULONG64;
 #define LX_SYSTEM_INVALID_BLOCK                     91
 #define LX_SYSTEM_ALLOCATION_FAILED                 92
 #define LX_SYSTEM_MUTEX_CREATE_FAILED               93
-#define LX_SYSTEM_INVALID_SECTOR_MAP                94 
+#define LX_SYSTEM_INVALID_SECTOR_MAP                94
 
 
 /* Define NOR flash constants.  */
@@ -264,9 +183,9 @@ typedef unsigned long long                      ULONG64;
 #endif
 
 
-/* Define the mask for the hash index into the sector mapping cache table.  The sector mapping cache is divided 
-   into 4 entry pieces that are indexed by the formula:  
-   
+/* Define the mask for the hash index into the sector mapping cache table.  The sector mapping cache is divided
+   into 4 entry pieces that are indexed by the formula:
+
             index =  (sector & LX_NOR_SECTOR_MAPPING_CACHE_HASH_MASK) * LX_NOR_SECTOR_MAPPING_CACHE_DEPTH
 
    The LX_NOR_SECTOR_MAPPING_CACHE_DEPTH define must not be changed unless the related source code is also changed.  */
@@ -307,22 +226,22 @@ typedef unsigned long long                      ULONG64;
 
 /* Define the NAND sector mapping cache.  */
 
-#define LX_NAND_SECTOR_MAPPING_CACHE_DEPTH          4           /* Not required if LX_NAND_FLASH_DIRECT_MAPPING_CACHE is defined.  */   
+#define LX_NAND_SECTOR_MAPPING_CACHE_DEPTH          4           /* Not required if LX_NAND_FLASH_DIRECT_MAPPING_CACHE is defined.  */
 #ifndef LX_NAND_SECTOR_MAPPING_CACHE_SIZE
 #define LX_NAND_SECTOR_MAPPING_CACHE_SIZE           128         /* Minimum value of 8, all sizes must be a power of 2, unless direct
                                                                    mapping is defined, in which there is no power of 2 requirement.  */
 #endif
 #ifndef LX_NAND_ERASE_COUNT_WRITE_SIZE
 #define LX_NAND_ERASE_COUNT_WRITE_SIZE              (nand_flash -> lx_nand_flash_pages_per_block + 1)
-#endif  
+#endif
 
 #ifndef LX_NAND_FLASH_MAPPING_LIST_UPDATE_DISABLE
 #define LX_NAND_FLASH_MAPPING_LIST_UPDATE_DISABLE
-#endif 
+#endif
 
 #ifndef LX_NAND_FLASH_MAX_METADATA_BLOCKS
 #define LX_NAND_FLASH_MAX_METADATA_BLOCKS           4
-#endif 
+#endif
 
 #ifndef LX_UTILITY_SHORT_SET
 #define LX_UTILITY_SHORT_SET(address, value)        *((USHORT*)(address)) = (USHORT)(value)
@@ -340,9 +259,9 @@ typedef unsigned long long                      ULONG64;
 #define LX_UTILITY_LONG_GET(address)                (*((ULONG*)(address)))
 #endif
 
-/* Define the mask for the hash index into the NAND sector mapping cache table.  The sector mapping cache is divided 
-   into 4 entry pieces that are indexed by the formula:  
-   
+/* Define the mask for the hash index into the NAND sector mapping cache table.  The sector mapping cache is divided
+   into 4 entry pieces that are indexed by the formula:
+
             index =  (sector & LX_NAND_SECTOR_MAPPING_CACHE_HASH_MASK) * LX_NAND_SECTOR_MAPPING_CACHE_DEPTH
 
    The LX_NAND_SECTOR_MAPPING_CACHE_DEPTH define must not be changed unless the related source code is also changed.  */
@@ -417,7 +336,7 @@ typedef struct LX_NAND_DEVICE_INFO_STRUCT
 } LX_NAND_DEVICE_INFO;
 
 
-/* Determine if the flash control block has an extension defined. If not, 
+/* Determine if the flash control block has an extension defined. If not,
    define the extension to whitespace.  */
 
 #ifndef LX_NAND_FLASH_USER_EXTENSION
@@ -504,7 +423,7 @@ typedef struct LX_NAND_FLASH_STRUCT
     UINT                            (*lx_nand_flash_driver_extra_bytes_get)(struct LX_NAND_FLASH_STRUCT *nand_flash, ULONG block, ULONG page, UCHAR *destination, UINT size);
     UINT                            (*lx_nand_flash_driver_extra_bytes_set)(struct LX_NAND_FLASH_STRUCT *nand_flash, ULONG block, ULONG page, UCHAR *source, UINT size);
     UINT                            (*lx_nand_flash_driver_system_error)(struct LX_NAND_FLASH_STRUCT *nand_flash, UINT error_code, ULONG block, ULONG page);
-    
+
     UINT                            (*lx_nand_flash_driver_pages_read)(struct LX_NAND_FLASH_STRUCT *nand_flash, ULONG block, ULONG page, UCHAR* main_buffer, UCHAR* spare_buffer, ULONG pages);
     UINT                            (*lx_nand_flash_driver_pages_write)(struct LX_NAND_FLASH_STRUCT *nand_flash, ULONG block, ULONG page, UCHAR* main_buffer, UCHAR* spare_buffer, ULONG pages);
     UINT                            (*lx_nand_flash_driver_pages_copy)(struct LX_NAND_FLASH_STRUCT *nand_flash, ULONG source_block, ULONG source_page, ULONG destination_block, ULONG destination_page, ULONG pages, UCHAR* data_buffer);
@@ -519,7 +438,7 @@ typedef struct LX_NAND_FLASH_STRUCT
     UINT                            (*lx_nand_flash_driver_extra_bytes_get)(ULONG block, ULONG page, UCHAR *destination, UINT size);
     UINT                            (*lx_nand_flash_driver_extra_bytes_set)(ULONG block, ULONG page, UCHAR *source, UINT size);
     UINT                            (*lx_nand_flash_driver_system_error)(UINT error_code, ULONG block, ULONG page);
-    
+
     UINT                            (*lx_nand_flash_driver_pages_read)(ULONG block, ULONG page, UCHAR* main_buffer, UCHAR* spare_buffer, ULONG pages);
     UINT                            (*lx_nand_flash_driver_pages_write)(ULONG block, ULONG page, UCHAR* main_buffer, UCHAR* spare_buffer, ULONG pages);
     UINT                            (*lx_nand_flash_driver_pages_copy)(ULONG source_block, ULONG source_page, ULONG destination_block, ULONG destination_page, ULONG pages, UCHAR* data_buffer);
@@ -532,17 +451,17 @@ typedef struct LX_NAND_FLASH_STRUCT
     /* When this conditional is used, the LevelX code utilizes a ThreadX mutex for thread
        safe operation. Generally, this is not required since FileX ensures thread safe operation at
        a higher layer.  */
-    TX_MUTEX                        lx_nand_flash_mutex;
+    LX_MUTEX                        lx_nand_flash_mutex;
 #endif
-    
+
     /* Define the NAND flash control block open next/previous pointers.  */
     struct LX_NAND_FLASH_STRUCT     *lx_nand_flash_open_next,
                                     *lx_nand_flash_open_previous;
 
-    /* Define the user extension in the flash control block. This 
+    /* Define the user extension in the flash control block. This
        is typically defined in lx_user.h.  */
     LX_NAND_FLASH_USER_EXTENSION
-    
+
 } LX_NAND_FLASH;
 
 
@@ -552,7 +471,7 @@ typedef struct LX_NAND_FLASH_STRUCT
 typedef struct LX_NOR_SECTOR_MAPPING_CACHE_ENTRY_STRUCT
 {
     ULONG                           lx_nor_sector_mapping_cache_logical_sector;
-    ULONG                           *lx_nor_sector_mapping_cache_physical_sector_map_entry; 
+    ULONG                           *lx_nor_sector_mapping_cache_physical_sector_map_entry;
     ULONG                           *lx_nor_sector_mapping_cache_physical_sector_address;
 } LX_NOR_SECTOR_MAPPING_CACHE_ENTRY;
 
@@ -561,13 +480,13 @@ typedef struct LX_NOR_SECTOR_MAPPING_CACHE_ENTRY_STRUCT
 
 typedef struct LX_NOR_FLASH_EXTENDED_CACHE_ENTRY_STRUCT
 {
-    ULONG                           *lx_nor_flash_extended_cache_entry_sector_address; 
+    ULONG                           *lx_nor_flash_extended_cache_entry_sector_address;
     ULONG                           *lx_nor_flash_extended_cache_entry_sector_memory;
     ULONG                           lx_nor_flash_extended_cache_entry_access_count;
 } LX_NOR_FLASH_EXTENDED_CACHE_ENTRY;
 
 
-/* Determine if the flash control block has an extension defined. If not, 
+/* Determine if the flash control block has an extension defined. If not,
    define the extension to whitespace.  */
 
 #ifndef LX_NOR_FLASH_USER_EXTENSION
@@ -600,7 +519,7 @@ typedef struct LX_NOR_FLASH_STRUCT
 
     ULONG                           lx_nor_flash_free_block_search;
     ULONG                           lx_nor_flash_found_block_search;
-    ULONG                           lx_nor_flash_found_sector_search;   
+    ULONG                           lx_nor_flash_found_sector_search;
 
     ULONG                           lx_nor_flash_write_requests;
     ULONG                           lx_nor_flash_read_requests;
@@ -636,7 +555,7 @@ typedef struct LX_NOR_FLASH_STRUCT
 
     ULONG                           *lx_nor_flash_sector_buffer;
     UINT                            lx_nor_flash_sector_mapping_cache_enabled;
-    LX_NOR_SECTOR_MAPPING_CACHE_ENTRY   
+    LX_NOR_SECTOR_MAPPING_CACHE_ENTRY
                                     lx_nor_flash_sector_mapping_cache[LX_NOR_SECTOR_MAPPING_CACHE_SIZE];
 
 #ifndef LX_NOR_DISABLE_EXTENDED_CACHE
@@ -654,7 +573,7 @@ typedef struct LX_NOR_FLASH_STRUCT
     LX_NOR_OBSOLETE_COUNT_CACHE_TYPE
                                     *lx_nor_flash_extended_cache_obsolete_count;
     ULONG                           lx_nor_flash_extended_cache_obsolete_count_max_block;
-#endif      
+#endif
 #endif
 
 #ifdef LX_THREAD_SAFE_ENABLE
@@ -662,14 +581,14 @@ typedef struct LX_NOR_FLASH_STRUCT
     /* When this conditional is used, the LevelX code utilizes a ThreadX mutex for thread
        safe operation. Generally, this is not required since FileX ensures thread safe operation at
        a higher layer.  */
-    TX_MUTEX                        lx_nor_flash_mutex;
+    LX_MUTEX                        lx_nor_flash_mutex;
 #endif
-    
+
     /* Define the NOR flash control block open next/previous pointers.  */
     struct LX_NOR_FLASH_STRUCT      *lx_nor_flash_open_next,
                                     *lx_nor_flash_open_previous;
-    
-    /* Define the user extension in the flash control block. This 
+
+    /* Define the user extension in the flash control block. This
        is typically defined in lx_user.h.  */
     LX_NOR_FLASH_USER_EXTENSION
 
@@ -679,24 +598,24 @@ typedef struct LX_NOR_FLASH_STRUCT
 /* Each physical NOR block has the following structure at the beginning of the block:
 
     Offset              Meaning
-    
+
     0           Erase count
     4           Minimum logical sector number - only when the block is full
     8           Maximum logical sector number - only when the block is full
-    12          Free physical sector bit map, where a value of 1 indicates a 
+    12          Free physical sector bit map, where a value of 1 indicates a
                 free physical sector. The bit map is evenly divisible by 4
-    .           Array of physical sector mapping information (4 bytes per entry, 
+    .           Array of physical sector mapping information (4 bytes per entry,
                 one entry for each physical sector in block). Each entry looks
                 like the following:
-                
+
                         Bit(s)                 Meaning
-                        
+
                         0-29                Logical sector mapped if not 0x3FFFFFFF
-                        30                  If 0, entry is being superceded
+                        30                  If 0, entry is being superseded
                         31                  If 1, entry is valid
-                          
+
              Array of physical sectors, with each of size LX_NOR_SECTOR_SIZE
-*/    
+*/
 
 
 typedef struct LX_NOR_FLASH_BLOCK_HEADER_STRUCT
@@ -824,5 +743,5 @@ VOID    _lx_nor_flash_system_error(LX_NOR_FLASH *nor_flash, UINT error_code);
 }
 #endif
 
-#endif 
+#endif
 

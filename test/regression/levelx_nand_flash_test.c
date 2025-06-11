@@ -940,7 +940,7 @@ UCHAR   *byte_ptr;
 
 
     /* Simulate a power interruption after a new sector is allocated, after data
-       had been copied, and the superceeded bit is clear, but before the new entry can be
+       had been copied, and the superseded bit is clear, but before the new entry can be
        setup.  */
        
     /* Copy data block and reset spare.  */
@@ -950,7 +950,7 @@ UCHAR   *byte_ptr;
     word_ptr[i+528] =  0xFFFFFFFF;  /* Reset extra bytes for block 0, page 1 */
     word_ptr[i+529] =  0xFFFFFFFF;  /* Reset extra bytes for block 0, page 1 */ 
     
-    /* Set the superceded bit in block 1/page 1.   */
+    /* Set the superseded bit in block 1/page 1.   */
     byte_ptr[37957] = 0x80;
     
     /* Open the flash and see if we recover properly.  */    
@@ -976,7 +976,7 @@ UCHAR   *byte_ptr;
     lx_nand_flash_close(&nand_sim_flash);
 
     /* Simulate a power interruption after a new sector is allocated, after data
-       had been copied, and the superceeded bit is clear, the new entry is setup, but the old entry
+       had been copied, and the superseded bit is clear, the new entry is setup, but the old entry
        has not been invalidated.  */
     byte_ptr[2053] = 0xBF;          /* Set block 0/page 0 extra bytes to indicate block not empty.  */
     for (i = 1; i < 512; i++)       /* Fill block 0, page 1 data  */
@@ -992,7 +992,7 @@ UCHAR   *byte_ptr;
     byte_ptr[4164] = 0;             /* Setup extra bytes for block 0, page 1  */
     byte_ptr[4165] = 0xC0;          /* Setup extra bytes for block 0, page 1  */
 
-    /* Set the superceded bit in block 1/page 1.   */
+    /* Set the superseded bit in block 1/page 1.   */
     byte_ptr[37957] = 0x80;
 
     /* Open the flash and see if we recover properly.  */    

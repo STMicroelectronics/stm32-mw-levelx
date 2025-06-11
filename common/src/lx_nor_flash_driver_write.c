@@ -1,19 +1,18 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   NOR Flash                                                           */
 /**                                                                       */
@@ -35,41 +34,41 @@
 #include "lx_api.h"
 
 
-/**************************************************************************/ 
-/*                                                                        */ 
-/*  FUNCTION                                               RELEASE        */ 
-/*                                                                        */ 
-/*    _lx_nor_flash_driver_write                          PORTABLE C      */ 
+/**************************************************************************/
+/*                                                                        */
+/*  FUNCTION                                               RELEASE        */
+/*                                                                        */
+/*    _lx_nor_flash_driver_write                          PORTABLE C      */
 /*                                                           6.2.1       */
 /*  AUTHOR                                                                */
 /*                                                                        */
 /*    William E. Lamie, Microsoft Corporation                             */
 /*                                                                        */
-/*  DESCRIPTION                                                           */ 
-/*                                                                        */ 
-/*    This function performs a write of the NOR flash memory.             */ 
-/*                                                                        */ 
-/*  INPUT                                                                 */ 
-/*                                                                        */ 
-/*    nor_flash                             NOR flash instance            */ 
-/*    flash_address                         Address of NOR flash to write */ 
-/*    source                                Source for the write          */ 
-/*    words                                 Number of words to write      */ 
-/*                                                                        */ 
-/*  OUTPUT                                                                */ 
-/*                                                                        */ 
-/*    return status                                                       */ 
-/*                                                                        */ 
-/*  CALLS                                                                 */ 
-/*                                                                        */ 
-/*    (lx_nor_flash_driver_write)           Actual driver write           */ 
-/*                                                                        */ 
-/*  CALLED BY                                                             */ 
-/*                                                                        */ 
-/*    Application Code                                                    */ 
-/*                                                                        */ 
-/*  RELEASE HISTORY                                                       */ 
-/*                                                                        */ 
+/*  DESCRIPTION                                                           */
+/*                                                                        */
+/*    This function performs a write of the NOR flash memory.             */
+/*                                                                        */
+/*  INPUT                                                                 */
+/*                                                                        */
+/*    nor_flash                             NOR flash instance            */
+/*    flash_address                         Address of NOR flash to write */
+/*    source                                Source for the write          */
+/*    words                                 Number of words to write      */
+/*                                                                        */
+/*  OUTPUT                                                                */
+/*                                                                        */
+/*    return status                                                       */
+/*                                                                        */
+/*  CALLS                                                                 */
+/*                                                                        */
+/*    (lx_nor_flash_driver_write)           Actual driver write           */
+/*                                                                        */
+/*  CALLED BY                                                             */
+/*                                                                        */
+/*    Application Code                                                    */
+/*                                                                        */
+/*  RELEASE HISTORY                                                       */
+/*                                                                        */
 /*    DATE              NAME                      DESCRIPTION             */
 /*                                                                        */
 /*  05-19-2020     William E. Lamie         Initial Version 6.0           */
@@ -103,31 +102,31 @@ ULONG   cache_offset;
         /* Loop through the cache entries to see if there is a sector in cache.  */
         for (i = 0; i < nor_flash -> lx_nor_flash_extended_cache_entries; i++)
         {
-        
+
             /* Search through the cache to see if there is a cache entry.  */
-                
+
             /* Determine the cache entry addresses.  */
             cache_entry_start =  nor_flash -> lx_nor_flash_extended_cache[i].lx_nor_flash_extended_cache_entry_sector_address;
             cache_entry_end =    cache_entry_start + LX_NOR_SECTOR_SIZE;
-                
+
             /* Determine if the flash address in in the cache entry.  */
             if ((cache_entry_start) && (flash_address >= cache_entry_start) && (flash_address < cache_entry_end))
             {
-                
+
                 /* Yes, we found the entry.  */
-                    
+
                 /* Calculate the offset into the cache entry.  */
                 cache_offset =  (ULONG)(flash_address - cache_entry_start);
-                    
+
                 /* Copy the word into the cache.  */
                 *(nor_flash -> lx_nor_flash_extended_cache[i].lx_nor_flash_extended_cache_entry_sector_memory + cache_offset) =  *source;
-                
+
                 /* Get out of the loop.  */
                 break;
             }
         }
     }
-    
+
     /* In any case, call the actual driver write function.  */
 #ifdef LX_NOR_ENABLE_CONTROL_BLOCK_FOR_DRIVER_INTERFACE
     status =  (nor_flash -> lx_nor_flash_driver_write)(nor_flash, flash_address, source, words);
@@ -136,8 +135,8 @@ ULONG   cache_offset;
 #endif
 
     /* Return completion status.  */
-    return(status);   
-   
+    return(status);
+
 #else
 UINT    status;
 
@@ -148,9 +147,9 @@ UINT    status;
 #else
     status =  (nor_flash -> lx_nor_flash_driver_write)(flash_address, source, words);
 #endif
-    
+
     /* Return completion status.  */
-    return(status);   
+    return(status);
 #endif
 }
 

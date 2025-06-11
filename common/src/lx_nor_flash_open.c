@@ -1,19 +1,18 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   NOR Flash                                                           */
 /**                                                                       */
@@ -35,49 +34,49 @@
 #include "lx_api.h"
 
 
-/**************************************************************************/ 
-/*                                                                        */ 
-/*  FUNCTION                                               RELEASE        */ 
-/*                                                                        */ 
-/*    _lx_nor_flash_open                                  PORTABLE C      */ 
+/**************************************************************************/
+/*                                                                        */
+/*  FUNCTION                                               RELEASE        */
+/*                                                                        */
+/*    _lx_nor_flash_open                                  PORTABLE C      */
 /*                                                           6.3.0        */
 /*  AUTHOR                                                                */
 /*                                                                        */
 /*    William E. Lamie, Microsoft Corporation                             */
 /*                                                                        */
-/*  DESCRIPTION                                                           */ 
-/*                                                                        */ 
-/*    This function opens a NOR flash instance and ensures the NOR flash  */ 
-/*    is in a coherent state.                                             */ 
-/*                                                                        */ 
-/*  INPUT                                                                 */ 
-/*                                                                        */ 
-/*    nor_flash                             NOR flash instance            */ 
-/*    name                                  Name of NOR flash instance    */ 
-/*    nor_driver_initialize                 Driver initialize             */ 
-/*                                                                        */ 
-/*  OUTPUT                                                                */ 
-/*                                                                        */ 
-/*    return status                                                       */ 
-/*                                                                        */ 
-/*  CALLS                                                                 */ 
-/*                                                                        */ 
-/*    (nor_driver_initialize)               Driver initialize             */ 
-/*    _lx_nor_flash_driver_read             Driver read                   */ 
-/*    _lx_nor_flash_driver_write            Driver write                  */ 
-/*    (lx_nor_flash_driver_block_erased_verify)                           */ 
-/*                                          NOR flash verify block erased */ 
-/*    _lx_nor_flash_driver_block_erase      Driver block erase            */ 
-/*    _lx_nor_flash_logical_sector_find     Find logical sector           */ 
-/*    _lx_nor_flash_system_error            System error handler          */ 
-/*    tx_mutex_create                       Create thread-safe mutex      */ 
-/*                                                                        */ 
-/*  CALLED BY                                                             */ 
-/*                                                                        */ 
-/*    Application Code                                                    */ 
-/*                                                                        */ 
-/*  RELEASE HISTORY                                                       */ 
-/*                                                                        */ 
+/*  DESCRIPTION                                                           */
+/*                                                                        */
+/*    This function opens a NOR flash instance and ensures the NOR flash  */
+/*    is in a coherent state.                                             */
+/*                                                                        */
+/*  INPUT                                                                 */
+/*                                                                        */
+/*    nor_flash                             NOR flash instance            */
+/*    name                                  Name of NOR flash instance    */
+/*    nor_driver_initialize                 Driver initialize             */
+/*                                                                        */
+/*  OUTPUT                                                                */
+/*                                                                        */
+/*    return status                                                       */
+/*                                                                        */
+/*  CALLS                                                                 */
+/*                                                                        */
+/*    (nor_driver_initialize)               Driver initialize             */
+/*    _lx_nor_flash_driver_read             Driver read                   */
+/*    _lx_nor_flash_driver_write            Driver write                  */
+/*    (lx_nor_flash_driver_block_erased_verify)                           */
+/*                                          NOR flash verify block erased */
+/*    _lx_nor_flash_driver_block_erase      Driver block erase            */
+/*    _lx_nor_flash_logical_sector_find     Find logical sector           */
+/*    _lx_nor_flash_system_error            System error handler          */
+/*    lx_os_mutex_create                    Create thread-safe mutex      */
+/*                                                                        */
+/*  CALLED BY                                                             */
+/*                                                                        */
+/*    Application Code                                                    */
+/*                                                                        */
+/*  RELEASE HISTORY                                                       */
+/*                                                                        */
 /*    DATE              NAME                      DESCRIPTION             */
 /*                                                                        */
 /*  05-19-2020     William E. Lamie         Initial Version 6.0           */
@@ -121,7 +120,7 @@ ULONG           used_sectors;
 ULONG           *new_map_entry;
 ULONG           *new_sector_address;
 ULONG           erased_count, min_erased_count, max_erased_count, temp_erased_count, min_erased_blocks;
-ULONG           j, k, l;    
+ULONG           j, k, l;
 UINT            status;
 #ifdef LX_FREE_SECTOR_DATA_VERIFY
 ULONG           *sector_word_ptr;
@@ -134,7 +133,7 @@ LX_INTERRUPT_SAVE_AREA
 
     /* Clear the NOR flash control block. User extension is not cleared.  */
     LX_MEMSET(nor_flash, 0, (ULONG)((UCHAR*)&(nor_flash -> lx_nor_flash_open_previous) - (UCHAR*)nor_flash) + sizeof(nor_flash -> lx_nor_flash_open_previous));
-   
+
     /* Call the flash driver's initialization function.  */
     (nor_driver_initialize)(nor_flash);
 
@@ -149,34 +148,34 @@ LX_INTERRUPT_SAVE_AREA
         return(LX_NO_MEMORY);
     }
 #endif
-    
+
     /* Setup the offset to the free bit map.  */
     nor_flash -> lx_nor_flash_block_free_bit_map_offset =  sizeof(LX_NOR_FLASH_BLOCK_HEADER)/sizeof(ULONG);
-    
-    /* Calculate the number of bits we need in the free physical sector bit map.  Subtract 1 to account for the 
-       flash block header itself. The case where multiple physical sectors are needed for certain sized flash 
+
+    /* Calculate the number of bits we need in the free physical sector bit map.  Subtract 1 to account for the
+       flash block header itself. The case where multiple physical sectors are needed for certain sized flash
        devices is handled below.  */
     sectors_per_block =  (nor_flash -> lx_nor_flash_words_per_block / LX_NOR_SECTOR_SIZE) - 1;
 
     /* Calculate the number of words required for the sector map array.  */
     sector_map_words =  sectors_per_block;
-    
+
     /* Calculate the number of words we need for the free physical sector bit map.  */
     bit_map_words =  (sectors_per_block + 31)/ 32;
-    
+
     /* Save the number of bit map words.  */
     nor_flash -> lx_nor_flash_block_bit_map_words =  bit_map_words;
-    
+
     /* Setup the offset (in words) to the array of physical sector mapping.  */
     nor_flash -> lx_nor_flash_block_physical_sector_mapping_offset =  nor_flash -> lx_nor_flash_block_free_bit_map_offset + bit_map_words;
-    
+
     /* Calculate the total number of words required for the flash block header.  */
     total_header_words =  sizeof(LX_NOR_FLASH_BLOCK_HEADER)/sizeof(ULONG) + bit_map_words + sector_map_words;
-    
+
     /* Determine if more physical sectors are needed, which can happen on large devices.  */
     if (total_header_words <= LX_NOR_SECTOR_SIZE)
     {
-    
+
         /* Round up to the size of 1 physical sector.  */
         total_header_words =  LX_NOR_SECTOR_SIZE;
     }
@@ -185,24 +184,24 @@ LX_INTERRUPT_SAVE_AREA
 
         /* Otherwise calculate how many header sectors are necessary.  */
         header_sectors =  (total_header_words-1)/LX_NOR_SECTOR_SIZE;
-        
+
         /* Round up to the next sector.  */
         header_sectors++;
-        
+
         /* Compute the total header words, rounding to the next sector.  */
         total_header_words =  header_sectors * LX_NOR_SECTOR_SIZE;
-        
+
         /* Adjust the number of sectors per block.  */
         sectors_per_block =  sectors_per_block - (header_sectors - 1);
     }
-    
+
     /* Save the offset to the sector area.  */
     nor_flash -> lx_nor_flash_block_physical_sector_offset =  total_header_words;
-    
+
     /* Save the physical sectors per block and total physical sectors.  */
     nor_flash -> lx_nor_flash_physical_sectors_per_block =  sectors_per_block;
     nor_flash -> lx_nor_flash_total_physical_sectors =      nor_flash -> lx_nor_flash_total_blocks * sectors_per_block;
-    
+
     /* Build the free bit map mask, for the portion of the bit map that is less than 32 bits.  */
     if ((sectors_per_block % 32) != 0)
     {
@@ -211,44 +210,44 @@ LX_INTERRUPT_SAVE_AREA
     }
     else
     {
-    
+
         /* Exactly 32 sectors for the bit map mask.  */
         bit_map_mask =  LX_ALL_ONES;
     }
 
     /* Save the free bit map mask in the control block.  */
     nor_flash -> lx_nor_flash_block_bit_map_mask =  bit_map_mask;
-    
+
     /* Setup default values for the max/min erased counts.  */
     min_erased_count =  LX_ALL_ONES;
     min_erased_blocks = 0;
     max_erased_count =  0;
-    
-    /* Setup the block word pointer to the first word of the first block, which is effectively the 
+
+    /* Setup the block word pointer to the first word of the first block, which is effectively the
        flash base address.  */
     block_word_ptr =  nor_flash -> lx_nor_flash_base_address;
-    
+
     /* Loop through the blocks to determine the minimum and maximum erase count.  */
     for (l = 0; l < nor_flash -> lx_nor_flash_total_blocks; l++)
     {
-    
+
         /* Pickup the first word of the block. If the flash manager has executed before, this word contains the
            erase count for the block. Otherwise, if the word is 0xFFFFFFFF, this flash block was either erased
            or this is the first time it was used.  */
 #ifdef LX_DIRECT_READ
-        
+
         /* Read the word directly.  */
         block_word =  *block_word_ptr;
 #else
 
-        
+
 
         status =  _lx_nor_flash_driver_read(nor_flash, block_word_ptr, &block_word, 1);
-        
+
         /* Check for an error from flash driver. Drivers should never return an error..  */
         if (status)
         {
-        
+
             /* Call system error handler.  */
             _lx_nor_flash_system_error(nor_flash, status);
 
@@ -260,7 +259,7 @@ LX_INTERRUPT_SAVE_AREA
         /* Is the block erased?  */
         if (((block_word & LX_BLOCK_ERASED) != LX_BLOCK_ERASED) && (block_word != LX_BLOCK_ERASE_STARTED))
         {
-        
+
             /* No, valid block.  Isolate the erased count.  */
             erased_count =  (block_word & LX_BLOCK_ERASE_COUNT_MASK);
 
@@ -275,52 +274,52 @@ LX_INTERRUPT_SAVE_AREA
             /* Is this the new minimum?  */
             if (erased_count < min_erased_count)
             {
-                
+
                 /* Yes, remember the new minimum.  */
                 min_erased_count =  erased_count;
 
                 /* Reset the minimum erased block count.  */
                 min_erased_blocks =  1;
             }
-            
+
             /* Is this the new maximum?  */
             if (erased_count > max_erased_count)
             {
-            
+
                 /* Yes, remember the new maximum.  */
                 max_erased_count =  erased_count;
             }
         }
-        
+
         /* Move to the next flash block.  */
         block_word_ptr =  block_word_ptr + (nor_flash -> lx_nor_flash_words_per_block);
-    }    
+    }
 
-    /* If we haven't found any erased counts, we can assume the flash is completely erased and needs to 
+    /* If we haven't found any erased counts, we can assume the flash is completely erased and needs to
        be setup for the first time.  */
     if (min_erased_count == LX_ALL_ONES)
     {
-    
+
         /* Indicate that this is the initial format.  */
         nor_flash -> lx_nor_flash_diagnostic_initial_format =  LX_TRUE;
-    
-        /* Setup the block word pointer to the first word of the first block, which is effectively the 
+
+        /* Setup the block word pointer to the first word of the first block, which is effectively the
            flash base address.  */
         block_word_ptr =  nor_flash -> lx_nor_flash_base_address;
-    
+
         /* Loop through the blocks to setup the flash the fist time.  */
         for (l = 0; l < nor_flash -> lx_nor_flash_total_blocks; l++)
         {
 
             /* Setup the free bit map that corresponds to the free physical sectors in this
-               block. Note that we only need to setup the portion of the free bit map that doesn't 
-               have sectors associated with it.  */            
+               block. Note that we only need to setup the portion of the free bit map that doesn't
+               have sectors associated with it.  */
             status =  _lx_nor_flash_driver_write(nor_flash, block_word_ptr+(nor_flash -> lx_nor_flash_block_free_bit_map_offset + (bit_map_words-1)) , &bit_map_mask, 1);
-        
+
             /* Check for an error from flash driver. Drivers should never return an error..  */
             if (status)
             {
-        
+
                 /* Call system error handler.  */
                 _lx_nor_flash_system_error(nor_flash, status);
 
@@ -330,14 +329,14 @@ LX_INTERRUPT_SAVE_AREA
 
             /* Setup the initial erase count to 1.  */
             block_word =  ((ULONG) 1);
-    
-            /* Write the initial erase count for the block.  */            
+
+            /* Write the initial erase count for the block.  */
             status =  _lx_nor_flash_driver_write(nor_flash, block_word_ptr, &block_word, 1);
 
             /* Check for an error from flash driver. Drivers should never return an error..  */
             if (status)
             {
-        
+
                 /* Call system error handler.  */
                 _lx_nor_flash_system_error(nor_flash, status);
 
@@ -352,31 +351,31 @@ LX_INTERRUPT_SAVE_AREA
 
             /* Update the number of free physical sectors.  */
             nor_flash -> lx_nor_flash_free_physical_sectors =   nor_flash -> lx_nor_flash_free_physical_sectors + sectors_per_block;
-        
+
             /* Move to the next flash block.  */
             block_word_ptr =  block_word_ptr + (nor_flash -> lx_nor_flash_words_per_block);
-        }    
+        }
     }
     else
     {
 
-        /* At this point, we have a previously managed flash structure. This needs to be traversed to prepare for the 
+        /* At this point, we have a previously managed flash structure. This needs to be traversed to prepare for the
            current flash operation.  */
 
         /* Default the flash free sector search to an invalid value.  */
         nor_flash -> lx_nor_flash_free_block_search =  nor_flash -> lx_nor_flash_total_blocks;
 
-        /* Setup the block word pointer to the first word of the first block, which is effectively the 
+        /* Setup the block word pointer to the first word of the first block, which is effectively the
            flash base address.  */
         block_word_ptr =  nor_flash -> lx_nor_flash_base_address;
-    
+
         /* Loop through the blocks.  */
         for (l = 0; l < nor_flash -> lx_nor_flash_total_blocks; l++)
         {
-         
+
             /* First, determine if this block has a valid erase count.  */
 #ifdef LX_DIRECT_READ
-        
+
             /* Read the word directly.  */
             block_word =  *block_word_ptr;
 #else
@@ -385,7 +384,7 @@ LX_INTERRUPT_SAVE_AREA
             /* Check for an error from flash driver. Drivers should never return an error..  */
             if (status)
             {
-        
+
                 /* Call system error handler.  */
                 _lx_nor_flash_system_error(nor_flash, status);
 
@@ -398,13 +397,13 @@ LX_INTERRUPT_SAVE_AREA
             if (((block_word & LX_BLOCK_ERASED) == LX_BLOCK_ERASED) || (block_word == LX_BLOCK_ERASE_STARTED))
             {
 
-                /* This can happen if we were previously in the process of erasing the flash block and a 
+                /* This can happen if we were previously in the process of erasing the flash block and a
                    power interruption occurs.  It should only occur once though. */
 
                 /* Is this the first time?  */
                 if (nor_flash -> lx_nor_flash_diagnostic_erased_block)
                 {
-                            
+
                     /* No, this is a potential format error, since this should only happen once in a given
                        NOR flash format.  */
                     _lx_nor_flash_system_error(nor_flash, LX_SYSTEM_INVALID_BLOCK);
@@ -426,11 +425,11 @@ LX_INTERRUPT_SAVE_AREA
                 /* Is the block completely erased?  */
                 if (status != LX_SUCCESS)
                 {
-                
+
                     /* Is this the first time?  */
                     if (nor_flash -> lx_nor_flash_diagnostic_re_erase_block)
                     {
-                            
+
                         /* No, this is a potential format error, since this should only happen once in a given
                            NOR flash format.  */
                         _lx_nor_flash_system_error(nor_flash, LX_SYSTEM_INVALID_BLOCK);
@@ -441,14 +440,14 @@ LX_INTERRUPT_SAVE_AREA
 
                     /* Increment the erased block diagnostic.  */
                     nor_flash -> lx_nor_flash_diagnostic_re_erase_block++;
-        
+
                     /* No, the block is not fully erased, erase it again.  */
                     status =  _lx_nor_flash_driver_block_erase(nor_flash, l, max_erased_count);
-                    
+
                     /* Check for an error from flash driver. Drivers should never return an error..  */
                     if (status)
                     {
-        
+
                         /* Call system error handler.  */
                         _lx_nor_flash_system_error(nor_flash, status);
 
@@ -458,14 +457,14 @@ LX_INTERRUPT_SAVE_AREA
                 }
 
                 /* Setup the free bit map that corresponds to the free physical sectors in this
-                   block. Note that we only need to setup the portion of the free bit map that doesn't 
-                   have sectors associated with it.  */            
+                   block. Note that we only need to setup the portion of the free bit map that doesn't
+                   have sectors associated with it.  */
                 status =  _lx_nor_flash_driver_write(nor_flash, block_word_ptr+(nor_flash -> lx_nor_flash_block_free_bit_map_offset + (bit_map_words-1)) , &bit_map_mask, 1);
-        
+
                 /* Check for an error from flash driver. Drivers should never return an error..  */
                 if (status)
                 {
-        
+
                     /* Call system error handler.  */
                     _lx_nor_flash_system_error(nor_flash, status);
 
@@ -473,14 +472,14 @@ LX_INTERRUPT_SAVE_AREA
                     return(LX_ERROR);
                 }
 
-                /* Write the initial erase count for the block with upper bit set.  */            
+                /* Write the initial erase count for the block with upper bit set.  */
                 temp_erased_count =  (max_erased_count | LX_BLOCK_ERASED);
                 status =  _lx_nor_flash_driver_write(nor_flash, block_word_ptr, &temp_erased_count, 1);
 
                 /* Check for an error from flash driver. Drivers should never return an error..  */
                 if (status)
                 {
-        
+
                     /* Call system error handler.  */
                     _lx_nor_flash_system_error(nor_flash, status);
 
@@ -488,13 +487,13 @@ LX_INTERRUPT_SAVE_AREA
                     return(LX_ERROR);
                 }
 
-                /* Write the final initial erase count for the block.  */            
+                /* Write the final initial erase count for the block.  */
                 status =  _lx_nor_flash_driver_write(nor_flash, block_word_ptr, &max_erased_count, 1);
 
                 /* Check for an error from flash driver. Drivers should never return an error..  */
                 if (status)
                 {
-        
+
                     /* Call system error handler.  */
                     _lx_nor_flash_system_error(nor_flash, status);
 
@@ -512,10 +511,10 @@ LX_INTERRUPT_SAVE_AREA
                 free_sectors =  0;
                 for (j = 0; j < bit_map_words; j++)
                 {
-                
+
                     /* Read this word of the free sector bit map.  */
 #ifdef LX_DIRECT_READ
-        
+
                     /* Read the word directly.  */
                     block_word =  *(block_word_ptr + nor_flash -> lx_nor_flash_block_free_bit_map_offset + j);
 #else
@@ -524,7 +523,7 @@ LX_INTERRUPT_SAVE_AREA
                     /* Check for an error from flash driver. Drivers should never return an error..  */
                     if (status)
                     {
-        
+
                         /* Call system error handler.  */
                         _lx_nor_flash_system_error(nor_flash, status);
 
@@ -532,46 +531,46 @@ LX_INTERRUPT_SAVE_AREA
                         return(LX_ERROR);
                     }
 #endif
-                    
+
                     /* Count the number of set bits (free sectors).  */
                     for (k = 0; k < 32; k++)
                     {
-                    
+
                         /* Is this sector free?  */
                         if (block_word & 1)
                         {
                             /* Yes, this sector is free, increment the free sectors count.  */
                             free_sectors++;
-                            
+
                             /* Determine if we need to update the search pointer.  */
                             if (nor_flash -> lx_nor_flash_free_block_search == nor_flash -> lx_nor_flash_total_blocks)
                             {
-                            
+
                                 /* Remember the block with free sectors.  */
                                 nor_flash -> lx_nor_flash_free_block_search =  l;
                             }
                         }
-                        
+
                         /* Shift down the free sector.  */
                         block_word =  block_word >> 1;
                     }
                 }
-                    
+
                 /* Update the number of free physical sectors.  */
                 nor_flash -> lx_nor_flash_free_physical_sectors =   nor_flash -> lx_nor_flash_free_physical_sectors + free_sectors;
 
                 /* We need to now examine the mapping list.  */
-                    
+
                 /* Calculate how many non-free sectors there are - this includes valid and obsolete sectors.  */
                 used_sectors =  sectors_per_block - free_sectors;
-                    
+
                 /* Now walk the list of logical-physical sector mapping.  */
                 for (j = 0; j < sectors_per_block; j++)
                 {
-                    
+
                     /* Read this word of the sector mapping list.  */
 #ifdef LX_DIRECT_READ
-        
+
                     /* Read the word directly.  */
                     block_word =  *(block_word_ptr + nor_flash -> lx_nor_flash_block_physical_sector_mapping_offset + j);
 #else
@@ -580,7 +579,7 @@ LX_INTERRUPT_SAVE_AREA
                     /* Check for an error from flash driver. Drivers should never return an error..  */
                     if (status)
                     {
-        
+
                         /* Call system error handler.  */
                         _lx_nor_flash_system_error(nor_flash, status);
 
@@ -599,7 +598,7 @@ LX_INTERRUPT_SAVE_AREA
                         if ((block_word & LX_NOR_LOGICAL_SECTOR_MASK) != LX_NOR_LOGICAL_SECTOR_MASK)
                         {
 
-                            /* Determine if the valid bit is set and the superceded bit is clear. This indicates the block was 
+                            /* Determine if the valid bit is set and the superseded bit is clear. This indicates the block was
                                about to become obsolete.  */
                             if ((block_word & LX_NOR_PHYSICAL_SECTOR_VALID) && ((block_word & LX_NOR_PHYSICAL_SECTOR_SUPERCEDED) == 0))
                             {
@@ -610,7 +609,7 @@ LX_INTERRUPT_SAVE_AREA
 
                                 /* Save the currently mapped physical sectors.  */
                                 temp =  nor_flash -> lx_nor_flash_mapped_physical_sectors;
-                                
+
                                 /* Indicate all the physical sectors are mapped for the purpose of this search.  */
                                 nor_flash -> lx_nor_flash_mapped_physical_sectors =  nor_flash -> lx_nor_flash_total_physical_sectors;
 
@@ -624,7 +623,7 @@ LX_INTERRUPT_SAVE_AREA
                                 /* Determine if the new logical sector entry is present.  */
                                 if (new_map_entry)
                                 {
-                                
+
                                     /* Yes, make the current entry obsolete in favor of the new entry.  */
                                     block_word =  block_word & ~((ULONG) LX_NOR_PHYSICAL_SECTOR_VALID);
                                     status =  _lx_nor_flash_driver_write(nor_flash, (block_word_ptr + nor_flash -> lx_nor_flash_block_physical_sector_mapping_offset + j), &block_word, 1);
@@ -632,18 +631,18 @@ LX_INTERRUPT_SAVE_AREA
                                     /* Check for an error from flash driver. Drivers should never return an error..  */
                                     if (status)
                                     {
-        
+
                                         /* Call system error handler.  */
                                         _lx_nor_flash_system_error(nor_flash, status);
 
                                         /* Return an error.  */
                                         return(LX_ERROR);
                                     }
-                                    
+
                                     /* Is this the first time?  */
                                     if (nor_flash -> lx_nor_flash_diagnostic_sector_obsoleted)
                                     {
-                            
+
                                         /* No, this is a potential format error, since this should only happen once in a given
                                            NOR flash format.  */
                                         _lx_nor_flash_system_error(nor_flash, LX_SYSTEM_INVALID_FORMAT);
@@ -656,19 +655,19 @@ LX_INTERRUPT_SAVE_AREA
                                     nor_flash -> lx_nor_flash_diagnostic_sector_obsoleted++;
                                 }
                             }
-                        }    
-                        
+                        }
+
                         /* Determine if the sector is free.  */
                         else if (block_word == LX_NOR_PHYSICAL_SECTOR_FREE)
                         {
-                        
-                            /* A free entry when there are still used sectors implies that the sector was allocated and a power interruption 
+
+                            /* A free entry when there are still used sectors implies that the sector was allocated and a power interruption
                                took place prior to writing the new logical sector number into the list.  */
-                            
+
                             /* Is this the first time?  */
                             if (nor_flash -> lx_nor_flash_diagnostic_mapping_invalidated)
                             {
-                            
+
                                 /* No, this is a potential format error, since this should only happen once in a given
                                    NOR flash format.  */
                                 _lx_nor_flash_system_error(nor_flash, LX_SYSTEM_INVALID_FORMAT);
@@ -676,7 +675,7 @@ LX_INTERRUPT_SAVE_AREA
                                 /* Return an error.  */
                                 return(LX_ERROR);
                             }
-                            
+
                             /* Write 0s out to this entry to invalidate the sector entry.  */
                             block_word =  0;
                             status =  _lx_nor_flash_driver_write(nor_flash, (block_word_ptr + nor_flash -> lx_nor_flash_block_physical_sector_mapping_offset + j), &block_word, 1);
@@ -684,7 +683,7 @@ LX_INTERRUPT_SAVE_AREA
                             /* Check for an error from flash driver. Drivers should never return an error..  */
                             if (status)
                             {
-        
+
                                 /* Call system error handler.  */
                                 _lx_nor_flash_system_error(nor_flash, status);
 
@@ -692,14 +691,14 @@ LX_INTERRUPT_SAVE_AREA
                                 return(LX_ERROR);
                             }
 
-                            /* Increment the number of mapping invalidates.  */                            
+                            /* Increment the number of mapping invalidates.  */
                             nor_flash -> lx_nor_flash_diagnostic_mapping_invalidated++;
                         }
-                        
+
                         /* Yes, now determine if the sector is obsolete.  */
                         if ((block_word & LX_NOR_PHYSICAL_SECTOR_VALID) == 0)
                         {
-                                
+
                             /* Increment the number of obsolete sectors.  */
                             nor_flash -> lx_nor_flash_obsolete_physical_sectors++;
                         }
@@ -707,23 +706,23 @@ LX_INTERRUPT_SAVE_AREA
                         /* Determine if the mapping for this sector isn't yet valid.  */
                         else if (block_word & LX_NOR_PHYSICAL_SECTOR_MAPPING_NOT_VALID)
                         {
-                       
+
                             /* Yes, a power interruption or reset occurred while the sector mapping entry was being written.  */
 
                             /* Increment the number of obsolete sectors.  */
                             nor_flash -> lx_nor_flash_obsolete_physical_sectors++;
-                            
-                            /* Increment the interrupted mapping counter.  */                           
+
+                            /* Increment the interrupted mapping counter.  */
                             nor_flash -> lx_nor_flash_diagnostic_mapping_write_interrupted++;
 
-                            /* Invalidate this entry - clearing valid bit, superceded bit and logical sector.  */
+                            /* Invalidate this entry - clearing valid bit, superseded bit and logical sector.  */
                             block_word =  0;
                             status =  _lx_nor_flash_driver_write(nor_flash, (block_word_ptr + nor_flash -> lx_nor_flash_block_physical_sector_mapping_offset + j), &block_word, 1);
 
                             /* Check for an error from flash driver. Drivers should never return an error..  */
                             if (status)
                             {
-        
+
                                 /* Call system error handler.  */
                                 _lx_nor_flash_system_error(nor_flash, status);
 
@@ -736,19 +735,19 @@ LX_INTERRUPT_SAVE_AREA
                             /* Increment the number of mapped physical sectors.  */
                             nor_flash -> lx_nor_flash_mapped_physical_sectors++;
                         }
-                        
+
                         /* Decrease the number of used sectors.  */
                         used_sectors--;
                     }
                     else
                     {
-                    
+
                         /* No more used sectors in this flash block.  */
-                    
+
                         /* In this case the entry must be free or there is a serious NOR flash format error present.  */
                         if (block_word != LX_NOR_PHYSICAL_SECTOR_FREE)
                         {
-                        
+
                             /* Increment the sector not free diagnostic.  */
                             nor_flash -> lx_nor_flash_diagnostic_sector_not_free++;
 
@@ -762,7 +761,7 @@ LX_INTERRUPT_SAVE_AREA
                             /* Check for an error from flash driver. Drivers should never return an error..  */
                             if (status)
                             {
-        
+
                                 /* Call system error handler.  */
                                 _lx_nor_flash_system_error(nor_flash, status);
 
@@ -770,7 +769,7 @@ LX_INTERRUPT_SAVE_AREA
                                 return(LX_ERROR);
                             }
                         }
-                        
+
 #ifdef LX_FREE_SECTOR_DATA_VERIFY
 
                         /* Pickup address of the free sector data area.  */
@@ -781,7 +780,7 @@ LX_INTERRUPT_SAVE_AREA
                         {
 
 #ifdef LX_DIRECT_READ
-        
+
                             /* Read the word directly.  */
                             sector_word =  *(sector_word_ptr);
 #else
@@ -790,7 +789,7 @@ LX_INTERRUPT_SAVE_AREA
                             /* Check for an error from flash driver. Drivers should never return an error..  */
                             if (status)
                             {
-        
+
                                 /* Call system error handler.  */
                                 _lx_nor_flash_system_error(nor_flash, status);
 
@@ -802,13 +801,13 @@ LX_INTERRUPT_SAVE_AREA
                             /* Determine if this word is not available.  */
                             if (sector_word != LX_NOR_PHYSICAL_SECTOR_FREE)
                             {
-                            
+
                                 /* Increment the sector data not free diagnostic.  */
                                 nor_flash -> lx_nor_flash_diagnostic_sector_data_not_free++;
 
                                 /* This is a format error.  */
                                 _lx_nor_flash_system_error(nor_flash, LX_SYSTEM_INVALID_BLOCK);
-                               
+
                                 /* Return an error.  */
                                 return(LX_ERROR);
                             }
@@ -819,8 +818,8 @@ LX_INTERRUPT_SAVE_AREA
 #endif
                     }
                 }
-            }       
-            
+            }
+
             /* Move to the next flash block.  */
             block_word_ptr =  block_word_ptr + (nor_flash -> lx_nor_flash_words_per_block);
         }
@@ -833,7 +832,7 @@ LX_INTERRUPT_SAVE_AREA
         /* Determine if we need to update the free sector search pointer.  */
         if (nor_flash -> lx_nor_flash_free_block_search == nor_flash -> lx_nor_flash_total_blocks)
         {
-                            
+
             /* Just start at the beginning.  */
             nor_flash -> lx_nor_flash_free_block_search =  0;
         }
@@ -841,17 +840,17 @@ LX_INTERRUPT_SAVE_AREA
 
 #ifdef LX_THREAD_SAFE_ENABLE
 
-    /* If the thread safe option is enabled, create a ThreadX mutex that will be used in all external APIs 
+    /* If the thread safe option is enabled, create a ThreadX mutex that will be used in all external APIs
        in order to provide thread-safe operation.  */
-    status =  tx_mutex_create(&nor_flash -> lx_nor_flash_mutex, "NOR Flash Mutex", TX_NO_INHERIT);
+    status =  lx_os_mutex_create(&nor_flash -> lx_nor_flash_mutex, "NOR Flash Mutex");
 
     /* Determine if the mutex creation encountered an error.  */
     if (status != LX_SUCCESS)
     {
-    
+
         /* Call system error handler, since this should not happen.  */
         _lx_nor_flash_system_error(nor_flash, LX_SYSTEM_MUTEX_CREATE_FAILED);
-    
+
         /* Return error to caller.  */
         return(LX_ERROR);
     }
@@ -867,7 +866,7 @@ LX_INTERRUPT_SAVE_AREA
     /* Lockout interrupts.  */
     LX_DISABLE
 
-    /* At this point, the NOR flash has been opened successfully.  Place the 
+    /* At this point, the NOR flash has been opened successfully.  Place the
        NOR flash control block on the linked list of currently opened NOR flashes.  */
 
     /* Set the NOR flash state to open.  */
@@ -889,7 +888,7 @@ LX_INTERRUPT_SAVE_AREA
 
         /* Setup this NOR flash's opened links.  */
         nor_flash -> lx_nor_flash_open_previous =  tail_ptr;
-        nor_flash -> lx_nor_flash_open_next =      _lx_nor_flash_opened_ptr;   
+        nor_flash -> lx_nor_flash_open_next =      _lx_nor_flash_opened_ptr;
     }
     else
     {

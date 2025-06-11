@@ -1,19 +1,18 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   NAND Flash                                                          */
 /**                                                                       */
@@ -35,55 +34,55 @@
 #include "lx_api.h"
 
 
-/**************************************************************************/ 
-/*                                                                        */ 
-/*  FUNCTION                                               RELEASE        */ 
-/*                                                                        */ 
-/*    _lx_nand_flash_sector_release                       PORTABLE C      */ 
+/**************************************************************************/
+/*                                                                        */
+/*  FUNCTION                                               RELEASE        */
+/*                                                                        */
+/*    _lx_nand_flash_sector_release                       PORTABLE C      */
 /*                                                           6.2.1       */
 /*  AUTHOR                                                                */
 /*                                                                        */
 /*    Xiuwen Cai, Microsoft Corporation                                   */
 /*                                                                        */
-/*  DESCRIPTION                                                           */ 
-/*                                                                        */ 
-/*    This function releases a logical sector from being managed in the   */ 
-/*    NAND flash.                                                         */ 
-/*                                                                        */ 
-/*  INPUT                                                                 */ 
-/*                                                                        */ 
-/*    nand_flash                            NAND flash instance           */ 
-/*    logical_sector                        Logical sector number         */ 
-/*                                                                        */ 
-/*  OUTPUT                                                                */ 
-/*                                                                        */ 
-/*    return status                                                       */ 
-/*                                                                        */ 
-/*  CALLS                                                                 */ 
-/*                                                                        */ 
-/*    _lx_nand_flash_block_find             Find the mapped block         */ 
-/*    lx_nand_flash_driver_pages_read       Read pages                    */ 
-/*    _lx_nand_flash_block_allocate         Allocate block                */ 
+/*  DESCRIPTION                                                           */
+/*                                                                        */
+/*    This function releases a logical sector from being managed in the   */
+/*    NAND flash.                                                         */
+/*                                                                        */
+/*  INPUT                                                                 */
+/*                                                                        */
+/*    nand_flash                            NAND flash instance           */
+/*    logical_sector                        Logical sector number         */
+/*                                                                        */
+/*  OUTPUT                                                                */
+/*                                                                        */
+/*    return status                                                       */
+/*                                                                        */
+/*  CALLS                                                                 */
+/*                                                                        */
+/*    _lx_nand_flash_block_find             Find the mapped block         */
+/*    lx_nand_flash_driver_pages_read       Read pages                    */
+/*    _lx_nand_flash_block_allocate         Allocate block                */
 /*    _lx_nand_flash_mapped_block_list_remove                             */
-/*                                          Remove mapped block           */ 
-/*    _lx_nand_flash_data_page_copy         Copy data pages               */ 
+/*                                          Remove mapped block           */
+/*    _lx_nand_flash_data_page_copy         Copy data pages               */
 /*    _lx_nand_flash_free_block_list_add    Add free block to list        */
-/*    _lx_nand_flash_block_mapping_set      Set block mapping             */ 
-/*    _lx_nand_flash_driver_block_erase     Erase block                   */ 
+/*    _lx_nand_flash_block_mapping_set      Set block mapping             */
+/*    _lx_nand_flash_driver_block_erase     Erase block                   */
 /*    _lx_nand_flash_erase_count_set        Set erase count               */
 /*    _lx_nand_flash_block_data_move        Move block data               */
-/*    _lx_nand_flash_block_status_set       Set block status              */ 
+/*    _lx_nand_flash_block_status_set       Set block status              */
 /*    _lx_nand_flash_mapped_block_list_add  Add mapped block to list      */
-/*    _lx_nand_flash_system_error           Internal system error handler */ 
-/*    tx_mutex_get                          Get thread protection         */ 
-/*    tx_mutex_put                          Release thread protection     */ 
-/*                                                                        */ 
-/*  CALLED BY                                                             */ 
-/*                                                                        */ 
-/*    Application Code                                                    */ 
-/*                                                                        */ 
-/*  RELEASE HISTORY                                                       */ 
-/*                                                                        */ 
+/*    _lx_nand_flash_system_error           Internal system error handler */
+/*    lx_os_mutex_get                       Get thread protection         */
+/*    lx_os_mutex_put                       Release thread protection     */
+/*                                                                        */
+/*  CALLED BY                                                             */
+/*                                                                        */
+/*    Application Code                                                    */
+/*                                                                        */
+/*  RELEASE HISTORY                                                       */
+/*                                                                        */
 /*    DATE              NAME                      DESCRIPTION             */
 /*                                                                        */
 /*  03-08-2023     Xiuwen Cai               Initial Version 6.2.1        */
@@ -105,7 +104,7 @@ USHORT      new_block_status;
 #ifdef LX_THREAD_SAFE_ENABLE
 
     /* Obtain the thread safe mutex.  */
-    tx_mutex_get(&nand_flash -> lx_nand_flash_mutex, TX_WAIT_FOREVER);
+    lx_os_mutex_get(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
     /* Increment the number of release requests.  */
@@ -128,7 +127,7 @@ USHORT      new_block_status;
 #ifdef LX_THREAD_SAFE_ENABLE
 
             /* Release the thread safe mutex.  */
-            tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+            lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
             /* Return an error.  */
@@ -170,7 +169,7 @@ USHORT      new_block_status;
 #ifdef LX_THREAD_SAFE_ENABLE
 
                     /* Release the thread safe mutex.  */
-                    tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+                    lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
                     /* Return an error.  */
@@ -222,7 +221,7 @@ USHORT      new_block_status;
 #ifdef LX_THREAD_SAFE_ENABLE
 
                     /* Release the thread safe mutex.  */
-                    tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+                    lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
                     /* Return an error.  */
@@ -248,7 +247,7 @@ USHORT      new_block_status;
 #ifdef LX_THREAD_SAFE_ENABLE
 
                     /* Release the thread safe mutex.  */
-                    tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+                    lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
                     /* Return an error.  */
@@ -271,7 +270,7 @@ USHORT      new_block_status;
 #ifdef LX_THREAD_SAFE_ENABLE
 
                         /* Release the thread safe mutex.  */
-                        tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+                        lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
                         /* Return an error.  */
@@ -304,7 +303,7 @@ USHORT      new_block_status;
 #ifdef LX_THREAD_SAFE_ENABLE
 
                         /* Release the thread safe mutex.  */
-                        tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+                        lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
                         /* Return an error.  */
@@ -327,7 +326,7 @@ USHORT      new_block_status;
 #ifdef LX_THREAD_SAFE_ENABLE
 
                     /* Release the thread safe mutex.  */
-                    tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+                    lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
                     /* Return an error.  */
@@ -346,7 +345,7 @@ USHORT      new_block_status;
 #ifdef LX_THREAD_SAFE_ENABLE
 
                     /* Release the thread safe mutex.  */
-                    tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+                    lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
                     /* Return an error.  */
@@ -375,7 +374,7 @@ USHORT      new_block_status;
 #ifdef LX_THREAD_SAFE_ENABLE
 
                         /* Release the thread safe mutex.  */
-                        tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+                        lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
                         /* Return an error.  */
@@ -389,7 +388,7 @@ USHORT      new_block_status;
                 /* Check if there is valid pages in the new block.  */
                 if ((new_block_status & LX_NAND_BLOCK_STATUS_PAGE_NUMBER_MASK) != 0)
                 {
-                    
+
                     /* Add the new block to mapped block list.  */
                     _lx_nand_flash_mapped_block_list_add(nand_flash, logical_sector / nand_flash -> lx_nand_flash_pages_per_block);
                 }
@@ -399,7 +398,7 @@ USHORT      new_block_status;
 
                 /* Set page buffer to all 0xFF bytes.  */
                 LX_MEMSET(nand_flash -> lx_nand_flash_page_buffer, 0xFF, nand_flash -> lx_nand_flash_bytes_per_page + nand_flash -> lx_nand_flash_spare_total_length);
-                
+
                 /* Setup spare buffer pointer.  */
                 spare_buffer_ptr = nand_flash -> lx_nand_flash_page_buffer + nand_flash -> lx_nand_flash_bytes_per_page;
 
@@ -413,7 +412,7 @@ USHORT      new_block_status;
 
                 /* Set page type and sector address.  */
                 LX_UTILITY_LONG_SET(&spare_buffer_ptr[nand_flash -> lx_nand_flash_spare_data1_offset], LX_NAND_PAGE_TYPE_USER_DATA_RELEASED | logical_sector);
-                
+
                 /* Write the page.  */
 #ifdef LX_NAND_ENABLE_CONTROL_BLOCK_FOR_DRIVER_INTERFACE
                 status = (nand_flash -> lx_nand_flash_driver_pages_write)(nand_flash, block, available_pages, (UCHAR*)nand_flash -> lx_nand_flash_page_buffer, spare_buffer_ptr, 1);
@@ -430,7 +429,7 @@ USHORT      new_block_status;
 #ifdef LX_THREAD_SAFE_ENABLE
 
                     /* Release the thread safe mutex.  */
-                    tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+                    lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
                     /* Return an error.  */
@@ -466,7 +465,7 @@ USHORT      new_block_status;
 #ifdef LX_THREAD_SAFE_ENABLE
 
                     /* Release the thread safe mutex.  */
-                    tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+                    lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
                     /* Return an error.  */
@@ -478,7 +477,7 @@ USHORT      new_block_status;
 #ifdef LX_THREAD_SAFE_ENABLE
 
     /* Release the thread safe mutex.  */
-    tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+    lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
     /* Return status.  */

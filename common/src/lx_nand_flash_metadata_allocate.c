@@ -1,19 +1,18 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   NAND Flash                                                          */
 /**                                                                       */
@@ -35,47 +34,47 @@
 #include "lx_api.h"
 
 
-/**************************************************************************/ 
-/*                                                                        */ 
-/*  FUNCTION                                               RELEASE        */ 
-/*                                                                        */ 
-/*    _lx_nand_flash_metadata_allocate                    PORTABLE C      */ 
+/**************************************************************************/
+/*                                                                        */
+/*  FUNCTION                                               RELEASE        */
+/*                                                                        */
+/*    _lx_nand_flash_metadata_allocate                    PORTABLE C      */
 /*                                                           6.2.1       */
 /*  AUTHOR                                                                */
 /*                                                                        */
 /*    Xiuwen Cai, Microsoft Corporation                                   */
 /*                                                                        */
-/*  DESCRIPTION                                                           */ 
-/*                                                                        */ 
+/*  DESCRIPTION                                                           */
+/*                                                                        */
 /*    This function allocates new blocks for metadata if current metadata */
 /*    block is full. This function also frees metadata blocks if the chain*/
 /*    is too long.                                                        */
-/*                                                                        */ 
-/*  INPUT                                                                 */ 
-/*                                                                        */ 
-/*    nand_flash                            NAND flash instance           */ 
-/*                                                                        */ 
-/*  OUTPUT                                                                */ 
-/*                                                                        */ 
-/*    return status                                                       */ 
-/*                                                                        */ 
-/*  CALLS                                                                 */ 
-/*                                                                        */ 
-/*    _lx_nand_flash_metadata_build         Build metadata                */ 
-/*    _lx_nand_flash_driver_block_erase     Erase block                   */ 
-/*    _lx_nand_flash_block_data_move        Move block data               */ 
-/*    _lx_nand_flash_free_block_list_add    Add free block list           */ 
-/*    _lx_nand_flash_block_allocate         Allocate block                */ 
+/*                                                                        */
+/*  INPUT                                                                 */
+/*                                                                        */
+/*    nand_flash                            NAND flash instance           */
+/*                                                                        */
+/*  OUTPUT                                                                */
+/*                                                                        */
+/*    return status                                                       */
+/*                                                                        */
+/*  CALLS                                                                 */
+/*                                                                        */
+/*    _lx_nand_flash_metadata_build         Build metadata                */
+/*    _lx_nand_flash_driver_block_erase     Erase block                   */
+/*    _lx_nand_flash_block_data_move        Move block data               */
+/*    _lx_nand_flash_free_block_list_add    Add free block list           */
+/*    _lx_nand_flash_block_allocate         Allocate block                */
 /*    _lx_nand_flash_block_status_set       Set block status              */
 /*    _lx_nand_flash_metadata_write         Write metadata                */
-/*    _lx_nand_flash_system_error           Internal system error handler */ 
-/*                                                                        */ 
-/*  CALLED BY                                                             */ 
-/*                                                                        */ 
-/*    Internal LevelX                                                     */ 
-/*                                                                        */ 
-/*  RELEASE HISTORY                                                       */ 
-/*                                                                        */ 
+/*    _lx_nand_flash_system_error           Internal system error handler */
+/*                                                                        */
+/*  CALLED BY                                                             */
+/*                                                                        */
+/*    Internal LevelX                                                     */
+/*                                                                        */
+/*  RELEASE HISTORY                                                       */
+/*                                                                        */
 /*    DATE              NAME                      DESCRIPTION             */
 /*                                                                        */
 /*  03-08-2023     Xiuwen Cai               Initial Version 6.2.1        */
@@ -151,7 +150,7 @@ UCHAR   min_erase_count;
 
             /* Exclude erase count of bad block.  */
             if(nand_flash -> lx_nand_flash_block_status_table[j] != LX_NAND_BLOCK_STATUS_BAD)
-            { 
+            {
 
                 /* Check if it has less erase count.  */
                 if (nand_flash -> lx_nand_flash_erase_count_table[j] < min_erase_count)
@@ -214,7 +213,7 @@ UCHAR   min_erase_count;
 #ifdef LX_THREAD_SAFE_ENABLE
 
                 /* Release the thread safe mutex.  */
-                tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+                lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
                 /* Return an error.  */
@@ -240,7 +239,7 @@ UCHAR   min_erase_count;
 
             /* Erase the block.  */
             status = _lx_nand_flash_driver_block_erase(nand_flash, block, nand_flash -> lx_nand_flash_base_erase_count + nand_flash -> lx_nand_flash_erase_count_table[block]);
-        
+
             /* Check for an error from flash driver.   */
             if (status)
             {
@@ -250,7 +249,7 @@ UCHAR   min_erase_count;
 #ifdef LX_THREAD_SAFE_ENABLE
 
                 /* Release the thread safe mutex.  */
-                tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+                lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
                 /* Return an error.  */

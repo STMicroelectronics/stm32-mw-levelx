@@ -1,19 +1,18 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   NAND Flash                                                          */
 /**                                                                       */
@@ -35,56 +34,56 @@
 #include "lx_api.h"
 
 
-/**************************************************************************/ 
-/*                                                                        */ 
-/*  FUNCTION                                               RELEASE        */ 
-/*                                                                        */ 
-/*    _lx_nand_flash_format                               PORTABLE C      */ 
+/**************************************************************************/
+/*                                                                        */
+/*  FUNCTION                                               RELEASE        */
+/*                                                                        */
+/*    _lx_nand_flash_format                               PORTABLE C      */
 /*                                                           6.3.0        */
 /*  AUTHOR                                                                */
 /*                                                                        */
 /*    Xiuwen Cai, Microsoft Corporation                                   */
 /*                                                                        */
-/*  DESCRIPTION                                                           */ 
-/*                                                                        */ 
-/*    This function erases and formats a NAND flash.                      */ 
-/*                                                                        */ 
-/*  INPUT                                                                 */ 
-/*                                                                        */ 
-/*    nand_flash                            NAND flash instance           */ 
-/*    name                                  Name of NAND flash instance   */ 
-/*    nand_driver_initialize                Driver initialize             */ 
+/*  DESCRIPTION                                                           */
+/*                                                                        */
+/*    This function erases and formats a NAND flash.                      */
+/*                                                                        */
+/*  INPUT                                                                 */
+/*                                                                        */
+/*    nand_flash                            NAND flash instance           */
+/*    name                                  Name of NAND flash instance   */
+/*    nand_driver_initialize                Driver initialize             */
 /*    memory_ptr                            Pointer to memory used by the */
 /*                                            LevelX for this NAND.       */
 /*    memory_size                           Size of memory - must at least*/
 /*                                            7 * total block count +     */
 /*                                            2 * page size               */
-/*                                                                        */ 
-/*  OUTPUT                                                                */ 
-/*                                                                        */ 
-/*    return status                                                       */ 
-/*                                                                        */ 
-/*  CALLS                                                                 */ 
-/*                                                                        */ 
-/*    (nand_driver_initialize)              Driver initialize             */ 
-/*    LX_MEMSET                             Initialize memory             */ 
-/*    _lx_nand_flash_memory_initialize      Initialize buffer             */ 
+/*                                                                        */
+/*  OUTPUT                                                                */
+/*                                                                        */
+/*    return status                                                       */
+/*                                                                        */
+/*  CALLS                                                                 */
+/*                                                                        */
+/*    (nand_driver_initialize)              Driver initialize             */
+/*    LX_MEMSET                             Initialize memory             */
+/*    _lx_nand_flash_memory_initialize      Initialize buffer             */
 /*    _lx_nand_flash_driver_block_status_get                              */
-/*                                          Driver block status get       */ 
-/*    _lx_nand_flash_driver_block_status_set                              */ 
-/*                                          Driver block status set       */ 
-/*    _lx_nand_flash_metadata_build         Build metadata                */ 
+/*                                          Driver block status get       */
+/*    _lx_nand_flash_driver_block_status_set                              */
+/*                                          Driver block status set       */
+/*    _lx_nand_flash_metadata_build         Build metadata                */
 /*    _lx_nand_flash_metadata_write         Write metadata                */
-/*    _lx_nand_flash_driver_block_erase     Driver block erase            */ 
-/*    _lx_nand_flash_system_error           System error handler          */ 
-/*    tx_mutex_create                       Create thread-safe mutex      */ 
-/*                                                                        */ 
-/*  CALLED BY                                                             */ 
-/*                                                                        */ 
-/*    Application Code                                                    */ 
-/*                                                                        */ 
-/*  RELEASE HISTORY                                                       */ 
-/*                                                                        */ 
+/*    _lx_nand_flash_driver_block_erase     Driver block erase            */
+/*    _lx_nand_flash_system_error           System error handler          */
+/*    lx_os_mutex_create                    Create thread-safe mutex      */
+/*                                                                        */
+/*  CALLED BY                                                             */
+/*                                                                        */
+/*    Application Code                                                    */
+/*                                                                        */
+/*  RELEASE HISTORY                                                       */
+/*                                                                        */
 /*    DATE              NAME                      DESCRIPTION             */
 /*                                                                        */
 /*  03-08-2023     Xiuwen Cai               Initial Version 6.2.1         */
@@ -251,7 +250,7 @@ UCHAR                       *page_buffer_ptr;
     nand_flash -> lx_nand_flash_block_status_table[nand_flash -> lx_nand_flash_metadata_block_number_next] = LX_NAND_BLOCK_STATUS_ALLOCATED;
     nand_flash -> lx_nand_flash_block_status_table[nand_flash -> lx_nand_flash_backup_metadata_block_number] = (USHORT)nand_flash -> lx_nand_flash_backup_metadata_block_number_next;
     nand_flash -> lx_nand_flash_block_status_table[nand_flash -> lx_nand_flash_metadata_block_number] = (USHORT)nand_flash -> lx_nand_flash_metadata_block_number_next;
-    
+
     /* Initialize the mapping table.  */
     LX_MEMSET(nand_flash -> lx_nand_flash_block_mapping_table, 0xFF, nand_flash -> lx_nand_flash_block_mapping_table_size);
 

@@ -1,19 +1,18 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   NOR Flash                                                           */
 /**                                                                       */
@@ -35,48 +34,48 @@
 #include "lx_api.h"
 
 
-/**************************************************************************/ 
-/*                                                                        */ 
-/*  FUNCTION                                               RELEASE        */ 
-/*                                                                        */ 
-/*    _lx_nor_flash_sector_release                        PORTABLE C      */ 
+/**************************************************************************/
+/*                                                                        */
+/*  FUNCTION                                               RELEASE        */
+/*                                                                        */
+/*    _lx_nor_flash_sector_release                        PORTABLE C      */
 /*                                                           6.3.0        */
 /*  AUTHOR                                                                */
 /*                                                                        */
 /*    William E. Lamie, Microsoft Corporation                             */
 /*                                                                        */
-/*  DESCRIPTION                                                           */ 
-/*                                                                        */ 
-/*    This function releases a logical sector from being managed in the   */ 
-/*    NOR flash.                                                          */ 
-/*                                                                        */ 
-/*  INPUT                                                                 */ 
-/*                                                                        */ 
-/*    nor_flash                             NOR flash instance            */ 
-/*    logical_sector                        Logical sector number         */ 
-/*                                                                        */ 
-/*  OUTPUT                                                                */ 
-/*                                                                        */ 
-/*    return status                                                       */ 
-/*                                                                        */ 
-/*  CALLS                                                                 */ 
-/*                                                                        */ 
-/*    _lx_nor_flash_driver_write            Driver flash sector write     */ 
-/*    _lx_nor_flash_driver_read             Driver flash sector read      */ 
-/*    _lx_nor_flash_block_reclaim           Reclaim one flash block       */ 
-/*    _lx_nor_flash_sector_mapping_cache_invalidate                       */ 
-/*                                          Invalidate cache entry        */ 
-/*    _lx_nor_flash_logical_sector_find     Find logical sector           */ 
-/*    _lx_nor_flash_system_error            Internal system error handler */ 
-/*    tx_mutex_get                          Get thread protection         */ 
-/*    tx_mutex_put                          Release thread protection     */ 
-/*                                                                        */ 
-/*  CALLED BY                                                             */ 
-/*                                                                        */ 
-/*    Application Code                                                    */ 
-/*                                                                        */ 
-/*  RELEASE HISTORY                                                       */ 
-/*                                                                        */ 
+/*  DESCRIPTION                                                           */
+/*                                                                        */
+/*    This function releases a logical sector from being managed in the   */
+/*    NOR flash.                                                          */
+/*                                                                        */
+/*  INPUT                                                                 */
+/*                                                                        */
+/*    nor_flash                             NOR flash instance            */
+/*    logical_sector                        Logical sector number         */
+/*                                                                        */
+/*  OUTPUT                                                                */
+/*                                                                        */
+/*    return status                                                       */
+/*                                                                        */
+/*  CALLS                                                                 */
+/*                                                                        */
+/*    _lx_nor_flash_driver_write            Driver flash sector write     */
+/*    _lx_nor_flash_driver_read             Driver flash sector read      */
+/*    _lx_nor_flash_block_reclaim           Reclaim one flash block       */
+/*    _lx_nor_flash_sector_mapping_cache_invalidate                       */
+/*                                          Invalidate cache entry        */
+/*    _lx_nor_flash_logical_sector_find     Find logical sector           */
+/*    _lx_nor_flash_system_error            Internal system error handler */
+/*    lx_os_mutex_get                       Get thread protection         */
+/*    lx_os_mutex_put                       Release thread protection     */
+/*                                                                        */
+/*  CALLED BY                                                             */
+/*                                                                        */
+/*    Application Code                                                    */
+/*                                                                        */
+/*  RELEASE HISTORY                                                       */
+/*                                                                        */
 /*    DATE              NAME                      DESCRIPTION             */
 /*                                                                        */
 /*  05-19-2020     William E. Lamie         Initial Version 6.0           */
@@ -106,7 +105,7 @@ ULONG   block;
 #ifdef LX_THREAD_SAFE_ENABLE
 
     /* Obtain the thread safe mutex.  */
-    tx_mutex_get(&nor_flash -> lx_nor_flash_mutex, TX_WAIT_FOREVER);
+    lx_os_mutex_get(&nor_flash -> lx_nor_flash_mutex);
 #endif
 
     /* Increment the number of read requests.  */
@@ -114,16 +113,16 @@ ULONG   block;
 
     /* See if we can find the sector in the current mapping.  */
     _lx_nor_flash_logical_sector_find(nor_flash, logical_sector, LX_FALSE, &mapping_address, &sector_address);
-    
+
     /* Determine if the logical sector was found.  */
     if (mapping_address)
     {
-    
+
         /* Yes, we were able to find the logical sector.  */
-        
+
         /* Read in the old sector mapping.  */
 #ifdef LX_DIRECT_READ
-        
+
         /* Read the word directly.  */
         mapping_entry =  *(mapping_address);
 #else
@@ -132,14 +131,14 @@ ULONG   block;
         /* Check for an error from flash driver. Drivers should never return an error..  */
         if (status)
         {
-        
+
             /* Call system error handler.  */
             _lx_nor_flash_system_error(nor_flash, status);
 
 #ifdef LX_THREAD_SAFE_ENABLE
 
             /* Release the thread safe mutex.  */
-            tx_mutex_put(&nor_flash -> lx_nor_flash_mutex);
+            lx_os_mutex_put(&nor_flash -> lx_nor_flash_mutex);
 #endif
 
             /* Return status.  */
@@ -150,21 +149,21 @@ ULONG   block;
         /* Mark this sector as invalid.  */
         /* Now clear bits 31 and 30, which indicates this sector is now obsoleted.  */
         mapping_entry =  mapping_entry & ~(((ULONG) LX_NOR_PHYSICAL_SECTOR_VALID) | ((ULONG) LX_NOR_PHYSICAL_SECTOR_SUPERCEDED));
-            
+
         /* Write the value back to the flash to clear bits 31 & 30.  */
         status =  _lx_nor_flash_driver_write(nor_flash, mapping_address, &mapping_entry, 1);
-            
+
         /* Check for an error from flash driver. Drivers should never return an error..  */
         if (status)
         {
-        
+
             /* Call system error handler.  */
             _lx_nor_flash_system_error(nor_flash, status);
 
 #ifdef LX_THREAD_SAFE_ENABLE
 
             /* Release the thread safe mutex.  */
-            tx_mutex_put(&nor_flash -> lx_nor_flash_mutex);
+            lx_os_mutex_put(&nor_flash -> lx_nor_flash_mutex);
 #endif
 
             /* Return status.  */
@@ -191,7 +190,7 @@ ULONG   block;
 
         /* Get the block number from mapping address.  */
         block = (ULONG)(mapping_address - nor_flash -> lx_nor_flash_base_address) / nor_flash -> lx_nor_flash_words_per_block;
-        
+
         /* Determine if this block is within the range of the obsolete count cache.  */
         if (block < nor_flash -> lx_nor_flash_extended_cache_obsolete_count_max_block)
         {
@@ -203,7 +202,7 @@ ULONG   block;
 
         /* Decrement the number of mapped physical sectors.  */
         nor_flash -> lx_nor_flash_mapped_physical_sectors--;
-            
+
         /* Ensure the sector mapping cache no longer has this sector.  */
         _lx_nor_flash_sector_mapping_cache_invalidate(nor_flash, logical_sector);
 
@@ -211,7 +210,7 @@ ULONG   block;
         i =  0;
         while (nor_flash -> lx_nor_flash_free_physical_sectors <= nor_flash -> lx_nor_flash_physical_sectors_per_block)
         {
-     
+
             /* Attempt to reclaim one physical block.  */
             _lx_nor_flash_block_reclaim(nor_flash);
 
@@ -220,8 +219,8 @@ ULONG   block;
 
             /* Have we exceeded the number of blocks in the system?  */
             if (i >= nor_flash -> lx_nor_flash_total_blocks)
-            { 
-          
+            {
+
                 /* Yes, break out of the loop.  */
                 break;
             }
@@ -236,11 +235,11 @@ ULONG   block;
         /* Could not find the logical sector.  */
         status =  LX_SECTOR_NOT_FOUND;
     }
-    
+
 #ifdef LX_THREAD_SAFE_ENABLE
 
     /* Release the thread safe mutex.  */
-    tx_mutex_put(&nor_flash -> lx_nor_flash_mutex);
+    lx_os_mutex_put(&nor_flash -> lx_nor_flash_mutex);
 #endif
 
     /* Return status.  */

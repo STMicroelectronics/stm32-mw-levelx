@@ -1,19 +1,18 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   NAND Flash                                                          */
 /**                                                                       */
@@ -35,47 +34,47 @@
 #include "lx_api.h"
 
 
-/**************************************************************************/ 
-/*                                                                        */ 
-/*  FUNCTION                                               RELEASE        */ 
-/*                                                                        */ 
-/*    _lx_nand_flash_data_page_copy                       PORTABLE C      */ 
+/**************************************************************************/
+/*                                                                        */
+/*  FUNCTION                                               RELEASE        */
+/*                                                                        */
+/*    _lx_nand_flash_data_page_copy                       PORTABLE C      */
 /*                                                           6.4.0        */
 /*  AUTHOR                                                                */
 /*                                                                        */
 /*    Xiuwen Cai, Microsoft Corporation                                   */
 /*                                                                        */
-/*  DESCRIPTION                                                           */ 
-/*                                                                        */ 
-/*    This function copies logical sectors into new block.                */ 
-/*                                                                        */ 
-/*  INPUT                                                                 */ 
-/*                                                                        */ 
-/*    nand_flash                            NAND flash instance           */ 
-/*    logical_sector                        Logical sector number         */ 
-/*    source_block                          Source block number           */ 
+/*  DESCRIPTION                                                           */
+/*                                                                        */
+/*    This function copies logical sectors into new block.                */
+/*                                                                        */
+/*  INPUT                                                                 */
+/*                                                                        */
+/*    nand_flash                            NAND flash instance           */
+/*    logical_sector                        Logical sector number         */
+/*    source_block                          Source block number           */
 /*    src_block_status                      Source block status           */
-/*    destination_block                     Destination block number      */ 
-/*    dest_block_status_ptr                 Pointer to destination block  */ 
+/*    destination_block                     Destination block number      */
+/*    dest_block_status_ptr                 Pointer to destination block  */
 /*                                            status                      */
-/*    sectors                               Number of sectors to copy     */ 
-/*                                                                        */ 
-/*  OUTPUT                                                                */ 
-/*                                                                        */ 
-/*    return status                                                       */ 
-/*                                                                        */ 
-/*  CALLS                                                                 */ 
-/*                                                                        */ 
-/*    lx_nand_flash_driver_pages_copy       Driver pages copy             */ 
-/*    lx_nand_flash_driver_pages_read       Driver pages read             */ 
-/*    _lx_nand_flash_system_error           Internal system error handler */ 
-/*                                                                        */ 
-/*  CALLED BY                                                             */ 
-/*                                                                        */ 
-/*    Internal LevelX                                                     */ 
-/*                                                                        */ 
-/*  RELEASE HISTORY                                                       */ 
-/*                                                                        */ 
+/*    sectors                               Number of sectors to copy     */
+/*                                                                        */
+/*  OUTPUT                                                                */
+/*                                                                        */
+/*    return status                                                       */
+/*                                                                        */
+/*  CALLS                                                                 */
+/*                                                                        */
+/*    lx_nand_flash_driver_pages_copy       Driver pages copy             */
+/*    lx_nand_flash_driver_pages_read       Driver pages read             */
+/*    _lx_nand_flash_system_error           Internal system error handler */
+/*                                                                        */
+/*  CALLED BY                                                             */
+/*                                                                        */
+/*    Internal LevelX                                                     */
+/*                                                                        */
+/*  RELEASE HISTORY                                                       */
+/*                                                                        */
 /*    DATE              NAME                      DESCRIPTION             */
 /*                                                                        */
 /*  03-08-2023     Xiuwen Cai               Initial Version 6.2.1         */
@@ -201,7 +200,7 @@ ULONG   number_of_pages;
         source_page = (LONG)(logical_sector % nand_flash -> lx_nand_flash_pages_per_block);
 
         /* Check if the page to copy is greater than the available pages.  */
-        number_of_pages = ((ULONG)source_page + sectors) > available_pages ?  
+        number_of_pages = ((ULONG)source_page + sectors) > available_pages ?
             (available_pages > (ULONG)source_page ? available_pages - (ULONG)source_page : 0) : sectors;
 
         /* Check if there is any pages to be copied.  */

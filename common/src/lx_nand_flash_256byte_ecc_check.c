@@ -1,19 +1,18 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   NAND Flash                                                          */
 /**                                                                       */
@@ -35,40 +34,40 @@
 #include "lx_api.h"
 
 
-/**************************************************************************/ 
-/*                                                                        */ 
-/*  FUNCTION                                               RELEASE        */ 
-/*                                                                        */ 
-/*    _lx_nand_flash_256byte_ecc_check                    PORTABLE C      */ 
+/**************************************************************************/
+/*                                                                        */
+/*  FUNCTION                                               RELEASE        */
+/*                                                                        */
+/*    _lx_nand_flash_256byte_ecc_check                    PORTABLE C      */
 /*                                                           6.1.7        */
 /*  AUTHOR                                                                */
 /*                                                                        */
 /*    William E. Lamie, Microsoft Corporation                             */
 /*                                                                        */
-/*  DESCRIPTION                                                           */ 
-/*                                                                        */ 
-/*    This function checks 256 bytes of a NAND flash and ECC and          */ 
-/*    attempts to correct any single bit errors.                          */ 
-/*                                                                        */ 
-/*  INPUT                                                                 */ 
-/*                                                                        */ 
-/*    page_buffer                           Page buffer                   */ 
-/*    ecc_buffer                            Returned ECC buffer           */ 
-/*                                                                        */ 
-/*  OUTPUT                                                                */ 
-/*                                                                        */ 
-/*    return status                                                       */ 
-/*                                                                        */ 
-/*  CALLS                                                                 */ 
-/*                                                                        */ 
-/*    _lx_nand_flash_256byte_ecc_compute    Compute ECC for 256 bytes     */ 
-/*                                                                        */ 
-/*  CALLED BY                                                             */ 
-/*                                                                        */ 
-/*    _lx_nand_flash_page_ecc_check         NAND page check               */ 
-/*                                                                        */ 
-/*  RELEASE HISTORY                                                       */ 
-/*                                                                        */ 
+/*  DESCRIPTION                                                           */
+/*                                                                        */
+/*    This function checks 256 bytes of a NAND flash and ECC and          */
+/*    attempts to correct any single bit errors.                          */
+/*                                                                        */
+/*  INPUT                                                                 */
+/*                                                                        */
+/*    page_buffer                           Page buffer                   */
+/*    ecc_buffer                            Returned ECC buffer           */
+/*                                                                        */
+/*  OUTPUT                                                                */
+/*                                                                        */
+/*    return status                                                       */
+/*                                                                        */
+/*  CALLS                                                                 */
+/*                                                                        */
+/*    _lx_nand_flash_256byte_ecc_compute    Compute ECC for 256 bytes     */
+/*                                                                        */
+/*  CALLED BY                                                             */
+/*                                                                        */
+/*    _lx_nand_flash_page_ecc_check         NAND page check               */
+/*                                                                        */
+/*  RELEASE HISTORY                                                       */
+/*                                                                        */
 /*    DATE              NAME                      DESCRIPTION             */
 /*                                                                        */
 /*  05-19-2020     William E. Lamie         Initial Version 6.0           */
@@ -82,7 +81,7 @@ UINT  _lx_nand_flash_256byte_ecc_check(UCHAR *page_buffer, UCHAR *ecc_buffer)
 {
 
 INT     i, j;
-UCHAR   mask; 
+UCHAR   mask;
 UCHAR   new_ecc_buffer[3];
 UCHAR   ecc_errors[3];
 INT     error_count;
@@ -104,29 +103,29 @@ ULONG   correction_code;
     error_count =  0;
 
     /* Loop through the ECC bytes to determine if there is an error in the page.  */
-    for (i = 0; i < 3; i++) 
+    for (i = 0; i < 3; i++)
     {
-    
+
         /* Check for differences in the ECCs.  */
         ecc_errors[i] =  new_ecc_buffer[i] ^ ecc_buffer[i];
-        
+
         /* Are there any errors?  */
         if (ecc_errors[i])
         {
-        
+
             /* Accumulate the count of set bits.  */
             mask = 1;
             for (j = 0; j < 8; j++)
             {
-            
+
                 /* Is this bit set?  */
                 if (ecc_errors[i] & mask)
                 {
-                    
+
                     /* Yes, increment the count.  */
                     error_count++;
                 }
-                
+
                 /* Move mask to next bit.  */
                 mask = (UCHAR) ((mask << 1) & 0xFF);
             }
@@ -142,7 +141,7 @@ ULONG   correction_code;
     }
 
     /* Was a correctable error discovered?  */
-    else if (error_count == 11)  
+    else if (error_count == 11)
     {
 
         /* Initialize bit and byte offset values.  */
@@ -170,13 +169,13 @@ ULONG   correction_code;
 
         /* Fix the error.  */
         data[byte] = (USHORT) ((data[byte] ^ (1 << bit)) & 0xFFFF);
-        
+
         /* Return an error corrected status.  */
       return(LX_NAND_ERROR_CORRECTED);
     }
-    
+
     /* Otherwise, an unrecoverable ECC or data error is present.  */
-    else 
+    else
     {
 
         /* Return an error.  */

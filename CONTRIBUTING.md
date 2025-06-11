@@ -1,24 +1,72 @@
-## Contributing guide
+# Contributing to Eclipse ThreadX
 
-This document serves as a checklist before contributing to this repository.
-It includes links to read up on if topics are unclear to you.
+Thanks for your interest in this project.
 
-This guide mainly focuses on steps to be followed to submit an issue.
+## Project description
 
-### 1. Before opening an issue
+Eclipse ThreadX provides a vendor-neutral, open source, safety certified OS for
+real-time applications published on under a permissive license. The Eclipse
+ThreadX suite encompasses:
+* ThreadX - advanced real-time operating system (RTOS) designed specifically for deeply embedded applications
+* NetX Duo - advanced, industrial-grade TCP/IP network stack designed specifically for deeply embedded real-time and IoT applications
+* FileX - high-performance, FAT-compatible file system that’s fully integrated with ThreadX kernel
+* GUIX - provides a complete, embedded graphical user interface (GUI) library
+* USBX - high-performance USB host, device, and on-the-go (OTG) embedded stack, that is fully integrated with ThreadX kernel
+* LevelX - Flash Wear Leveling for FileX and stand-alone purposes
+* GuiX Studio - design environment, facilitating the creation and maintenance of all graphical elements for GUIX
+* TraceX - analysis tool that provides a graphical view of real-time system events to better understand the behavior of real-time systems
 
-To report a bug or a request please file an issue in the right repository
-(example for [stm32_mw_levelx](https://github.com/STMicroelectronics/stm32_mw_levelx/issues/new/choose)).
+Project site: https://projects.eclipse.org/projects/iot.threadx
 
-Please check the following boxes before posting an issue:
-- [ ] `Make sure you are using the latest commit (major releases are tagged, but corrections are available as new commits).`
-- [ ] `Make sure your issue is a question/feedback/suggestions RELATED TO the software provided in this repository.` Otherwise, it should be submitted to the ST Community under the MCU topic [page](https://community.st.com/s/topic/0TO0X000000BSqSWAW/stm32-mcus).
-- [ ] `Make sure your issue is not already reported/fixed on GitHub or discussed on a previous issue.` Do not forget to browse into the **closed** issues.
+## Terms of Use
 
-### 2. Posting the issue
+This repository is subject to the Terms of Use of the Eclipse Foundation
+https://www.eclipse.org/legal/termsofuse.php
 
-When you have checked the previous boxes, create a new report from the **Issues** tab of the repository. A template is available to help you report the issue you are facing or the enhancement you would like to propose.
+## Developer resources
 
-### 3. Pull Requests
+Information regarding source code management, builds, coding standards, and more.
+https://projects.eclipse.org/projects/iot.threadx/developer
 
-Pull-requests are **not** accepted on this repository. Please use **issues** to report any bug or request.
+The project maintains the following source code repositories
+
+* https://github.com/eclipse-threadx/.github
+* https://github.com/eclipse-threadx/cmsis-packs
+* https://github.com/eclipse-threadx/filex
+* https://github.com/eclipse-threadx/getting-started
+* https://github.com/eclipse-threadx/guix
+* https://github.com/eclipse-threadx/levelx
+* https://github.com/eclipse-threadx/netxduo
+* https://github.com/eclipse-threadx/rtos-docs
+* https://github.com/eclipse-threadx/samples
+* https://github.com/eclipse-threadx/threadx
+* https://github.com/eclipse-threadx/threadx-learn-samples
+* https://github.com/eclipse-threadx/tracex
+* https://github.com/eclipse-threadx/usbx
+
+## Eclipse Development Process
+
+This Eclipse Foundation open project is governed by the Eclipse Foundation
+Development Process and operates under the terms of the Eclipse IP Policy.
+
+* https://eclipse.org/projects/dev_process
+* https://www.eclipse.org/org/documents/Eclipse_IP_Policy.pdf
+
+## Eclipse Contributor Agreement
+
+In order to be able to contribute to Eclipse Foundation projects you must electronically sign the Eclipse Contributor Agreement (ECA).
+https://www.eclipse.org/legal/ECA.php
+
+The ECA provides the Eclipse Foundation with a permanent record that you agree
+that each of your contributions will comply with the commitments documented in
+the Developer Certificate of Origin (DCO). Having an ECA on file associated with
+the email address matching the "Author" field of your contribution's Git commits
+fulfills the DCO's requirement that you sign-off on your contributions.
+
+For more information, please see the Eclipse Committer Handbook:
+https://www.eclipse.org/projects/handbook/#resources-commit
+
+## Contact
+
+Contact the project developers via the project's "dev" list.
+https://accounts.eclipse.org/mailing-list/threadx-dev

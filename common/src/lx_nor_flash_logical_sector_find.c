@@ -1,19 +1,18 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   NOR Flash                                                           */
 /**                                                                       */
@@ -35,50 +34,50 @@
 #include "lx_api.h"
 
 
-/**************************************************************************/ 
-/*                                                                        */ 
-/*  FUNCTION                                               RELEASE        */ 
-/*                                                                        */ 
-/*    _lx_nor_flash_logical_sector_find                   PORTABLE C      */ 
+/**************************************************************************/
+/*                                                                        */
+/*  FUNCTION                                               RELEASE        */
+/*                                                                        */
+/*    _lx_nor_flash_logical_sector_find                   PORTABLE C      */
 /*                                                           6.3.0        */
 /*  AUTHOR                                                                */
 /*                                                                        */
 /*    William E. Lamie, Microsoft Corporation                             */
 /*                                                                        */
-/*  DESCRIPTION                                                           */ 
-/*                                                                        */ 
-/*    This function attempts to find the specified logical sector in      */ 
-/*    the NOR flash.                                                      */ 
-/*                                                                        */ 
-/*  INPUT                                                                 */ 
-/*                                                                        */ 
-/*    nor_flash                             NOR flash instance            */ 
-/*    logical_sector                        Logical sector number         */ 
-/*    superceded_check                      Check for sector being        */ 
-/*                                            superceded (can happen if   */ 
-/*                                            on interruptions of sector  */ 
-/*                                            write)                      */ 
-/*    physical_sector_map_entry             Destination for physical      */ 
-/*                                            sector map entry address    */ 
-/*    physical_sector_address               Destination for physical      */ 
-/*                                            sector data                 */ 
-/*                                                                        */ 
-/*  OUTPUT                                                                */ 
-/*                                                                        */ 
-/*    return status                                                       */ 
-/*                                                                        */ 
-/*  CALLS                                                                 */ 
-/*                                                                        */ 
-/*    _lx_nor_flash_driver_read             Driver flash sector read      */ 
-/*    _lx_nor_flash_driver_write            Driver flash sector write     */ 
-/*    _lx_nor_flash_system_error            Internal system error handler */ 
-/*                                                                        */ 
-/*  CALLED BY                                                             */ 
-/*                                                                        */ 
-/*    Internal LevelX                                                     */ 
-/*                                                                        */ 
-/*  RELEASE HISTORY                                                       */ 
-/*                                                                        */ 
+/*  DESCRIPTION                                                           */
+/*                                                                        */
+/*    This function attempts to find the specified logical sector in      */
+/*    the NOR flash.                                                      */
+/*                                                                        */
+/*  INPUT                                                                 */
+/*                                                                        */
+/*    nor_flash                             NOR flash instance            */
+/*    logical_sector                        Logical sector number         */
+/*    superceded_check                      Check for sector being        */
+/*                                            superseded (can happen if   */
+/*                                            on interruptions of sector  */
+/*                                            write)                      */
+/*    physical_sector_map_entry             Destination for physical      */
+/*                                            sector map entry address    */
+/*    physical_sector_address               Destination for physical      */
+/*                                            sector data                 */
+/*                                                                        */
+/*  OUTPUT                                                                */
+/*                                                                        */
+/*    return status                                                       */
+/*                                                                        */
+/*  CALLS                                                                 */
+/*                                                                        */
+/*    _lx_nor_flash_driver_read             Driver flash sector read      */
+/*    _lx_nor_flash_driver_write            Driver flash sector write     */
+/*    _lx_nor_flash_system_error            Internal system error handler */
+/*                                                                        */
+/*  CALLED BY                                                             */
+/*                                                                        */
+/*    Internal LevelX                                                     */
+/*                                                                        */
+/*  RELEASE HISTORY                                                       */
+/*                                                                        */
 /*    DATE              NAME                      DESCRIPTION             */
 /*                                                                        */
 /*  05-19-2020     William E. Lamie         Initial Version 6.0           */
@@ -120,7 +119,7 @@ UINT                                status;
     /* Initialize the return parameters.  */
     *physical_sector_map_entry =  (ULONG *) 0;
     *physical_sector_address =    (ULONG *) 0;
-    
+
     /* Determine if there are any mapped physical sectors.  */
     if (nor_flash -> lx_nor_flash_mapped_physical_sectors == 0)
     {
@@ -128,7 +127,7 @@ UINT                                status;
         /* No mapped sector so nothing can be found!.  */
         return(LX_SECTOR_NOT_FOUND);
     }
-    
+
 #ifndef LX_NOR_DISABLE_EXTENDED_CACHE
 #ifdef LX_NOR_ENABLE_MAPPING_BITMAP
 
@@ -139,7 +138,7 @@ UINT                                status;
         /* Determine if the logical sector is mapped.  */
         if ((nor_flash -> lx_nor_flash_extended_cache_mapping_bitmap[logical_sector >> 5] & (ULONG)(1 << (logical_sector & 31))) == 0)
         {
-            
+
             /* Not mapped, return not found.  */
             return(LX_SECTOR_NOT_FOUND);
         }
@@ -150,14 +149,14 @@ UINT                                status;
     /* Determine if the sector mapping cache is enabled.  */
     if (nor_flash -> lx_nor_flash_sector_mapping_cache_enabled)
     {
-    
+
         /* Calculate the starting index of the sector cache for this sector entry.  */
         i =  (logical_sector & LX_NOR_SECTOR_MAPPING_CACHE_HASH_MASK) * LX_NOR_SECTOR_MAPPING_CACHE_DEPTH;
 
         /* Build a pointer to the cache entry.  */
         sector_mapping_cache_entry_ptr =  &nor_flash -> lx_nor_flash_sector_mapping_cache[i];
 
-        /* Determine if the sector is in the sector mapping cache - assuming the depth of the sector 
+        /* Determine if the sector is in the sector mapping cache - assuming the depth of the sector
            mapping cache is LX_NOR_SECTOR_MAPPING_CACHE_DEPTH entries.  */
         if ((sector_mapping_cache_entry_ptr -> lx_nor_sector_mapping_cache_logical_sector) == (logical_sector | LX_NOR_SECTOR_MAPPING_CACHE_ENTRY_VALID))
         {
@@ -231,7 +230,7 @@ UINT                                status;
             /* Return a successful status.  */
             return(LX_SUCCESS);
         }
-    
+
         /* If we get here, we have a cache miss so increment the counter before we fall through the loop.  */
         nor_flash -> lx_nor_flash_sector_mapping_cache_misses++;
     }
@@ -249,9 +248,9 @@ UINT                                status;
     total_blocks =  nor_flash -> lx_nor_flash_total_blocks;
 
     /* Loop through the blocks to attempt to find the mapped logical sector.  */
-    while (total_blocks--) 
+    while (total_blocks--)
     {
-        
+
 #ifdef LX_NOR_ENABLE_OBSOLETE_COUNT_CACHE
         /* Determine if the obsolete sector count is available in the cache.  */
         if (i < nor_flash -> lx_nor_flash_extended_cache_obsolete_count_max_block)
@@ -263,20 +262,20 @@ UINT                                status;
 
                 /* Move to the next block.  */
                 i++;
-                
+
                 /* Determine if we have wrapped.  */
                 if (i >= nor_flash -> lx_nor_flash_total_blocks)
                 {
-                    
+
                     /* Yes, we have wrapped, set to block 0.  */
                     i =  0;
                 }
-                
+
                 /* Start at the first sector in the next block.  */
                 j =  0;
-                
+
                 /* No point in looking further into this block, just continue the loop.  */
-                continue;            
+                continue;
 
             }
         }
@@ -285,12 +284,12 @@ UINT                                status;
         /* Setup the block word pointer to the first word of the search block.  */
         block_word_ptr =  (nor_flash -> lx_nor_flash_base_address + (i * nor_flash -> lx_nor_flash_words_per_block));
 
-        /* Determine if the minimum and maximum logical sector values are present in the block header.  If these are 
+        /* Determine if the minimum and maximum logical sector values are present in the block header.  If these are
            present, we can quickly skip blocks that don't have our sector.  */
 
         /* Read the minimum and maximum logical sector values in this block.  */
 #ifdef LX_DIRECT_READ
-        
+
         /* Read the word directly.  */
         min_logical_sector =  *(block_word_ptr + LX_NOR_FLASH_MIN_LOGICAL_SECTOR_OFFSET);
 #else
@@ -299,7 +298,7 @@ UINT                                status;
         /* Check for an error from flash driver. Drivers should never return an error..  */
         if (status)
         {
-        
+
             /* Call system error handler.  */
             _lx_nor_flash_system_error(nor_flash, status);
 
@@ -307,12 +306,12 @@ UINT                                status;
             return(status);
         }
 #endif
-        
+
         /* Is the value valid?  */
         if (min_logical_sector != LX_ALL_ONES)
         {
 #ifdef LX_DIRECT_READ
-        
+
             /* Read the word directly.  */
             max_logical_sector =  *(block_word_ptr + LX_NOR_FLASH_MAX_LOGICAL_SECTOR_OFFSET);
 #else
@@ -321,7 +320,7 @@ UINT                                status;
             /* Check for an error from flash driver. Drivers should never return an error..  */
             if (status)
             {
-            
+
                 /* Call system error handler.  */
                 _lx_nor_flash_system_error(nor_flash, status);
 
@@ -340,20 +339,20 @@ UINT                                status;
 
                     /* Move to the next block.  */
                     i++;
-          
+
                     /* Determine if we have wrapped.  */
                     if (i >= nor_flash -> lx_nor_flash_total_blocks)
                     {
-            
+
                         /* Yes, we have wrapped, set to block 0.  */
                         i =  0;
                     }
 
                     /* Start at the first sector in the next block.  */
                     j =  0;
-                  
+
                     /* No point in looking further into this block, just continue the loop.  */
-                    continue;            
+                    continue;
                 }
             }
         }
@@ -364,17 +363,17 @@ UINT                                status;
             max_logical_sector = LX_ALL_ONES;
         }
 #ifndef LX_NOR_ENABLE_OBSOLETE_COUNT_CACHE
-        
+
         /* Clear the valid sector found flag.  */
         valid_sector_found = LX_FALSE;
 #endif
 
         /* Setup the total number of sectors.  */
         total_sectors =  nor_flash -> lx_nor_flash_physical_sectors_per_block;
-        
+
         /* Remember the start of the search.  */
         search_start =  j;
-        
+
         /* Now search through the sector list to find a match.  */
         while (total_sectors--)
         {
@@ -382,10 +381,10 @@ UINT                                status;
             /* Setup a pointer to the mapped list.  */
             list_word_ptr =  block_word_ptr + nor_flash -> lx_nor_flash_block_physical_sector_mapping_offset + j;
 
-            
+
             /* Read in the mapped list for this block.  */
 #ifdef LX_DIRECT_READ
-        
+
             /* Read the word directly.  */
             list_word =  *(list_word_ptr);
 #else
@@ -394,7 +393,7 @@ UINT                                status;
             /* Check for an error from flash driver. Drivers should never return an error..  */
             if (status)
             {
-        
+
                 /* Call system error handler.  */
                 _lx_nor_flash_system_error(nor_flash, status);
 
@@ -402,51 +401,51 @@ UINT                                status;
                 return(status);
             }
 #endif
-            
+
             /* Determine if the entry hasn't been used.  */
             if (list_word == LX_NOR_PHYSICAL_SECTOR_FREE)
             {
-                
+
                 /* Since the mapping is done sequentially in the block, we know nothing
                    else exists after this point.  */
-              
+
                 /* Determine if the search started at the beginning of the block.  */
                 if (search_start == 0)
                 {
-                 
+
                     /* Yes, we started at the beginning of the block.  We are now done with this block. */
                     break;
                 }
                 else
                 {
-              
+
                     /* Setup the new total to the search start.  */
                     total_sectors =  search_start;
-                    
+
                     /* Clear search start.  */
                     search_start =  0;
-                    
+
                     /* Start search over.  */
                     j =  0;
                     continue;
                 }
             }
-            
+
             /* Is this entry valid?  */
             if ((list_word & (LX_NOR_PHYSICAL_SECTOR_VALID | LX_NOR_PHYSICAL_SECTOR_MAPPING_NOT_VALID)) == LX_NOR_PHYSICAL_SECTOR_VALID)
             {
-                
+
                 /* Decrement the number of mapped sectors.  */
-                mapped_sectors--;    
+                mapped_sectors--;
 
                 /* Do we have a valid sector match?  */
                 if ((list_word & LX_NOR_LOGICAL_SECTOR_MASK) == logical_sector)
                 {
 
-                    /* Determine if we care about the superceded bit.  */
+                    /* Determine if we care about the superseded bit.  */
                     if (superceded_check == LX_FALSE)
                     {
-                                    
+
                         /* Prepare the return information.  */
                         *physical_sector_map_entry =  list_word_ptr;
                         *physical_sector_address =    block_word_ptr + nor_flash -> lx_nor_flash_block_physical_sector_offset + (j * LX_NOR_SECTOR_SIZE);
@@ -456,7 +455,7 @@ UINT                                status;
                         {
 
                             /* Yes, update the cache with the sector mapping.  */
-                            
+
                             /* Move all the cache entries down so the oldest is at the bottom.  */
                             *(sector_mapping_cache_entry_ptr + 3) =  *(sector_mapping_cache_entry_ptr + 2);
                             *(sector_mapping_cache_entry_ptr + 2) =  *(sector_mapping_cache_entry_ptr + 1);
@@ -470,26 +469,26 @@ UINT                                status;
 
                         /* Remember the last found block for next search.  */
                         nor_flash -> lx_nor_flash_found_block_search =  i;
-                        
+
                         /* Remember the last found sector.  */
                         nor_flash -> lx_nor_flash_found_sector_search =  j+1;
-                        
+
                         /* Has this wrapped around?  */
                         if (nor_flash -> lx_nor_flash_found_sector_search >= nor_flash -> lx_nor_flash_physical_sectors_per_block)
                         {
-                        
+
                             /* Reset to the beginning sector.  */
                             nor_flash -> lx_nor_flash_found_sector_search =  0;
                         }
 
                         /* Return success!  */
-                        return(LX_SUCCESS);                     
+                        return(LX_SUCCESS);
                     }
 
-                    /* Check for the superceded bit being clear, which means the sector was superceded.  */
+                    /* Check for the superseded bit being clear, which means the sector was superseded.  */
                     else if (list_word & LX_NOR_PHYSICAL_SECTOR_SUPERCEDED)
                     {
-                        
+
                         /* Prepare the return information.  */
                         *physical_sector_map_entry =  list_word_ptr;
                         *physical_sector_address =    block_word_ptr + nor_flash -> lx_nor_flash_block_physical_sector_offset + (j * LX_NOR_SECTOR_SIZE);
@@ -501,17 +500,17 @@ UINT                                status;
 
                         /* Remember the last found sector.  */
                         nor_flash -> lx_nor_flash_found_sector_search =  j+1;
-                        
+
                         /* Has this wrapped around?  */
                         if (nor_flash -> lx_nor_flash_found_sector_search >= nor_flash -> lx_nor_flash_physical_sectors_per_block)
                         {
-                        
+
                             /* Reset to the beginning sector.  */
                             nor_flash -> lx_nor_flash_found_sector_search =  0;
                         }
 
                         /* Return success!  */
-                        return(LX_SUCCESS);                     
+                        return(LX_SUCCESS);
                     }
                 }
 #ifndef LX_NOR_ENABLE_OBSOLETE_COUNT_CACHE
@@ -523,11 +522,11 @@ UINT                                status;
 
             /* Move to the next list entry.  */
             j++;
-            
+
             /* Check for wrap around.  */
             if (j >= nor_flash -> lx_nor_flash_physical_sectors_per_block)
             {
-            
+
                 /* Yes, wrap around, go back to the beginning.  */
                 j =  0;
             }
@@ -542,14 +541,14 @@ UINT                                status;
 
                 /* Write the max logical sector to the block header.  */
                 status =  _lx_nor_flash_driver_write(nor_flash, block_word_ptr + LX_NOR_FLASH_MAX_LOGICAL_SECTOR_OFFSET, &max_logical_sector, 1);
-                
+
                 /* Check for an error from flash driver. Drivers should never return an error..  */
                 if (status)
                 {
-                    
+
                     /* Call system error handler.  */
                     _lx_nor_flash_system_error(nor_flash, status);
-                    
+
                     /* Return the error.  */
                     return(status);
                 }
@@ -559,14 +558,14 @@ UINT                                status;
         /* Determine if there are any more mapped sectors.  */
         if (mapped_sectors == 0)
             break;
-            
+
         /* Move to the next block.  */
         i++;
-       
+
         /* Determine if we have wrapped.  */
         if (i >= nor_flash -> lx_nor_flash_total_blocks)
         {
-        
+
             /* Yes, we have wrapped, set to block 0.  */
             i =  0;
         }
@@ -576,6 +575,6 @@ UINT                                status;
     }
 
     /* Return sector not found status.  */
-    return(LX_SECTOR_NOT_FOUND);  
+    return(LX_SECTOR_NOT_FOUND);
 }
 

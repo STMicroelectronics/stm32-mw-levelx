@@ -1,19 +1,18 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   NOR Flash                                                           */
 /**                                                                       */
@@ -35,40 +34,40 @@
 #include "lx_api.h"
 
 
-/**************************************************************************/ 
-/*                                                                        */ 
-/*  FUNCTION                                               RELEASE        */ 
-/*                                                                        */ 
-/*    _lx_nor_flash_sector_mapping_cache_invalidate       PORTABLE C      */ 
+/**************************************************************************/
+/*                                                                        */
+/*  FUNCTION                                               RELEASE        */
+/*                                                                        */
+/*    _lx_nor_flash_sector_mapping_cache_invalidate       PORTABLE C      */
 /*                                                           6.1.7        */
 /*  AUTHOR                                                                */
 /*                                                                        */
 /*    William E. Lamie, Microsoft Corporation                             */
 /*                                                                        */
-/*  DESCRIPTION                                                           */ 
-/*                                                                        */ 
-/*    This function invalidates the sector's entry in the NOR flash       */ 
-/*    cache.                                                              */ 
-/*                                                                        */ 
-/*  INPUT                                                                 */ 
-/*                                                                        */ 
-/*    nor_flash                             NOR flash instance            */ 
-/*    logical_sector                        Logical sector                */ 
-/*                                                                        */ 
-/*  OUTPUT                                                                */ 
-/*                                                                        */ 
-/*    None                                                                */ 
-/*                                                                        */ 
-/*  CALLS                                                                 */ 
-/*                                                                        */ 
-/*    None                                                                */ 
-/*                                                                        */ 
-/*  CALLED BY                                                             */ 
-/*                                                                        */ 
-/*    Internal LevelX                                                     */ 
-/*                                                                        */ 
-/*  RELEASE HISTORY                                                       */ 
-/*                                                                        */ 
+/*  DESCRIPTION                                                           */
+/*                                                                        */
+/*    This function invalidates the sector's entry in the NOR flash       */
+/*    cache.                                                              */
+/*                                                                        */
+/*  INPUT                                                                 */
+/*                                                                        */
+/*    nor_flash                             NOR flash instance            */
+/*    logical_sector                        Logical sector                */
+/*                                                                        */
+/*  OUTPUT                                                                */
+/*                                                                        */
+/*    None                                                                */
+/*                                                                        */
+/*  CALLS                                                                 */
+/*                                                                        */
+/*    None                                                                */
+/*                                                                        */
+/*  CALLED BY                                                             */
+/*                                                                        */
+/*    Internal LevelX                                                     */
+/*                                                                        */
+/*  RELEASE HISTORY                                                       */
+/*                                                                        */
 /*    DATE              NAME                      DESCRIPTION             */
 /*                                                                        */
 /*  05-19-2020     William E. Lamie         Initial Version 6.0           */
@@ -88,14 +87,14 @@ LX_NOR_SECTOR_MAPPING_CACHE_ENTRY  *sector_mapping_cache_entry_ptr;
     /* Determine if the sector mapping cache is enabled.  */
     if (nor_flash -> lx_nor_flash_sector_mapping_cache_enabled)
     {
-    
+
         /* Calculate the starting index of the sector mapping cache for this sector entry.  */
         i =  (logical_sector & LX_NOR_SECTOR_MAPPING_CACHE_HASH_MASK) * LX_NOR_SECTOR_MAPPING_CACHE_DEPTH;
 
         /* Build a pointer to the cache entry.  */
         sector_mapping_cache_entry_ptr =  &nor_flash -> lx_nor_flash_sector_mapping_cache[i];
 
-        /* Determine if the sector is in the sector mapping cache - assuming the depth of the sector 
+        /* Determine if the sector is in the sector mapping cache - assuming the depth of the sector
            mapping cache is LX_NOR_SECTOR_MAPPING_CACHE_DEPTH entries.  */
         if ((sector_mapping_cache_entry_ptr -> lx_nor_sector_mapping_cache_logical_sector) == (logical_sector | LX_NOR_SECTOR_MAPPING_CACHE_ENTRY_VALID))
         {
@@ -104,7 +103,7 @@ LX_NOR_SECTOR_MAPPING_CACHE_ENTRY  *sector_mapping_cache_entry_ptr;
             *(sector_mapping_cache_entry_ptr) =      *(sector_mapping_cache_entry_ptr + 1);
             *(sector_mapping_cache_entry_ptr + 1) =  *(sector_mapping_cache_entry_ptr + 2);
             *(sector_mapping_cache_entry_ptr + 2) =  *(sector_mapping_cache_entry_ptr + 3);
-            
+
             /* Invalidate the last entry.  */
             (sector_mapping_cache_entry_ptr + 3) -> lx_nor_sector_mapping_cache_logical_sector =   0;
         }
@@ -114,7 +113,7 @@ LX_NOR_SECTOR_MAPPING_CACHE_ENTRY  *sector_mapping_cache_entry_ptr;
             /* Move all subsequent cache entries up and invalidate the last entry.  */
             *(sector_mapping_cache_entry_ptr + 1) =  *(sector_mapping_cache_entry_ptr + 2);
             *(sector_mapping_cache_entry_ptr + 2) =  *(sector_mapping_cache_entry_ptr + 3);
-            
+
             /* Invalidate the last entry.  */
             (sector_mapping_cache_entry_ptr + 3) -> lx_nor_sector_mapping_cache_logical_sector =   0;
         }
@@ -123,7 +122,7 @@ LX_NOR_SECTOR_MAPPING_CACHE_ENTRY  *sector_mapping_cache_entry_ptr;
 
             /* Move all subsequent cache entries up and invalidate the last entry.  */
             *(sector_mapping_cache_entry_ptr + 2) =  *(sector_mapping_cache_entry_ptr + 3);
-            
+
             /* Invalidate the last entry.  */
             (sector_mapping_cache_entry_ptr + 3) -> lx_nor_sector_mapping_cache_logical_sector =   0;
         }

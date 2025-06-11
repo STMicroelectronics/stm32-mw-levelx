@@ -1,19 +1,18 @@
-/**************************************************************************/
-/*                                                                        */
-/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
-/*                                                                        */
-/*       This software is licensed under the Microsoft Software License   */
-/*       Terms for Microsoft Azure RTOS. Full text of the license can be  */
-/*       found in the LICENSE file at https://aka.ms/AzureRTOS_EULA       */
-/*       and in the root directory of this software.                      */
-/*                                                                        */
-/**************************************************************************/
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   NAND Flash                                                          */
 /**                                                                       */
@@ -35,46 +34,46 @@
 #include "lx_api.h"
 
 
-/**************************************************************************/ 
-/*                                                                        */ 
-/*  FUNCTION                                               RELEASE        */ 
-/*                                                                        */ 
-/*    _lx_nand_flash_sector_read                          PORTABLE C      */ 
+/**************************************************************************/
+/*                                                                        */
+/*  FUNCTION                                               RELEASE        */
+/*                                                                        */
+/*    _lx_nand_flash_sector_read                          PORTABLE C      */
 /*                                                           6.2.1       */
 /*  AUTHOR                                                                */
 /*                                                                        */
 /*    Xiuwen Cai, Microsoft Corporation                                   */
 /*                                                                        */
-/*  DESCRIPTION                                                           */ 
-/*                                                                        */ 
-/*    This function reads a logical sector from NAND flash.               */ 
-/*                                                                        */ 
-/*  INPUT                                                                 */ 
-/*                                                                        */ 
-/*    nand_flash                            NAND flash instance           */ 
-/*    logical_sector                        Logical sector number         */ 
-/*    buffer                                Pointer to buffer to read into*/ 
-/*                                            (the size is number of      */ 
-/*                                             bytes in a page)           */ 
-/*                                                                        */ 
-/*  OUTPUT                                                                */ 
-/*                                                                        */ 
-/*    return status                                                       */ 
-/*                                                                        */ 
-/*  CALLS                                                                 */ 
-/*                                                                        */ 
-/*    _lx_nand_flash_block_find             Find the mapped block         */ 
-/*    lx_nand_flash_driver_pages_read       Read pages                    */ 
-/*    _lx_nand_flash_system_error           Internal system error handler */ 
-/*    tx_mutex_get                          Get thread protection         */ 
-/*    tx_mutex_put                          Release thread protection     */ 
-/*                                                                        */ 
-/*  CALLED BY                                                             */ 
-/*                                                                        */ 
-/*    Application Code                                                    */ 
-/*                                                                        */ 
-/*  RELEASE HISTORY                                                       */ 
-/*                                                                        */ 
+/*  DESCRIPTION                                                           */
+/*                                                                        */
+/*    This function reads a logical sector from NAND flash.               */
+/*                                                                        */
+/*  INPUT                                                                 */
+/*                                                                        */
+/*    nand_flash                            NAND flash instance           */
+/*    logical_sector                        Logical sector number         */
+/*    buffer                                Pointer to buffer to read into*/
+/*                                            (the size is number of      */
+/*                                             bytes in a page)           */
+/*                                                                        */
+/*  OUTPUT                                                                */
+/*                                                                        */
+/*    return status                                                       */
+/*                                                                        */
+/*  CALLS                                                                 */
+/*                                                                        */
+/*    _lx_nand_flash_block_find             Find the mapped block         */
+/*    lx_nand_flash_driver_pages_read       Read pages                    */
+/*    _lx_nand_flash_system_error           Internal system error handler */
+/*    lx_os_mutex_get                       Get thread protection         */
+/*    lx_os_mutex_put                       Release thread protection     */
+/*                                                                        */
+/*  CALLED BY                                                             */
+/*                                                                        */
+/*    Application Code                                                    */
+/*                                                                        */
+/*  RELEASE HISTORY                                                       */
+/*                                                                        */
 /*    DATE              NAME                      DESCRIPTION             */
 /*                                                                        */
 /*  03-08-2023     Xiuwen Cai               Initial Version 6.2.1        */
@@ -95,7 +94,7 @@ LONG        page;
 #ifdef LX_THREAD_SAFE_ENABLE
 
     /* Obtain the thread safe mutex.  */
-    tx_mutex_get(&nand_flash -> lx_nand_flash_mutex, TX_WAIT_FOREVER);
+    lx_os_mutex_get(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
     /* Increment the number of read requests.  */
@@ -117,7 +116,7 @@ LONG        page;
 #ifdef LX_THREAD_SAFE_ENABLE
 
             /* Release the thread safe mutex.  */
-            tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+            lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
             /* Return an error.  */
             return(LX_ERROR);
@@ -127,7 +126,7 @@ LONG        page;
     /* Determine if the block is mapped.  */
     if (block != LX_NAND_BLOCK_UNMAPPED)
     {
-        
+
         /* Setup spare buffer pointer.  */
         spare_buffer_ptr = (UCHAR*)nand_flash -> lx_nand_flash_page_buffer;
 
@@ -158,19 +157,19 @@ LONG        page;
 #ifdef LX_THREAD_SAFE_ENABLE
 
                     /* Release the thread safe mutex.  */
-                    tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+                    lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
                     /* Return an error.  */
                     return(LX_ERROR);
                 }
-                
+
                 /* Get the logical sector number from spare bytes, and check if it matches the addressed sector number.  */
                 if ((LX_UTILITY_LONG_GET(&spare_buffer_ptr[nand_flash -> lx_nand_flash_spare_data1_offset]) & LX_NAND_PAGE_TYPE_USER_DATA_MASK) == logical_sector)
                 {
 #ifdef LX_THREAD_SAFE_ENABLE
 
                     /* Release the thread safe mutex.  */
-                    tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+                    lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
                     /* Return successful completion.  */
                     return(LX_SUCCESS);
@@ -201,7 +200,7 @@ LONG        page;
 #ifdef LX_THREAD_SAFE_ENABLE
 
                     /* Release the thread safe mutex.  */
-                    tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+                    lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
                     /* Return an error.  */
                     return(LX_ERROR);
@@ -209,7 +208,7 @@ LONG        page;
 #ifdef LX_THREAD_SAFE_ENABLE
 
                 /* Release the thread safe mutex.  */
-                tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+                lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
                 /* Return successful completion.  */
                 return(LX_SUCCESS);
@@ -221,14 +220,14 @@ LONG        page;
 
     /* Setup pointer to users buffer.  */
     word_ptr =  (ULONG *) buffer;
-    
+
     /* Put all ones in he buffer.  */
     for (i = 0; i < nand_flash -> lx_nand_flash_words_per_page; i++)
     {
-    
+
         /* Copy a word.  */
         *word_ptr++ =  LX_ALL_ONES;
-    }       
+    }
 
     /* Set the status to success.  */
     status =  LX_SUCCESS;
@@ -236,7 +235,7 @@ LONG        page;
 #ifdef LX_THREAD_SAFE_ENABLE
 
     /* Release the thread safe mutex.  */
-    tx_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+    lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
 #endif
 
     /* Return status.  */
