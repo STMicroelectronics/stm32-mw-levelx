@@ -95,7 +95,7 @@ ULONG   *block_word_ptr;
 ULONG   *list_word_ptr;
 ULONG   list_word;
 ULONG   i, j;
-ULONG   mapped_sectors;
+ULONG   mapped_sectors = 0;
 ULONG   erase_count;
 ULONG   obsolete_sectors;
 ULONG   min_block_erase = 0;
@@ -117,8 +117,8 @@ ULONG   max_logical_sector;
 #ifndef LX_DIRECT_READ
 UINT    status;
 #endif
-UINT    obsolete_sectors_available;
-UINT    mapped_sectors_available;
+UINT    obsolete_sectors_available = LX_FALSE;
+UINT    mapped_sectors_available = LX_FALSE;
 
 
     /* Setup the block word pointer to the first word of the search block.  */

@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2025 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
  * terms of the MIT License which is available at
@@ -106,6 +107,12 @@ USHORT      new_block_status;
     /* Obtain the thread safe mutex.  */
     lx_os_mutex_get(&nand_flash -> lx_nand_flash_mutex);
 #endif
+
+    /* Check if the NAND flash has been already opened.  */
+    if (nand_flash->lx_nand_flash_state != LX_NAND_FLASH_OPENED)
+    {
+      return(LX_ERROR);
+    }
 
     /* Increment the number of release requests.  */
     nand_flash -> lx_nand_flash_diagnostic_sector_release_requests++;

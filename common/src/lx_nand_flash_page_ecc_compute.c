@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2025 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
  * terms of the MIT License which is available at
@@ -82,6 +83,12 @@ UINT  _lx_nand_flash_page_ecc_compute(LX_NAND_FLASH *nand_flash, UCHAR *page_buf
 
 UINT    bytes_computed;
 
+
+    /* Check if the NAND flash has been already opened.  */
+    if (nand_flash->lx_nand_flash_state != LX_NAND_FLASH_OPENED)
+    {
+      return(LX_ERROR);
+    }
 
     /* Loop to compute the ECC over the entire NAND flash page.  */
     bytes_computed =  0;

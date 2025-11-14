@@ -1,4 +1,13 @@
-
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2025 STMicroelectronics
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 #ifndef LX_PORT_H
 #define LX_PORT_H
 
@@ -12,9 +21,11 @@
 #include "lx_user.h"
 #endif
 
-/* Check that the LX_STANDALONE_ENABLE is enabled otherwise  */
+/* This port file to be used in standalone mode.
+Force the definition of LX_STANDALONE_ENABLE if not already defined in lx_user.h.  */
+
 #ifndef LX_STANDALONE_ENABLE
-#error "LX_STANDALONE_ENABLE should be defined"
+#define LX_STANDALONE_ENABLE
 #endif
 
 

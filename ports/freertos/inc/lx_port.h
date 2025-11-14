@@ -1,3 +1,13 @@
+/***************************************************************************
+ * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2025 STMicroelectronics
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ **************************************************************************/
 #ifndef LX_PORT_H
 #define LX_PORT_H
 
@@ -95,13 +105,24 @@ typedef unsigned long long                      ULONG64;
 #define LX_DISABLE                              taskDISABLE_INTERRUPTS();
 #define LX_RESTORE                              taskENABLE_INTERRUPTS();
 
-#define LX_MUTEX                                SemaphoreHandle_t
-#define LX_SEMAPHORE                            SemaphoreHandle_t
+/* Define LevelX RTOS structures */
+typedef struct
+{
+  SemaphoreHandle_t semaphore_handle;
+} lx_semaphore_t;
+
+typedef struct
+{
+  SemaphoreHandle_t mutex_handle;
+} lx_mutex_t;
+
+#define LX_MUTEX                                lx_mutex_t
+#define LX_SEMAPHORE                            lx_semaphore_t
 
 static inline UINT lx_os_mutex_create(LX_MUTEX *mutex, CHAR* mutex_name)
 {
-  *mutex = xSemaphoreCreateMutex();
-  if (*mutex == NULL)
+  mutex->mutex_handle = xSemaphoreCreateMutex();
+  if (mutex->mutex_handle == NULL)
   {
     return 1;
   }
@@ -110,7 +131,7 @@ static inline UINT lx_os_mutex_create(LX_MUTEX *mutex, CHAR* mutex_name)
 #if (configQUEUE_REGISTRY_SIZE > 0)
     if (mutex_name != NULL)
     {
-      vQueueAddToRegistry((QueueHandle_t) *mutex, mutex_name);
+      vQueueAddToRegistry((QueueHandle_t) mutex->mutex_handle, mutex_name);
     }
 #endif
     return 0;
@@ -120,20 +141,20 @@ static inline UINT lx_os_mutex_create(LX_MUTEX *mutex, CHAR* mutex_name)
 static inline VOID lx_os_mutex_delete(LX_MUTEX *mutex)
 {
 #if (configQUEUE_REGISTRY_SIZE > 0)
-  vQueueUnregisterQueue((QueueHandle_t) *mutex);
+  vQueueUnregisterQueue((QueueHandle_t) mutex->mutex_handle);
 #endif
-  vSemaphoreDelete(*mutex);
-  *mutex = NULL;
+  vSemaphoreDelete(mutex->mutex_handle);
+  mutex->mutex_handle = NULL;
 }
 
 static inline VOID lx_os_mutex_get(LX_MUTEX *mutex)
 {
-  xSemaphoreTake(*mutex, portMAX_DELAY);
+  xSemaphoreTake(mutex->mutex_handle, portMAX_DELAY);
 }
 
 static inline VOID lx_os_mutex_put(LX_MUTEX *mutex)
 {
-  xSemaphoreGive(*mutex);
+  xSemaphoreGive(mutex->mutex_handle);
 }
 
 

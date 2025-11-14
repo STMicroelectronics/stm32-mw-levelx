@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2025 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
  * terms of the MIT License which is available at
@@ -113,6 +114,11 @@ UINT    status;
 ULONG   block_word;
 #endif
 
+    /* Check that the NOR Flash has been already opened */
+    if(nor_flash->lx_nor_flash_state != LX_NOR_FLASH_OPENED)
+    {
+        return(LX_ERROR);
+    }
 
     /* Determine if memory was specified but with an invalid size (less than one NOR sector).  */
     if ((memory) && (size < LX_NOR_SECTOR_SIZE))

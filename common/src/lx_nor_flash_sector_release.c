@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2025 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
  * terms of the MIT License which is available at
@@ -101,6 +102,11 @@ ULONG   i;
 ULONG   block;
 #endif
 
+    /* Check that the NOR Flash has been already opened */
+    if(nor_flash->lx_nor_flash_state != LX_NOR_FLASH_OPENED)
+    {
+        return(LX_ERROR);
+    }
 
 #ifdef LX_THREAD_SAFE_ENABLE
 

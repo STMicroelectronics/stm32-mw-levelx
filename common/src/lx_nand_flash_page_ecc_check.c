@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2025 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
  * terms of the MIT License which is available at
@@ -85,6 +86,11 @@ UINT    bytes_checked;
 UINT    status;
 UINT    return_status =  LX_SUCCESS;
 
+    /* Check if the NAND flash has been already opened.  */
+    if (nand_flash->lx_nand_flash_state != LX_NAND_FLASH_OPENED)
+    {
+      return(LX_ERROR);
+    }
 
     /* Loop to check the entire NAND flash page.  */
     bytes_checked =  0;

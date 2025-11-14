@@ -1,11 +1,23 @@
   /**
   ******************************************************************************
   * @file    st_readme.txt
-  * @author  GPM Application Team
   * @brief   This file lists the main changes done by STMicroelectronics on
   *          LevelX for STM32 devices.
-  ******************************************************************************
-  */
+  /*****************************************************************************
+  * Copyright (c) 2025 STMicroelectronics.
+  *
+  * This program and the accompanying materials are made available under the
+  * terms of the MIT License which is available at
+  * https://opensource.org/licenses/MIT.
+  *
+  * SPDX-License-Identifier: MIT
+  *****************************************************************************/
+
+### V6.4.1 (12-11-2025) ###
+=================================
+- Revise copyright information in file headers.
+- Enhance LX_MUTEX and LX_SEMAPHORE implementations for proper LevelX RTOS Agnostic synchronization.
+- Add open state checks at the start of user NOR APIs to prevent operations when flash memory is closed.
 
 ### V6.4.1 (30-05-2025) ###
 ============================
