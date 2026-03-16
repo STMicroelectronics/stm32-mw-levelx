@@ -1,0 +1,125 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.5",
+    "serialNumber": "urn:uuid:be0c52de-0787-41ff-886c-89920baeb69f",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2026-03-06T14:18:16Z",
+        "tools": [
+            {
+                "vendor": "Black Duck",
+                "name": "Hub",
+                "version": "2025.10.0"
+            },
+            {
+                "vendor": "CycloneDX",
+                "name": "cyclonedx-core-java",
+                "version": "5.0.5"
+            }
+        ],
+        "authors": [
+            {
+                "name": "STMicroelectronics NV"
+            }
+        ],
+        "component": {
+            "type": "application",
+            "bom-ref": "60918609-a085-4dea-a084-73b1a4229a6e",
+            "supplier": {
+                "name": ""
+            },
+            "name": "LevelX",
+            "version": "2.0.0",
+            "licenses": [
+                {
+                    "license": {
+                        "id": "MIT"
+                    }
+                }
+            ],
+            "pedigree": {
+                "notes": "MIT License"
+            },
+            "properties": [
+                {
+                    "name": "BlackDuck-Component",
+                    "value": "192f89c6-db89-426c-bd47-da826fcebda6"
+                },
+                {
+                    "name": "BlackDuck-ComponentVersion",
+                    "value": "60918609-a085-4dea-a084-73b1a4229a6e"
+                }
+            ]
+        }
+    },
+    "components": [
+        {
+            "type": "library",
+            "bom-ref": "21b4bb7c-2d37-4829-bafd-e8586332e524",
+            "supplier": {
+                "name": ""
+            },
+            "name": "eclipse-threadx/levelx",
+            "version": "v6.4.1_rel",
+            "licenses": [
+                {
+                    "license": {
+                        "id": "MIT"
+                    }
+                }
+            ],
+            "pedigree": {
+                "notes": "MIT License"
+            },
+            "properties": [
+                {
+                    "name": "BlackDuck-Component",
+                    "value": "0a8c52c4-ab3f-4556-b3a5-7574e31a6d4c"
+                },
+                {
+                    "name": "BlackDuck-ComponentVersion",
+                    "value": "21b4bb7c-2d37-4829-bafd-e8586332e524"
+                }
+            ]
+        },
+        {
+            "type": "library",
+            "bom-ref": "2a078aed-eec2-4ba9-88c1-dedc13d3008a",
+            "supplier": {
+                "name": ""
+            },
+            "author": "STMicroelectronics",
+            "name": "eclipse-threadx/levelx_STM32",
+            "version": "v6.4.1_rel / ST modified 250224",
+            "licenses": [
+                {
+                    "license": {
+                        "id": "MIT"
+                    }
+                }
+            ],
+            "pedigree": {
+                "notes": "MIT License"
+            },
+            "properties": [
+                {
+                    "name": "BlackDuck-Component",
+                    "value": "1b182724-4abe-4d66-bfcd-dc56237f7116"
+                },
+                {
+                    "name": "BlackDuck-ComponentVersion",
+                    "value": "2a078aed-eec2-4ba9-88c1-dedc13d3008a"
+                }
+            ]
+        }
+    ],
+    "dependencies": [
+        {
+            "ref": "60918609-a085-4dea-a084-73b1a4229a6e",
+            "dependsOn": [
+                "21b4bb7c-2d37-4829-bafd-e8586332e524",
+                "2a078aed-eec2-4ba9-88c1-dedc13d3008a"
+            ]
+        }
+    ]
+}
