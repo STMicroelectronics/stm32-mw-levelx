@@ -1,6 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
- * Copyright (c) 2025 STMicroelectronics
+ * Copyright (c) 2025-2026 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
  * terms of the MIT License which is available at
@@ -296,35 +296,18 @@ ULONG   block_word;
 
     /* Loop through the memory supplied and assign to cache entries.  */
     i =  0;
-    while (cache_size >= LX_NOR_SECTOR_SIZE)
+    while ((cache_size >= LX_NOR_SECTOR_SIZE) && (i < LX_NOR_EXTENDED_CACHE_SIZE))
     {
-
-        /* Setup this cache entry.  */
+       /* Setup this cache entry.  */
         nor_flash -> lx_nor_flash_extended_cache[i].lx_nor_flash_extended_cache_entry_sector_address =  LX_NULL;
         nor_flash -> lx_nor_flash_extended_cache[i].lx_nor_flash_extended_cache_entry_sector_memory =   cache_memory;
-        nor_flash -> lx_nor_flash_extended_cache[i].lx_nor_flash_extended_cache_entry_access_count =    0;
-
-        /* Move the cache memory forward.   */
-        cache_memory =  cache_memory + LX_NOR_SECTOR_SIZE;
-
-        /* Decrement the size.  */
-        cache_size =  cache_size - LX_NOR_SECTOR_SIZE;
-
-        /* Move to next cache entry.  */
+        nor_flash -> lx_nor_flash_extended_cache[i].lx_nor_flash_extended_cache_entry_access_count =    0;        /* Move the cache memory forward.   */
+        cache_memory =  cache_memory + LX_NOR_SECTOR_SIZE;        /* Decrement the size.  */
+        cache_size =  cache_size - LX_NOR_SECTOR_SIZE;        /* Move to next cache entry.  */
         i++;
     }
-
     /* Save the number of cache entries.  */
-    if(i > LX_NOR_EXTENDED_CACHE_SIZE)
-    {
-
-        nor_flash -> lx_nor_flash_extended_cache_entries =  LX_NOR_EXTENDED_CACHE_SIZE;
-    }
-    else
-    {
-
-        nor_flash -> lx_nor_flash_extended_cache_entries =  i;
-    }
+    nor_flash -> lx_nor_flash_extended_cache_entries =  i;
 
 #ifdef LX_THREAD_SAFE_ENABLE
 

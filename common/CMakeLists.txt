@@ -20,6 +20,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nand_flash_erase_count_set.c
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nand_flash_extended_cache_enable.c
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nand_flash_format.c
+	${CMAKE_CURRENT_LIST_DIR}/src/lx_nand_flash_format_extended.c
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nand_flash_free_block_list_add.c
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nand_flash_initialize.c
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nand_flash_mapped_block_list_add.c
@@ -30,6 +31,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nand_flash_metadata_build.c
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nand_flash_metadata_write.c
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nand_flash_open.c
+	${CMAKE_CURRENT_LIST_DIR}/src/lx_nand_flash_open_extended.c
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nand_flash_page_ecc_check.c
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nand_flash_page_ecc_compute.c
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nand_flash_partial_defragment.c
@@ -52,6 +54,8 @@ target_sources(${PROJECT_NAME} PRIVATE
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nor_flash_logical_sector_find.c
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nor_flash_next_block_to_erase_find.c
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nor_flash_open.c
+	${CMAKE_CURRENT_LIST_DIR}/src/lx_nor_flash_open_extended.c
+	${CMAKE_CURRENT_LIST_DIR}/src/lx_nor_flash_format.c
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nor_flash_partial_defragment.c
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nor_flash_physical_sector_allocate.c
 	${CMAKE_CURRENT_LIST_DIR}/src/lx_nor_flash_sector_mapping_cache_invalidate.c

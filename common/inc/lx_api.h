@@ -1,6 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
- * Copyright (c) 2025 STMicroelectronics
+ * Copyright (c) 2025-2026 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
  * terms of the MIT License which is available at
@@ -446,7 +446,6 @@ typedef struct LX_NAND_FLASH_STRUCT
 #endif
     UCHAR                           *lx_nand_flash_page_buffer;
     UINT                            lx_nand_flash_page_buffer_size;
-
 #ifdef LX_THREAD_SAFE_ENABLE
 
     /* When this conditional is used, the LevelX code utilizes a ThreadX mutex for thread
@@ -454,6 +453,8 @@ typedef struct LX_NAND_FLASH_STRUCT
        a higher layer.  */
     LX_MUTEX                        lx_nand_flash_mutex;
 #endif
+    /* user data pointer optionally passed by the application to the driver via the lx_nand_flash_open_extended */
+    VOID                            *lx_nand_flash_driver_info_ptr;
 
     /* Define the NAND flash control block open next/previous pointers.  */
     struct LX_NAND_FLASH_STRUCT     *lx_nand_flash_open_next,
@@ -585,7 +586,9 @@ typedef struct LX_NOR_FLASH_STRUCT
     LX_MUTEX                        lx_nor_flash_mutex;
 #endif
 
-    /* Define the NOR flash control block open next/previous pointers.  */
+    /* user data pointer optionally passed by the application to the driver via the lx_nor_flash_open_extended */
+    VOID                            *lx_nor_flash_driver_info_ptr;
+   /* Define the NOR flash control block open next/previous pointers.  */
     struct LX_NOR_FLASH_STRUCT      *lx_nor_flash_open_next,
                                     *lx_nor_flash_open_previous;
 
@@ -643,8 +646,10 @@ extern ULONG                                            _lx_nor_flash_opened_cou
 #define lx_nand_flash_partial_defragment                _lx_nand_flash_partial_defragment
 #define lx_nand_flash_extended_cache_enable             _lx_nand_flash_extended_cache_enable
 #define lx_nand_flash_format                            _lx_nand_flash_format
+#define lx_nand_flash_format_extended                   _lx_nand_flash_format_extended
 #define lx_nand_flash_initialize                        _lx_nand_flash_initialize
 #define lx_nand_flash_open                              _lx_nand_flash_open
+#define lx_nand_flash_open_extended                     _lx_nand_flash_open_extended
 #define lx_nand_flash_page_ecc_check                    _lx_nand_flash_page_ecc_check
 #define lx_nand_flash_page_ecc_compute                  _lx_nand_flash_page_ecc_compute
 #define lx_nand_flash_sector_read                       _lx_nand_flash_sector_read
@@ -661,7 +666,9 @@ extern ULONG                                            _lx_nor_flash_opened_cou
 #define lx_nor_flash_partial_defragment                 _lx_nor_flash_partial_defragment
 #define lx_nor_flash_extended_cache_enable              _lx_nor_flash_extended_cache_enable
 #define lx_nor_flash_initialize                         _lx_nor_flash_initialize
+#define lx_nor_flash_format                             _lx_nor_flash_format
 #define lx_nor_flash_open                               _lx_nor_flash_open
+#define lx_nor_flash_open_extended                      _lx_nor_flash_open_extended
 #define lx_nor_flash_sector_read                        _lx_nor_flash_sector_read
 #define lx_nor_flash_sector_release                     _lx_nor_flash_sector_release
 #define lx_nor_flash_sector_write                       _lx_nor_flash_sector_write
@@ -677,7 +684,11 @@ UINT    _lx_nand_flash_extended_cache_enable(LX_NAND_FLASH  *nand_flash, VOID *m
 UINT    _lx_nand_flash_format(LX_NAND_FLASH* nand_flash, CHAR* name,
                                 UINT(*nand_driver_initialize)(LX_NAND_FLASH*),
                                 ULONG* memory_ptr, UINT memory_size);
+UINT    _lx_nand_flash_format_extended(LX_NAND_FLASH* nand_flash, CHAR* name,
+                                UINT(*nand_driver_initialize)(LX_NAND_FLASH*), VOID *nand_driver_info_ptr,
+                                ULONG* memory_ptr, UINT memory_size);
 UINT    _lx_nand_flash_open(LX_NAND_FLASH  *nand_flash, CHAR *name, UINT (*nand_driver_initialize)(LX_NAND_FLASH *), ULONG* memory_ptr, UINT memory_size);
+UINT    _lx_nand_flash_open_extended(LX_NAND_FLASH  *nand_flash, CHAR *name, UINT (*nand_driver_initialize)(LX_NAND_FLASH *), VOID *nand_driver_info_ptr, ULONG* memory_ptr, UINT memory_size);
 UINT    _lx_nand_flash_page_ecc_check(LX_NAND_FLASH *nand_flash, UCHAR *page_buffer, UCHAR *ecc_buffer);
 UINT    _lx_nand_flash_page_ecc_compute(LX_NAND_FLASH *nand_flash, UCHAR *page_buffer, UCHAR *ecc_buffer);
 UINT    _lx_nand_flash_partial_defragment(LX_NAND_FLASH *nand_flash, UINT max_blocks);
@@ -692,7 +703,9 @@ UINT    _lx_nor_flash_close(LX_NOR_FLASH *nor_flash);
 UINT    _lx_nor_flash_defragment(LX_NOR_FLASH *nor_flash);
 UINT    _lx_nor_flash_extended_cache_enable(LX_NOR_FLASH *nor_flash, VOID *memory, ULONG size);
 UINT    _lx_nor_flash_initialize(void);
+UINT    _lx_nor_flash_format(LX_NOR_FLASH  *nor_flash, CHAR *name, UINT (*nor_driver_initialize)(LX_NOR_FLASH *), VOID *nor_driver_info_ptr);
 UINT    _lx_nor_flash_open(LX_NOR_FLASH  *nor_flash, CHAR *name, UINT (*nor_driver_initialize)(LX_NOR_FLASH *));
+UINT    _lx_nor_flash_open_extended(LX_NOR_FLASH  *nor_flash, CHAR *name, UINT (*nor_driver_initialize)(LX_NOR_FLASH *), VOID *nor_driver_info_ptr);
 UINT    _lx_nor_flash_partial_defragment(LX_NOR_FLASH *nor_flash, UINT max_blocks);
 UINT    _lx_nor_flash_sector_read(LX_NOR_FLASH *nor_flash, ULONG logical_sector, VOID *buffer);
 UINT    _lx_nor_flash_sector_release(LX_NOR_FLASH *nor_flash, ULONG logical_sector);

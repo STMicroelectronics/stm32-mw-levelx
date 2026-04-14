@@ -13,6 +13,19 @@
   * SPDX-License-Identifier: MIT
   *****************************************************************************/
 
+### V6.4.1 (03-04-2026) ###
+============================
+- Add new APIs: lx_nor_flash_format(), lx_nor_flash_open_extended(), lx_nand_flash_open_extended(), lx_nand_flash_format_extended() and lx_nor_flash_format().
+- Fix metadata error after block erase.
+- Fix ThreadX-specific mutex APIs usage.
+- Fix codespell issues in lx_nor_flash_open_extended.c.
+- Fix block initial erase count error in lx_nor_flash_format.c.
+- Remove critical section from lx_nor_flash_format().
+- Fix address buffer overflow in NOR flash cache initialization.
+- Update LevelX copyright.
+- Fix STMicroelectronics branding in lx_nor_flash_format.c.
+- Add SW_Security_Level.md file.
+
 ### V6.4.1 (12-11-2025) ###
 =================================
 - Revise copyright information in file headers.
