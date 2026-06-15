@@ -1,0 +1,183 @@
+{{assign "levelxFilter" (JSONparse '{"cgroup": "STM32CubeMX2 Config", "csub": "LevelX"}')~}}
+{{assign 'levelx_context' (@root.SWConfigurationAPI.getInstancesConfiguration @root.levelxFilter)~}}
+{{assign 'levelx_cxt' @root.levelx_context.[0].settings.parameters~}}
+{{assign 'nand_present' false}}
+{{assign 'nor_present' false}}
+{{log "LevelX Config template levelx_cxt:" (toJSON @root.levelx_cxt)~}}
+/***************************************************************************
+  * Copyright (c) 2024 Microsoft Corporation
+  *
+  * This program and the accompanying materials are made available under the
+  * terms of the MIT License which is available at
+  * https://opensource.org/licenses/MIT.
+  *
+  * SPDX-License-Identifier: MIT
+{{> LICENSE}}
+
+/**************************************************************************/
+/**************************************************************************/
+/**                                                                       */
+/**   LevelX Component                                                    */
+/**                                                                       */
+/**   User Specific                                                       */
+/**                                                                       */
+/**************************************************************************/
+/**************************************************************************/
+
+#ifndef LX_USER_H
+#define LX_USER_H
+
+{{#with @root.levelx_cxt~}}
+{{#with core~}}
+{{#with basic~}}
+{{#with levelx_core~}}
+
+/* Defined, this makes LevelX thread-safe by using an RTOS mutex object
+throughout the API.
+*/
+{{#if lx_thread_safe_enable}}
+#define LX_THREAD_SAFE_ENABLE
+{{else}}
+/*
+#define LX_THREAD_SAFE_ENABLE
+*/
+{{/if}}
+
+/* Defined, LevelX will be used in standalone mode (without RTOS) */
+{{#if (eq lx_standalone 'No OS')}}
+#define LX_STANDALONE_ENABLE
+{{else}}
+/*
+#define LX_STANDALONE_ENABLE
+*/
+{{/if}}
+
+{{/with}}
+
+{{#with nor_flash_support~}}
+
+/* Define the logical sector size for NOR flash. The sector size is in units of 32-bit words.
+This sector size should match the sector size used in file system. */
+{{#if (eq lx_nor_sector_size "128")}}
+/*
+#define LX_NOR_SECTOR_SIZE 128
+*/
+{{else}}
+#define LX_NOR_SECTOR_SIZE {{lx_nor_sector_size}}
+{{/if}}
+
+{{#with more~}}
+
+/* Defined, this causes the LevelX NOR instance open logic to verify free NOR
+sectors are all ones.
+*/
+{{#if lx_free_sector_data_verify}}
+#define LX_FREE_SECTOR_DATA_VERIFY
+{{else}}
+/*
+#define LX_FREE_SECTOR_DATA_VERIFY
+*/
+{{/if}}
+
+/* Defined, this disabled the extended NOR cache. */
+{{#if lx_nor_disable_extended_cache}}
+/*
+#define LX_NOR_DISABLE_EXTENDED_CACHE
+*/
+{{else}}
+#define LX_NOR_DISABLE_EXTENDED_CACHE
+{{/if}}
+
+/* By default this value is 8, which represents a maximum of 8 sectors that
+can be cached in a NOR instance.
+*/
+{{#if (eq lx_nor_extended_cache_size 8)}}
+/*
+#define LX_NOR_EXTENDED_CACHE_SIZE 8
+*/
+{{else}}
+#define LX_NOR_EXTENDED_CACHE_SIZE {{lx_nor_extended_cache_size}}
+{{/if}}
+
+/* By default this value is 16 and defines the logical sector mapping cache size.
+Large values improve performance, but cost memory. The minimum size is 8 and all
+values must be a power of 2.
+*/
+{{#if (eq lx_nor_sector_mapping_cache_size 16)}}
+/*
+#define LX_NOR_SECTOR_MAPPING_CACHE_SIZE 16
+*/
+{{else}}
+#define LX_NOR_SECTOR_MAPPING_CACHE_SIZE {{lx_nor_sector_mapping_cache_size}}
+{{/if}}
+
+/* Determine if logical sector mapping bitmap should be enabled in extended cache.
+Cache memory will be allocated to sector mapping bitmap first. One bit can be allocated for each physical sector. */
+{{#if lx_nor_enable_mapping_bitmap}}
+#define LX_NOR_ENABLE_MAPPING_BITMAP
+{{else}}
+/*
+#define LX_NOR_ENABLE_MAPPING_BITMAP
+*/
+{{/if}}
+
+/* Determine if obsolete count cache should be enabled in extended cache.
+Cache memory will be allocated to obsolete count cache after the mapping bitmap if enabled,
+and the rest of the cache memory is allocated to sector cache. */
+{{#if lx_nor_enable_obsolete_count_cache}}
+#define LX_NOR_ENABLE_OBSOLETE_COUNT_CACHE
+{{else}}
+/*
+#define LX_NOR_ENABLE_OBSOLETE_COUNT_CACHE
+*/
+{{/if}}
+
+/* Defines obsolete count cache element size. If number of sectors per block is greater than 256, use USHORT instead of
+UCHAR. */
+{{#if (eq lx_nor_obsolete_count_cache_type "UCHAR")}}
+/*
+#define LX_NOR_OBSOLETE_COUNT_CACHE_TYPE UCHAR
+*/
+{{else}}
+#define LX_NOR_OBSOLETE_COUNT_CACHE_TYPE {{lx_nor_obsolete_count_cache_type}}
+{{/if}}
+
+{{/with}}
+{{/with}}
+
+{{#with nand_flash_support~}}
+
+/* By default this value is 4, which represents a maximum of 4 blocks that
+can be allocated for metadata.
+*/
+{{#if (eq lx_nand_flash_max_metadata_blocks 4)}}
+/*
+#define LX_NAND_FLASH_MAX_METADATA_BLOCKS 4
+*/
+{{else}}
+#define LX_NAND_FLASH_MAX_METADATA_BLOCKS {{lx_nand_flash_max_metadata_blocks}}
+{{/if}}
+{{/with}}
+{{#each @root.levelx_cxt.interfaces}}
+  {{#with logical_config}}
+    {{#if (eq interface_type "W25N01GVXX_NAND_FLASH_INTERFACE")}}
+      {{assign 'nand_present' true}}
+    {{/if}}
+    {{#if (or (eq interface_type "MX66UW1G45G_NOR_FLASH_INTERFACE") (eq interface_type "MX25LM51245G_NOR_FLASH_INTERFACE") (eq interface_type "NOR_FLASH_SIMULATOR_INTERFACE") (eq interface_type "W25Q128J_NOR_FLASH_INTERFACE"))}}
+      {{assign 'nor_present' true}}
+    {{/if}}
+  {{/with}}
+{{/each}}
+{{#if @root.nand_present}}
+#define LX_NAND_ENABLE_CONTROL_BLOCK_FOR_DRIVER_INTERFACE
+#define LX_NAND_FLASH_USER_EXTENSION void *lx_nand_flash_info_ptr;
+{{/if}}
+{{#if @root.nor_present}}
+#define LX_NOR_ENABLE_CONTROL_BLOCK_FOR_DRIVER_INTERFACE
+#define LX_NOR_FLASH_USER_EXTENSION void *lx_nor_flash_info_ptr;
+{{/if}}
+{{/with}}
+{{/with}}
+{{/with}}
+
+#endif /* LX_USER_H */

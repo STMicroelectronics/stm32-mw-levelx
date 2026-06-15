@@ -1,0 +1,221 @@
+{{assign "levelxFilter" (JSONparse '{"cgroup": "STM32CubeMX2 Config", "csub": "LevelX"}')~}}
+{{assign 'levelx_context' (@root.SWConfigurationAPI.getInstancesConfiguration @root.levelxFilter)~}}
+{{assign 'levelx_cxt' @root.levelx_context.[0].settings.parameters~}}
+{{assign "generateMainInit" levelx_cxt.core.applicative.generate_levelx_init_code~}}
+{{assign "nor_enabled" levelx_cxt.core.basic.nor_flash_support.nor_flash_enable~}}
+{{assign "nand_enabled" levelx_cxt.core.basic.nand_flash_support.nand_flash_enable~}}
+{{!
+/**
+  ******************************************************************************
+  * file           : mx_levelx_app.c.hbs
+  * brief          : LevelX applicative file
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2026 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+~}}
+/**
+  ******************************************************************************
+  * @file           : mx_levelx_app.c
+  * @brief          : LevelX applicative file
+{{> LICENSE}}
+
+/* Includes ------------------------------------------------------------------*/
+#include "mx_levelx_app.h"
+
+/* Private includes ----------------------------------------------------------*/
+
+/* Private typedef -----------------------------------------------------------*/
+
+/* Private define ------------------------------------------------------------*/
+
+/* Private macro -------------------------------------------------------------*/
+{{#if generateMainInit}}
+TaskHandle_t    lx_app_task;
+{{/if}}
+{{#each levelx_cxt.interfaces}}
+  {{#with logical_config}}
+    {{#if applicative.generate_levelx_interface_init_code}}
+TaskHandle_t    lx_interface_task_{{@index}};
+    {{/if}}
+  {{/with}}
+{{/each}}
+
+/* Private variables ---------------------------------------------------------*/
+{{#each levelx_cxt.interfaces}}
+  {{#with logical_config}}
+    {{#if (or applicative.nor_flash_format applicative.nor_flash_extended_open)}}
+LX_NOR_FLASH NORFlashObj_{{@index}};
+    {{/if}}
+    {{#if (or applicative.nand_flash_extended_format applicative.nand_flash_extended_open)}}
+LX_NAND_FLASH NANDFlashObj_{{@index}};
+ULONG memory_ptr_{{@index}}[8192];
+    {{/if}}
+  {{/with}}
+{{/each}}
+
+/* Private function prototypes -----------------------------------------------*/
+{{#if generateMainInit}}
+VOID {{levelx_cxt.core.applicative.levelx_app_task_entry_name}}(VOID *args);
+{{/if}}
+{{#each levelx_cxt.interfaces}}
+  {{#with logical_config}}
+    {{#if applicative.generate_levelx_interface_init_code}}
+VOID {{applicative.levelx_interface_app_task_entry_name}}(VOID *args);
+    {{/if}}
+  {{/with}}
+{{/each}}
+
+/**
+  * @brief  Application LevelX Initialization.
+  * @param  None
+  * @retval 0 on success -1 otherwise
+  */
+UINT app_levelx_init(VOID)
+{
+  UINT ret;
+{{#if generateMainInit}}
+  /* Create the {{LevelX_App_Task_Entry_Name}} */
+  ret = xTaskCreate({{levelx_cxt.core.applicative.levelx_app_task_entry_name}}, LevelX_App_Task_Name, LevelX_App_Stack_Size, (VOID *) NULL,
+                    LevelX_App_Task_Priority, &lx_app_task);
+  if (ret != pdPASS)
+  {
+    return -1;
+  }
+{{/if}}
+{{#each levelx_cxt.interfaces}}
+  {{#with logical_config}}
+    {{#if applicative.generate_levelx_interface_init_code}}
+  /* Create the {{applicative.levelx_interface_app_task_entry_name}} */
+  ret = xTaskCreate({{applicative.levelx_interface_app_task_entry_name}}, LevelX_Interface_App_Task_Name_{{@index}}, LevelX_Interface_App_Stack_Size_{{@index}}, (VOID *) NULL,
+                    LevelX_Interface_App_Task_Priority_{{@index}}, &lx_interface_task_{{@index}});
+  if (ret != pdPASS)
+  {
+    return -1;
+  }
+    {{/if}}
+  {{/with}}
+{{/each}}
+{{#if nor_enabled}}
+  /* Initialize LevelX NOR flash */
+  ret = lx_nor_flash_initialize();
+  if (ret != LX_SUCCESS)
+  {
+    return -1;
+  }
+{{/if}}
+{{#if nand_enabled}}
+  /* Initialize LevelX NAND flash */
+  ret = lx_nand_flash_initialize();
+  if (ret != LX_SUCCESS)
+  {
+    return -1;
+  }
+{{/if}}
+
+{{#if (not generateMainInit)}}
+{{#each levelx_cxt.interfaces}}
+  {{#with logical_config}}
+    {{#if applicative.nor_flash_format}}
+  /* Format the NOR flash driver */
+  ret = lx_nor_flash_format(&NORFlashObj_{{@index}}, "nor flash_{{@index}}", mx_lx_nor_flash_driver_{{@index}}_initialize, mx_lx_nor_flash_driver_{{@index}}_get_ctx());
+  if (ret != LX_SUCCESS)
+  {
+    return -1;
+  }
+    {{/if}}
+
+    {{#if applicative.nor_flash_extended_open}}
+  /* Open the NOR flash driver */
+  ret = lx_nor_flash_open_extended(&NORFlashObj_{{@index}}, "nor flash_{{@index}}", mx_lx_nor_flash_driver_{{@index}}_initialize, mx_lx_nor_flash_driver_{{@index}}_get_ctx());
+  if (ret != LX_SUCCESS)
+  {
+    return -1;
+  }
+    {{/if}}
+    {{#if applicative.nand_flash_extended_format}}
+  /* Format the NAND flash driver */
+  ret = lx_nand_flash_format_extended(&NANDFlashObj_{{@index}}, "nand flash{{@index}}", mx_lx_nand_flash_driver_{{@index}}_initialize, mx_lx_nand_flash_driver_{{@index}}_get_ctx(), memory_ptr_{{@index}}, sizeof(memory_ptr_{{@index}}));
+  if (ret != LX_SUCCESS)
+  {
+    return -1;
+  }
+     {{/if}}
+      {{#if applicative.nand_flash_extended_open}}
+  /* Open the NAND flash driver */
+  ret = lx_nand_flash_open_extended(&NANDFlashObj_{{@index}}, "nand flash{{@index}}", mx_lx_nand_flash_driver_{{@index}}_initialize, mx_lx_nand_flash_driver_{{@index}}_get_ctx(), memory_ptr_{{@index}}, sizeof(memory_ptr_{{@index}}));
+  if (ret != LX_SUCCESS)
+  {
+    return -1;
+  }
+      {{/if}}
+  {{/with}}
+{{/each}}
+{{/if}}
+
+  return LX_SUCCESS;
+}
+
+{{#if generateMainInit}}
+/**
+ * @brief  LevelX App Initialization. levelx_app_task_entry_name}}.
+ * @param  args: Task arguments
+ * @retval None
+*/
+VOID {{levelx_cxt.core.applicative.levelx_app_task_entry_name}}(VOID *args)
+{
+{{#each levelx_cxt.interfaces}}
+  {{#with logical_config}}
+    {{#if applicative.nor_flash_format}}
+  /* Format the NOR flash driver */
+  lx_nor_flash_format(&NORFlashObj_{{@index}}, "nor flash_{{@index}}", mx_lx_nor_flash_driver_{{@index}}_initialize, mx_lx_nor_flash_driver_{{@index}}_get_ctx());
+    {{/if}}
+
+    {{#if applicative.nor_flash_extended_open}}
+  /* Open the NOR flash driver */
+  lx_nor_flash_open_extended(&NORFlashObj_{{@index}}, "nor flash_{{@index}}", mx_lx_nor_flash_driver_{{@index}}_initialize, mx_lx_nor_flash_driver_{{@index}}_get_ctx());
+    {{/if}}
+    {{#if applicative.nand_flash_extended_format}}
+  /* Format the NAND flash driver */
+  lx_nand_flash_format_extended(&NANDFlashObj_{{@index}}, "nand flash{{@index}}", mx_lx_nand_flash_driver_{{@index}}_initialize, mx_lx_nand_flash_driver_{{@index}}_get_ctx(), memory_ptr_{{@index}}, sizeof(memory_ptr_{{@index}}));
+     {{/if}}
+      {{#if applicative.nand_flash_extended_open}}
+  /* Open the NAND flash driver */
+  lx_nand_flash_open_extended(&NANDFlashObj_{{@index}}, "nand flash{{@index}}", mx_lx_nand_flash_driver_{{@index}}_initialize, mx_lx_nand_flash_driver_{{@index}}_get_ctx(), memory_ptr_{{@index}}, sizeof(memory_ptr_{{@index}}));
+      {{/if}}
+  {{/with}}
+{{/each}}
+
+}
+{{/if}}
+
+{{#each levelx_cxt.interfaces}}
+  {{#with logical_config}}
+    {{#if applicative.generate_levelx_interface_init_code}}
+VOID {{applicative.levelx_interface_app_task_entry_name}}(VOID *args)
+{
+}
+    {{/if}}
+  {{/with}}
+{{/each}}
+{{#if (eq levelx_cxt.core.basic.levelx_core.lx_standalone "No OS")}}
+
+/*
+ * @brief  LevelX operations processing
+ * @param NULL
+ * @retval 0 on success -1 otherwise
+ */
+UINT app_levelx_process(VOID)
+{
+  UINT status = LX_SUCCESS;
+
+  return status;
+}
+{{/if}}

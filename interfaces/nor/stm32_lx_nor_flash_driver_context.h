@@ -28,9 +28,8 @@ typedef enum
   STM32_LX_NOR_FLAG_START_ADDRESS      = 0x00000001,
   STM32_LX_NOR_FLAG_BLOCK_SIZE         = 0x00000002,
   STM32_LX_NOR_FLAG_FLASH_SIZE         = 0x00000004,
-  STM32_LX_NOR_FLAG_READ_BUFFER        = 0x00000008,
-  STM32_LX_NOR_FLAG_CACHE_MAINTENANCE  = 0x00000010,
-  STM32_LX_NOR_FLAG_ALL                = 0x0000001F,
+  STM32_LX_NOR_FLAG_CACHE_MAINTENANCE  = 0x00000008,
+  STM32_LX_NOR_FLAG_ALL                = 0x0000000F,
 
 } STM32_LX_NOR_FLASH_DRIVER_FLAGS;
 
@@ -38,10 +37,10 @@ typedef VOID *nor_flash_get_object(void);
 typedef struct STM32_LX_NOR_FLASH_DRIVER_CONTEXT_STRUCT
 {
   STM32_LX_NOR_FLASH_DRIVER_FLAGS nor_flash_flags;
-  ULONG                           nor_flash_start_address;
-  ULONG                           nor_flash_block_size;
-  ULONG                           nor_flash_size;
-  ULONG                           nor_flash_op_timeout;
+  ULONG                           nor_flash_start_address; /* Start block index. */
+  ULONG                           nor_flash_block_size;    /* Block size in bytes. */
+  ULONG                           nor_flash_size;          /* NOR flash size in MB. */
+  ULONG                           nor_flash_op_timeout;    /* Flash operation timeout in ms. */
 #ifdef LX_STANDALONE_ENABLE
   volatile UINT                   data_rx_cplt;
   volatile UINT                   data_tx_cplt;

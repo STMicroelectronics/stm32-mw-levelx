@@ -1,0 +1,1024 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "version": "0.0.1",
+  "type": "object",
+  "grammarVersion": "3.9",
+  "componentid": "File System:STM32CubeMX2 Config:LevelX",
+  "functions": [
+    {
+      "path": ".config/template/helpers/levelx_helpers.js",
+      "accessor": "common"
+    }
+  ],
+  "properties": {
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "info": {
+          "title": "General information",
+          "type": "object",
+          "properties": {
+            "version": {
+              "title": "LevelX version",
+              "type": "string",
+              "default": "6.4.1",
+              "actions": [
+                {
+                  "type": "disable",
+                  "condition": "true",
+                  "message": "LevelX version is fixed and cannot be modified."
+                }
+              ]
+            }
+          }
+        },
+        "profile": {
+          "title": "Profile",
+          "type": "object",
+          "properties": {
+            "profile_type": {
+              "title": "Profile selection",
+              "description": "Configuration profiles are predefined configuration settings where flags take default values.",
+              "type": "string",
+              "oneOf": [
+                {
+                  "const": "DEFAULT",
+                  "title": "Default",
+                  "description": "A profile that configures all the flags with their default values."
+                },
+                {
+                  "const": "LOW_FOOTPRINT",
+                  "title": "Low footprint",
+                  "description": "A profile where the size of final binary is optimized.",
+                  "actions": [
+                    {
+                      "type": "disable",
+                      "condition": "true",
+                      "message": "The Low Footprint profile is currently unavailable."
+                    }
+                  ]
+                }
+              ],
+              "default": "DEFAULT"
+            }
+          }
+        },
+        "core": {
+          "title": "Core",
+          "type": "object",
+          "properties": {
+            "basic": {
+              "title": "Main features",
+              "type": "object",
+              "properties": {
+                "levelx_core": {
+                  "type": "object",
+                  "title": "Core",
+                  "properties": {
+                    "lx_standalone": {
+                      "type": "string",
+                      "description": "When set to 'No OS', LevelX runs in standalone mode. If set to 'FreeRTOS', LevelX operates within a FreeRTOS environment, which requires the FreeRTOS middleware to be enabled in your project.",
+                      "title": "Select operating system",
+                      "default": "No OS",
+                      "oneOf": [
+                        {
+                          "title": "No OS",
+                          "const": "No OS"
+                        },
+                        {
+                          "title": "FreeRTOS",
+                          "const": "FreeRTOS",
+                          "actions": [
+                            {
+                              "type": "enable",
+                              "condition": "$get('swproject.hasRTOSenabled')",
+                              "message": "Enable the FreeRTOS middleware to select this operating system."
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "lx_thread_safe_enable": {
+                      "title": "Thread safe",
+                      "description": "LevelX is made thread-safe by using an RTOS mutex object throughout the API.",
+                      "type": "boolean",
+                      "default": false
+                    }
+                  }
+                },
+                "nor_flash_support": {
+                  "type": "object",
+                  "title": "NOR flash",
+                  "properties": {
+                    "nor_flash_enable": {
+                      "title": "Use NOR flash",
+                      "type": "boolean",
+                      "variables": [
+                        {
+                          "on": "update-value",
+                          "condition": "$value == true",
+                          "name": "NOR_Flash",
+                          "value": true
+                        }
+                      ],
+                      "default": true
+                    },
+                    "lx_nor_sector_size": {
+                      "title": "Sector size",
+                      "description": "The sector size is in units of 32-bit words. This sector size should match the sector size used in file system.",
+                      "type": "string",
+                      "default": "128",
+                      "oneOf": [
+                        {
+                          "title": "128",
+                          "const": "128"
+                        },
+                        {
+                          "title": "256",
+                          "const": "256"
+                        },
+                        {
+                          "title": "512",
+                          "const": "512"
+                        },
+                        {
+                          "title": "1024",
+                          "const": "1024"
+                        }
+                      ],
+                      "actions": [
+                        {
+                          "type": "enable",
+                          "condition": "$core.basic.nor_flash_support.nor_flash_enable",
+                          "message": "Enable NOR flash support to configure the sector size."
+                        }
+                      ]
+                    },
+                    "more": {
+                      "additionalProperties": false,
+                      "type": "object",
+                      "title": "More",
+                      "properties": {
+                        "lx_free_sector_data_verify": {
+                          "title": "Free sector data verify",
+                          "description": "NOR instance open logic verifies that all free NOR sectors contain only ones.",
+                          "type": "boolean",
+                          "default": false,
+                          "actions": [
+                            {
+                              "type": "enable",
+                              "condition": "$core.basic.nor_flash_support.nor_flash_enable",
+                              "message": "Enable NOR flash support to configure free sector data verify."
+                            }
+                          ]
+                        },
+                        "lx_nor_disable_extended_cache": {
+                          "title": "Extended cache",
+                          "description": "Extended cache is used to improve performance by reducing direct access to slower NOR flash memory during read and write operations.",
+                          "type": "boolean",
+                          "default": true,
+                          "actions": [
+                            {
+                              "type": "enable",
+                              "condition": "$core.basic.nor_flash_support.nor_flash_enable",
+                              "message": "Enable NOR flash support to configure the extended cache."
+                            }
+                          ]
+                        },
+                        "lx_nor_extended_cache_size": {
+                          "title": "Extended cache size",
+                          "description": "By default this value is 8, which represents a maximum of 8 sectors that can be cached in a NOR instance.",
+                          "type": "integer",
+                          "default": 8,
+                          "minimum": 1,
+                          "maximum": 8,
+                          "actions": [
+                            {
+                              "type": "enable",
+                              "condition": "$core.basic.nor_flash_support.nor_flash_enable",
+                              "message": "Enable NOR flash support to configure the extended cache size."
+                            }
+                          ]
+                        },
+                        "lx_nor_sector_mapping_cache_size": {
+                          "title": "Sector mapping cache size",
+                          "description": "By default this value is 16 and defines the logical sector mapping cache size. Large values improve performance, but cost memory. The minimum size is 8 and all values must be a power of 2.",
+                          "type": "integer",
+                          "actions": [
+                            {
+                              "type": "error",
+                              "condition": "!$common.isPowerOfTwo($core.basic.nor_flash_support.more.lx_nor_sector_mapping_cache_size)",
+                              "message": "Must be a power of two"
+                            },
+                            {
+                              "type": "enable",
+                              "condition": "$core.basic.nor_flash_support.nor_flash_enable",
+                              "message": "Enable NOR flash support to configure the sector mapping cache size."
+                            }
+                          ],
+                          "default": 16,
+                          "minimum": 8,
+                          "maximum": 1024
+                        },
+                        "lx_nor_enable_mapping_bitmap": {
+                          "title": "Mapping bitmap",
+                          "description": "Determine if logical sector mapping bitmap should be enabled in extended cache. Cache memory will be allocated to sector mapping bitmap first. One bit can be allocated for each physical sector.",
+                          "type": "boolean",
+                          "default": false,
+                          "actions": [
+                            {
+                              "type": "include",
+                              "condition": "$core.basic.nor_flash_support.more.lx_nor_disable_extended_cache"
+                            },
+                            {
+                              "type": "enable",
+                              "condition": "$core.basic.nor_flash_support.nor_flash_enable",
+                              "message": "Enable NOR flash support to configure the mapping bitmap."
+                            }
+                          ]
+                        },
+                        "lx_nor_enable_obsolete_count_cache": {
+                          "title": "Obsolete count cache",
+                          "description": "Determine if obsolete count cache should be enabled in extended cache. Cache memory will be allocated to obsolete count cache after the mapping bitmap if enabled, and the rest of the cache memory is allocated to sector cache.",
+                          "type": "boolean",
+                          "default": false,
+                          "actions": [
+                            {
+                              "type": "include",
+                              "condition": "$core.basic.nor_flash_support.more.lx_nor_disable_extended_cache"
+                            },
+                            {
+                              "type": "enable",
+                              "condition": "$core.basic.nor_flash_support.nor_flash_enable",
+                              "message": "Enable NOR flash support to configure the obsolete count cache."
+                            }
+                          ]
+                        },
+                        "lx_nor_obsolete_count_cache_type": {
+                          "title": "Obsolete count cache type",
+                          "description": "If number of sectors per block is greater than 256, use USHORT instead of UCHAR.",
+                          "type": "string",
+                          "default": "UCHAR",
+                          "oneOf": [
+                            {
+                              "title": "Standard range (UCHAR, <=256 sectors/block)",
+                              "const": "UCHAR"
+                            },
+                            {
+                              "title": "Extended range (USHORT, >256 sectors/block)",
+                              "const": "USHORT"
+                            }
+                          ],
+                          "actions": [
+                            {
+                              "type": "enable",
+                              "condition": "$core.basic.nor_flash_support.nor_flash_enable",
+                              "message": "Enable NOR flash support to configure the obsolete count cache type."
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "nand_flash_support": {
+                  "type": "object",
+                  "title": "NAND flash",
+                  "properties": {
+                    "nand_flash_enable": {
+                      "title": "Use NAND flash",
+                      "type": "boolean",
+                      "variables": [
+                        {
+                          "on": "update-value",
+                          "condition": "$value == true",
+                          "name": "NAND_Flash",
+                          "value": true
+                        }
+                      ],
+                      "default": false
+                    },
+                    "lx_nand_flash_max_metadata_blocks": {
+                      "title": "Flash max metadata blocks",
+                      "description": "By default this value is 4, which represents a maximum of 4 blocks that can be allocated for metadata.",
+                      "type": "integer",
+                      "default": 4,
+                      "minimum": 2,
+                      "maximum": 65535,
+                      "actions": [
+                        {
+                          "type": "enable",
+                          "condition": "$core.basic.nand_flash_support.nand_flash_enable",
+                          "message": "Enable NAND flash support to configure the max metadata blocks."
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "applicative": {
+              "title": "Applicative",
+              "type": "object",
+              "properties": {
+                "generate_levelx_init_code": {
+                  "title": "Generate initialization code",
+                  "description": "Generate the application code that initializes the LevelX stack in main task within the app_levelx_init function when an operating system is selected.",
+                  "type": "boolean",
+                  "default": false,
+                  "actions": [
+                    {
+                      "type": "enable",
+                      "condition": "$core.basic.levelx_core.lx_standalone != 'No OS'",
+                      "message": "Select an operating system to generate initialization code."
+                    }
+                  ]
+                },
+                "levelx_app_task_entry_name": {
+                  "title": "Application task entry name",
+                  "description": "Specify the function name that will serve as the entry point for the main LevelX application task.",
+                  "type": "string",
+                  "default": "lx_main_task_entry",
+                  "actions": [
+                    {
+                      "type": "enable",
+                      "condition": "$core.applicative.generate_levelx_init_code && $core.basic.levelx_core.lx_standalone != 'No OS'",
+                      "message": "Enable generate initialization code and set operating system to FreeRTOS to configure this field."
+                    }
+                  ]
+                },
+                "levelx_app_task_name": {
+                  "title": "Application task name",
+                  "description": "Specify the name to be assigned to the LevelX main task.",
+                  "type": "string",
+                  "default": "lx_main_task",
+                  "actions": [
+                    {
+                      "type": "enable",
+                      "condition": "$core.applicative.generate_levelx_init_code && $core.basic.levelx_core.lx_standalone != 'No OS'",
+                      "message": "Enable generate initialization code and set operating system to FreeRTOS to configure this field."
+                    }
+                  ]
+                },
+                "levelx_app_task_priority": {
+                  "title": "Application task priority",
+                  "description": "Set the priority level for the main LevelX application task.",
+                  "type": "string",
+                  "default": "10",
+                  "actions": [
+                    {
+                      "type": "enable",
+                      "condition": "$core.applicative.generate_levelx_init_code && $core.basic.levelx_core.lx_standalone != 'No OS'",
+                      "message": "Enable generate initialization code and set operating system to FreeRTOS to configure this field."
+                    }
+                  ]
+                },
+                "levelx_app_stack_size": {
+                  "title": "Application task stack size",
+                  "description": "Define the stack size allocated for the main task.",
+                  "type": "string",
+                  "default": "1024",
+                  "actions": [
+                    {
+                      "type": "enable",
+                      "condition": "$core.applicative.generate_levelx_init_code && $core.basic.levelx_core.lx_standalone != 'No OS'",
+                      "message": "Enable generate initialization code and set operating system to FreeRTOS to configure this field."
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "interfaces": {
+          "type": "array",
+          "title": "Interfaces",
+          "items": {
+            "type": "object",
+            "properties": {
+              "logical_config": {
+                "title": "Logical interface",
+                "type": "object",
+                "properties": {
+                  "interface_type": {
+                    "title": "Select the interface type",
+                    "type": "string",
+                    "description": "Select the interface type for this configuration. Available options depend on your project's hardware and middleware setup.",
+                    "oneOf": [
+                      {
+                        "title": "W25N01GVXX NAND flash interface",
+                        "const": "W25N01GVXX_NAND_FLASH_INTERFACE",
+                        "actions": [
+                          {
+                            "type": "enable",
+                            "condition": "($core.basic.nand_flash_support.nand_flash_enable)",
+                            "message": "The support of NAND flash must be activated"
+                          }
+                        ]
+                      },
+                      {
+                        "title": "MX25LM51245G NOR flash interface",
+                        "const": "MX25LM51245G_NOR_FLASH_INTERFACE",
+                        "actions": [
+                          {
+                            "type": "enable",
+                            "condition": "($core.basic.nor_flash_support.nor_flash_enable)",
+                            "message": "The support of NOR flash must be activated"
+                          }
+                        ]
+                      },
+                      {
+                        "title": "MX66UW1G45G NOR flash interface",
+                        "const": "MX66UW1G45G_NOR_FLASH_INTERFACE",
+                        "actions": [
+                          {
+                            "type": "enable",
+                            "condition": "($core.basic.nor_flash_support.nor_flash_enable)",
+                            "message": "The support of NOR flash must be activated"
+                          }
+                        ]
+                      },
+                      {
+                        "title": "W25Q128J NOR flash interface",
+                        "const": "W25Q128J_NOR_FLASH_INTERFACE",
+                        "actions": [
+                          {
+                            "type": "enable",
+                            "condition": "($core.basic.nor_flash_support.nor_flash_enable)",
+                            "message": "The support of NOR flash must be activated"
+                          }
+                        ]
+                      },
+                      {
+                        "title": "",
+                        "const": ""
+                      }
+                    ],
+                    "default": ""
+                  },
+                  "transfer_mode": {
+                    "title": "Select the transfer mode",
+                    "type": "string",
+                    "description": "Select the transfer mode for data operations. Options include Polling, DMA no OS, or DMA with OS, based on your system and interface configuration.",
+                    "oneOf": [
+                      {
+                        "title": "Polling",
+                        "const": "POLLING"
+                      },
+                      {
+                        "title": "DMA no OS",
+                        "const": "DMA_NO_OS"
+                      },
+                      {
+                        "title": "DMA OS",
+                        "const": "DMA_OS",
+                        "description": "When using the DMA OS mode with FreeRTOS, configure the NVIC interrupt priority of the SPI/XSPI IP to a numerical value greater than FreeRTOS configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY flag value.",
+                        "actions": [
+                          {
+                            "type": "enable",
+                            "condition": "$core.basic.levelx_core.lx_standalone != 'No OS'",
+                            "message": "Select an operating system to use DMA in OS mode."
+                          }
+                        ]
+                      },
+                      {
+                        "title": "",
+                        "const": ""
+                      }
+                    ],
+                    "default": "",
+                    "actions": [
+                      {
+                        "type": "disable",
+                        "condition": "$item.logical_config.interface_type == ''",
+                        "message": "Select an interface type first."
+                      }
+                    ],
+                    "variables": [
+                      {
+                        "on": "update-value",
+                        "condition": "$item.logical_config.interface_type === 'W25N01GVXX_NAND_FLASH_INTERFACE' && $value === 'POLLING'",
+                        "name": "w25n01gvxx_nand_polling",
+                        "semaphore": true
+                      },
+                      {
+                        "on": "update-value",
+                        "condition": "$item.logical_config.interface_type === 'W25N01GVXX_NAND_FLASH_INTERFACE' && $value === 'DMA_NO_OS'",
+                        "name": "w25n01gvxx_nand_dma_no_os",
+                        "semaphore": true
+                      },
+                      {
+                        "on": "update-value",
+                        "condition": "$item.logical_config.interface_type === 'W25N01GVXX_NAND_FLASH_INTERFACE' && $value === 'DMA_OS'",
+                        "name": "w25n01gvxx_nand_dma_os",
+                        "semaphore": true
+                      },
+                      {
+                        "on": "update-value",
+                        "condition": "$item.logical_config.interface_type === 'MX66UW1G45G_NOR_FLASH_INTERFACE' && $value === 'POLLING'",
+                        "name": "mx66uw1g45g_nor_polling",
+                        "semaphore": true
+                      },
+                      {
+                        "on": "update-value",
+                        "condition": "$item.logical_config.interface_type === 'MX66UW1G45G_NOR_FLASH_INTERFACE' && $value === 'DMA_NO_OS'",
+                        "name": "mx66uw1g45g_nor_dma_no_os",
+                        "semaphore": true
+                      },
+                      {
+                        "on": "update-value",
+                        "condition": "$item.logical_config.interface_type === 'MX66UW1G45G_NOR_FLASH_INTERFACE' && $value === 'DMA_OS'",
+                        "name": "mx66uw1g45g_nor_dma_os",
+                        "semaphore": true
+                      },
+                      {
+                        "on": "update-value",
+                        "condition": "$item.logical_config.interface_type === 'MX25LM51245G_NOR_FLASH_INTERFACE' && $value === 'POLLING'",
+                        "name": "mx25lm51245g_nor_polling",
+                        "semaphore": true
+                      },
+                      {
+                        "on": "update-value",
+                        "condition": "$item.logical_config.interface_type === 'MX25LM51245G_NOR_FLASH_INTERFACE' && $value === 'DMA_NO_OS'",
+                        "name": "mx25lm51245g_nor_dma_no_os",
+                        "semaphore": true
+                      },
+                      {
+                        "on": "update-value",
+                        "condition": "$item.logical_config.interface_type === 'MX25LM51245G_NOR_FLASH_INTERFACE' && $value === 'DMA_OS'",
+                        "name": "mx25lm51245g_nor_dma_os",
+                        "semaphore": true
+                      },
+                      {
+                        "on": "update-value",
+                        "condition": "$item.logical_config.interface_type === 'W25Q128J_NOR_FLASH_INTERFACE' && $value === 'POLLING'",
+                        "name": "w25q128j_nor_polling",
+                        "semaphore": true
+                      },
+                      {
+                        "on": "update-value",
+                        "condition": "$item.logical_config.interface_type === 'W25Q128J_NOR_FLASH_INTERFACE' && $value === 'DMA_NO_OS'",
+                        "name": "w25q128j_nor_dma_no_os",
+                        "semaphore": true
+                      },
+                      {
+                        "on": "update-value",
+                        "condition": "$item.logical_config.interface_type === 'W25Q128J_NOR_FLASH_INTERFACE' && $value === 'DMA_OS'",
+                        "name": "w25q128j_nor_dma_os",
+                        "semaphore": true
+                      }
+                    ]
+                  },
+                  "nor_flash_flags": {
+                    "type": "object",
+                    "title": "NOR flash driver options",
+                    "properties": {
+                      "stm32_lx_nor_flag_all": {
+                        "type": "boolean",
+                        "title": "Apply all NOR flash options",
+                        "description": "Combination of all defined flags (bitwise OR).",
+                        "default": false
+                      },
+                      "stm32_lx_nor_flag_start_address": {
+                        "type": "boolean",
+                        "title": "Start address",
+                        "description": "Indicates the start address of the NOR flash.",
+                        "default": false,
+                        "actions": [
+                          {
+                            "type": "disable",
+                            "condition": " $item.logical_config.nor_flash_flags.stm32_lx_nor_flag_all === true",
+                            "message": "Disable 'Apply all NOR flash options' to configure this flag individually."
+                          }
+                        ]
+                      },
+                      "stm32_lx_nor_flag_block_size": {
+                        "type": "boolean",
+                        "title": "Block size",
+                        "description": "Specifies the block size for erase/read/write operations.",
+                        "default": false,
+                        "actions": [
+                          {
+                            "type": "disable",
+                            "condition": "true",
+                            "message": "Disable 'Apply all NOR flash options' to configure this flag individually."
+                          }
+                        ]
+                      },
+                      "stm32_lx_nor_flag_flash_size": {
+                        "type": "boolean",
+                        "title": "Flash size",
+                        "description": "Represents the total size of the NOR flash memory.",
+                        "default": false,
+                        "actions": [
+                          {
+                            "type": "disable",
+                            "condition": " $item.logical_config.nor_flash_flags.stm32_lx_nor_flag_all === true",
+                            "message": "Disable 'Apply all NOR flash options' to configure this flag individually."
+                          }
+                        ]
+                      },
+                      "stm32_lx_nor_flag_cache_maintenance": {
+                        "type": "boolean",
+                        "title": "Cache maintenance",
+                        "description": "Enables cache maintenance operations for data coherency.",
+                        "default": false,
+                        "actions": [
+                          {
+                            "type": "disable",
+                            "condition": " $item.logical_config.nor_flash_flags.stm32_lx_nor_flag_all === true",
+                            "message": "Disable 'Apply all NOR flash options' to configure this flag individually."
+                          }
+                        ]
+                      }
+                    },
+                    "actions": [
+                      {
+                        "type": "include",
+                        "condition": "($item.logical_config.interface_type == 'MX25LM51245G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'MX66UW1G45G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'W25Q128J_NOR_FLASH_INTERFACE')"
+                      }
+                    ]
+                  },
+                  "start_address": {
+                    "title": "Start address",
+                    "description": "Define NOR flash start address.",
+                    "type": "string",
+                    "default": "0",
+                    "actions": [
+                      {
+                        "type": "include",
+                        "condition": "($item.logical_config.interface_type == 'MX25LM51245G_NOR_FLASH_INTERFACE' || $item.logical_config.interface_type == 'MX66UW1G45G_NOR_FLASH_INTERFACE' || $item.logical_config.interface_type == 'W25Q128J_NOR_FLASH_INTERFACE') && ($item.logical_config.nor_flash_flags.stm32_lx_nor_flag_start_address === true || $item.logical_config.nor_flash_flags.stm32_lx_nor_flag_all === true)"
+                      }
+                    ]
+                  },
+                  "block_size": {
+                    "title": "Block size",
+                    "description": "Define NOR flash block size.",
+                    "type": "string",
+                    "default": "4096",
+                    "actions": [
+                      {
+                        "type": "include",
+                        "condition": "($item.logical_config.interface_type == 'MX25LM51245G_NOR_FLASH_INTERFACE' || $item.logical_config.interface_type == 'MX66UW1G45G_NOR_FLASH_INTERFACE' || $item.logical_config.interface_type == 'W25Q128J_NOR_FLASH_INTERFACE') && ($item.logical_config.nor_flash_flags.stm32_lx_nor_flag_block_size === true || $item.logical_config.nor_flash_flags.stm32_lx_nor_flag_all === true)"
+                      }
+                    ]
+                  },
+                  "flash_size": {
+                    "title": "Flash size",
+                    "description": "Define NOR flash total size.",
+                    "type": "string",
+                    "default": "0x00200000",
+                    "actions": [
+                      {
+                        "type": "include",
+                        "condition": "($item.logical_config.interface_type == 'MX25LM51245G_NOR_FLASH_INTERFACE' || $item.logical_config.interface_type == 'MX66UW1G45G_NOR_FLASH_INTERFACE' || $item.logical_config.interface_type == 'W25Q128J_NOR_FLASH_INTERFACE') && ($item.logical_config.nor_flash_flags.stm32_lx_nor_flag_flash_size === true || $item.logical_config.nor_flash_flags.stm32_lx_nor_flag_all === true)"
+                      }
+                    ]
+                  },
+                  "op_timeout": {
+                    "title": "Operation timeout",
+                    "description": "Specifies the timeout value for NOR flash memory operations.",
+                    "type": "string",
+                    "default": "460000U",
+                    "actions": [
+                      {
+                        "type": "include",
+                        "condition": "(($item.logical_config.interface_type == 'MX25LM51245G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'MX66UW1G45G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'W25Q128J_NOR_FLASH_INTERFACE'))"
+                      }
+                    ]
+                  },
+                  "interface_mode": {
+                    "title": "Interface mode",
+                    "description": "Interface mode specifies the communication protocol between the microcontroller and the memory device",
+                    "type": "integer",
+                    "oneOf": [
+                      {
+                        "const": 0,
+                        "title": "SPI mode",
+                        "description": " Uses standard SPI (1-1-1 protocol), default after power-on, compatible with basic SPI controllers, lower speed."
+                      },
+                      {
+                        "const": 1,
+                        "title": "OPI mode",
+                        "description": "Uses Octal Peripheral Interface (8-8-8 protocol), much higher speed, requires hardware support and special initialization"
+                      }
+                    ],
+                    "default": 1,
+                    "actions": [
+                      {
+                        "type": "include",
+                        "condition": "(($item.logical_config.interface_type == 'MX25LM51245G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'MX66UW1G45G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'W25Q128J_NOR_FLASH_INTERFACE'))"
+                      }
+                    ]
+                  },
+                  "transfer_rate": {
+                    "title": "Transfer rate",
+                    "description": "Transfer rate specifies the data transfer method used between the microcontroller and the memory device.",
+                    "type": "integer",
+                    "oneOf": [
+                      {
+                        "const": 0,
+                        "title": "Single transfer rate (STR)",
+                        "description": "Transfers data on one clock edge per cycle (standard mode, default after power-on, lower speed)."
+                      },
+                      {
+                        "const": 1,
+                        "title": "Double transfer rate (DTR)",
+                        "description": "Transfers data on both clock edges per cycle (higher speed, requires hardware support and initialization)."
+                      }
+                    ],
+                    "default": 1,
+                    "actions": [
+                      {
+                        "type": "include",
+                        "condition": "(($item.logical_config.interface_type == 'MX25LM51245G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'MX66UW1G45G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'W25Q128J_NOR_FLASH_INTERFACE'))"
+                      }
+                    ]
+                  },
+                  "nand_flash_flags": {
+                    "type": "object",
+                    "title": "NAND flash driver options",
+                    "properties": {
+                      "stm32_lx_nand_flag_all": {
+                        "type": "boolean",
+                        "title": "Apply all NAND flash options",
+                        "description": "Combination of all defined flags (bitwise OR).",
+                        "default": false
+                      },
+                      "stm32_lx_nand_flag_start_block": {
+                        "type": "boolean",
+                        "title": "Start block",
+                        "description": "Indicates the starting block number of the NAND flash.",
+                        "default": false,
+                        "actions": [
+                          {
+                            "type": "disable",
+                            "condition": " $item.logical_config.nand_flash_flags.stm32_lx_nand_flag_all === true",
+                            "message": "Disable 'Apply all NAND flash options' to configure this flag individually."
+                          }
+                        ]
+                      },
+                      "stm32_lx_nand_flag_total_blocks": {
+                        "type": "boolean",
+                        "title": "Total blocks",
+                        "description": "Specifies the total number of blocks in the NAND flash.",
+                        "default": false,
+                        "actions": [
+                          {
+                            "type": "disable",
+                            "condition": " $item.logical_config.nand_flash_flags.stm32_lx_nand_flag_all === true",
+                            "message": "Disable 'Apply all NAND flash options' to configure this flag individually."
+                          }
+                        ]
+                      },
+                      "stm32_lx_nand_flag_cache_maintenance": {
+                        "type": "boolean",
+                        "title": "Cache maintenance",
+                        "description": "Enables cache maintenance operations for data coherency.",
+                        "default": false,
+                        "actions": [
+                          {
+                            "type": "disable",
+                            "condition": " $item.logical_config.nand_flash_flags.stm32_lx_nand_flag_all === true",
+                            "message": "Disable 'Apply all NAND flash options' to configure this flag individually."
+                          }
+                        ]
+                      }
+                    },
+                    "actions": [
+                      {
+                        "type": "include",
+                        "condition": "$item.logical_config.interface_type == 'W25N01GVXX_NAND_FLASH_INTERFACE'"
+                      }
+                    ]
+                  },
+                  "start_block": {
+                    "title": "Start block",
+                    "description": "Define NAND flash start block.",
+                    "type": "string",
+                    "default": "0",
+                    "actions": [
+                      {
+                        "type": "include",
+                        "condition": "$item.logical_config.interface_type == 'W25N01GVXX_NAND_FLASH_INTERFACE' && ($item.logical_config.nand_flash_flags.stm32_lx_nand_flag_start_block === true || $item.logical_config.nand_flash_flags.stm32_lx_nand_flag_all === true)"
+                      }
+                    ]
+                  },
+                  "total_blocks": {
+                    "title": "Total blocks",
+                    "description": "Define NAND flash total blocks.",
+                    "type": "string",
+                    "default": "0",
+                    "actions": [
+                      {
+                        "type": "include",
+                        "condition": "$item.logical_config.interface_type == 'W25N01GVXX_NAND_FLASH_INTERFACE' && ($item.logical_config.nand_flash_flags.stm32_lx_nand_flag_total_blocks === true || $item.logical_config.nand_flash_flags.stm32_lx_nand_flag_all === true)"
+                      }
+                    ]
+                  },
+                  "nand_op_timeout": {
+                    "title": "Operation timeout",
+                    "description": "Specifies the timeout value for NAND flash memory operations.",
+                    "type": "string",
+                    "default": "1000U",
+                    "actions": [
+                      {
+                        "type": "include",
+                        "condition": "$item.logical_config.interface_type == 'W25N01GVXX_NAND_FLASH_INTERFACE'"
+                      }
+                    ]
+                  },
+                  "applicative": {
+                    "title": "Applicative",
+                    "type": "object",
+                    "properties": {
+                      "generate_levelx_interface_init_code": {
+                        "title": "Generate initialization code",
+                        "description": "Generate application code that initializes the LevelX stack in a separate task for each interface, allowing independent management per interface when an operating system is selected.",
+                        "type": "boolean",
+                        "default": false,
+                        "actions": [
+                          {
+                            "type": "enable",
+                            "condition": "($core.basic.levelx_core.lx_standalone != 'No OS' && $item.logical_config.interface_type != '')",
+                            "message": "Select an interface type and set operating system to FreeRTOS to generate interface initialization code."
+                          }
+                        ]
+                      },
+                      "levelx_interface_app_task_entry_name": {
+                        "title": "Task entry name",
+                        "description": "Specify the name of the task entry function that will serve the LevelX interface.",
+                        "type": "string",
+                        "default": "lx_interface_task_entry",
+                        "actions": [
+                          {
+                            "type": "enable",
+                            "condition": "$item.logical_config.applicative.generate_levelx_interface_init_code && $core.basic.levelx_core.lx_standalone != 'No OS'",
+                            "message": "Enable interface initialization code generation and select an operating system."
+                          }
+                        ]
+                      },
+                      "levelx_interface_app_task_name": {
+                        "title": "Task name",
+                        "description": "Specify the name to be assigned to the LevelX interface task.",
+                        "type": "string",
+                        "default": "lx_interface_task",
+                        "actions": [
+                          {
+                            "type": "enable",
+                            "condition": "$item.logical_config.applicative.generate_levelx_interface_init_code && $core.basic.levelx_core.lx_standalone != 'No OS'",
+                            "message": "Enable interface initialization code generation and select an operating system."
+                          }
+                        ]
+                      },
+                      "levelx_interface_app_task_priority": {
+                        "title": "Task priority",
+                        "description": "Set the priority level for each LevelX interface task.",
+                        "type": "string",
+                        "default": "10",
+                        "actions": [
+                          {
+                            "type": "enable",
+                            "condition": "$item.logical_config.applicative.generate_levelx_interface_init_code && $core.basic.levelx_core.lx_standalone != 'No OS'",
+                            "message": "Enable interface initialization code generation and select an operating system."
+                          }
+                        ]
+                      },
+                      "levelx_interface_app_stack_size": {
+                        "title": "Task stack size",
+                        "description": "Define the stack size allocated for each LevelX interface task.",
+                        "type": "string",
+                        "default": "1024",
+                        "actions": [
+                          {
+                            "type": "enable",
+                            "condition": "$item.logical_config.applicative.generate_levelx_interface_init_code && $core.basic.levelx_core.lx_standalone != 'No OS'",
+                            "message": "Enable interface initialization code generation and select an operating system."
+                          }
+                        ]
+                      },
+                      "nor_flash_format": {
+                        "title": "Generate NOR flash format function",
+                        "description": "Generate code for the NOR flash format function, which erases all non-erased blocks and sets the erase count for each block in the NOR flash instance.",
+                        "type": "boolean",
+                        "default": false,
+                        "actions": [
+                          {
+                            "type": "include",
+                            "condition": "(($item.logical_config.interface_type == 'MX25LM51245G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'MX66UW1G45G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'W25Q128J_NOR_FLASH_INTERFACE'))"
+                          }
+                        ]
+                      },
+                      "nor_flash_extended_open": {
+                        "title": "Generate NOR flash extended open function",
+                        "description": "Generate code for the extended NOR flash open function, which initializes and prepares a NOR flash instance for use in the application.",
+                        "type": "boolean",
+                        "default": false,
+                        "actions": [
+                          {
+                            "type": "include",
+                            "condition": "(($item.logical_config.interface_type == 'MX25LM51245G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'MX66UW1G45G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'W25Q128J_NOR_FLASH_INTERFACE'))"
+                          }
+                        ]
+                      },
+                      "nand_flash_extended_format": {
+                        "title": "Generate NAND flash extended format function",
+                        "description": "Generate code for the NAND flash extended format function, which erases and formats all blocks, allocates metadata blocks, and initializes the NAND flash instance.",
+                        "type": "boolean",
+                        "default": false,
+                        "actions": [
+                          {
+                            "type": "include",
+                            "condition": "($item.logical_config.interface_type == 'W25N01GVXX_NAND_FLASH_INTERFACE')"
+                          }
+                        ]
+                      },
+                      "nand_flash_extended_open": {
+                        "title": "Generate NAND flash extended open function",
+                        "description": "Generate code for the NAND flash extended open function, which opens a NAND flash instance, checks its integrity, initializes metadata, and prepares it for use.",
+                        "type": "boolean",
+                        "default": false,
+                        "actions": [
+                          {
+                            "type": "include",
+                            "condition": "($item.logical_config.interface_type == 'W25N01GVXX_NAND_FLASH_INTERFACE')"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "interface_type",
+                  "transfer_mode"
+                ]
+              },
+              "resources_allocation": {
+                "title": "SW resources allocation",
+                "type": "object",
+                "properties": {
+                  "hw_selection": {
+                    "title": "Memory selection",
+                    "description": "Select the memory device to be used by this interface.",
+                    "type": "string",
+                    "oneOf": [
+                      {
+                        "const": "W25N01GVXX",
+                        "title": "W25N01GVXX",
+                        "actions": [
+                          {
+                            "type": "enable",
+                            "condition": "$get('swproject.hasComponent', 'STMicroelectronics::Board Part:STM32CubeMX2 Config:W25N01GVXX') && $item.logical_config.interface_type == 'W25N01GVXX_NAND_FLASH_INTERFACE'",
+                            "message": "Add the W25N01GVXX board part component and select the matching interface type."
+                          }
+                        ]
+                      },
+                      {
+                        "const": "W25Q128J",
+                        "title": "W25Q128J",
+                        "actions": [
+                          {
+                            "type": "enable",
+                            "condition": "$get('swproject.hasComponent', 'STMicroelectronics::Board Part:STM32CubeMX2 Config:W25Q128J')&& $item.logical_config.interface_type == 'W25Q128J_NOR_FLASH_INTERFACE'",
+                            "message": "Add the W25Q128J board part component and select the matching interface type."
+                          }
+                        ]
+                      },
+                      {
+                        "const": "MX25LM51245G",
+                        "title": "MX25LM51245G",
+                        "actions": [
+                          {
+                            "type": "enable",
+                            "condition": "$get('swproject.hasComponent', 'STMicroelectronics::Board Part:STM32CubeMX2 Config:MX25LM51245G')&& $item.logical_config.interface_type == 'MX25LM51245G_NOR_FLASH_INTERFACE'",
+                            "message": "Add the MX25LM51245G board part component and select the matching interface type."
+                          }
+                        ]
+                      },
+                      {
+                        "const": "MX66UW1G45G",
+                        "title": "MX66UW1G45G",
+                        "actions": [
+                          {
+                            "type": "enable",
+                            "condition": "$get('swproject.hasComponent', 'STMicroelectronics::Board Part:STM32CubeMX2 Config:MX66UW1G45G')&& $item.logical_config.interface_type == 'MX66UW1G45G_NOR_FLASH_INTERFACE'",
+                            "message": "Add the MX66UW1G45G board part component and select the matching interface type."
+                          }
+                        ]
+                      },
+                      {
+                        "title": "",
+                        "const": ""
+                      }
+                    ],
+                    "default": ""
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

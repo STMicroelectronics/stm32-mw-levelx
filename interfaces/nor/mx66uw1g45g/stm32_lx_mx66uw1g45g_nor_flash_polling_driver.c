@@ -19,6 +19,9 @@
 #endif /* LX_DIRECT_READ */
 
 static inline UINT nor_flash_check_status(mx66uw1g45g_obj_t *pobj, ULONG max_timeout);
+static inline mx66uw1g45g_addr_size_t stm32_lx_mx66uw1g45g_get_addr_size(mx66uw1g45g_obj_t *pobj,
+                                                                          uint32_t address,
+                                                                          uint32_t size_byte);
 
 static UINT stm32_lx_nor_flash_driver_read(LX_NOR_FLASH *nor_flash, ULONG *flash_address, ULONG *destination,
                                            ULONG words);
@@ -51,6 +54,39 @@ static inline UINT nor_flash_check_status(mx66uw1g45g_obj_t *pobj, ULONG max_tim
 }
 
 /**
+  * @brief Select the address size according to current interface and transfer range.
+  * @param pobj mx66uw1g45g_obj_t pointer
+  * @param address operation start address
+  * @param size_byte operation size in bytes
+  * @retval Address size to use
+  * @note In SPI mode, 3-byte addressing is used only when the transfer fits in the 24-bit range.
+  * @note In OPI mode, 4-byte addressing is always used.
+  */
+static inline mx66uw1g45g_addr_size_t stm32_lx_mx66uw1g45g_get_addr_size(mx66uw1g45g_obj_t *pobj,
+                                                                          uint32_t address,
+                                                                          uint32_t size_byte)
+{
+  mx66uw1g45g_interface_t interface_mode;
+
+  interface_mode = mx66uw1g45g_get_interface_cfg(pobj);
+
+  if (interface_mode == MX66UW1G45G_OPI_MODE)
+  {
+    return MX66UW1G45G_4BYTES_SIZE;
+  }
+
+  /* In SPI mode, keep 3-byte addressing only if the whole transfer stays below 16 MBytes. */
+  if ((interface_mode == MX66UW1G45G_SPI_MODE) &&
+      (address <= 0x00FFFFFFU) &&
+      (size_byte <= (0x01000000U - address)))
+  {
+    return MX66UW1G45G_3BYTES_SIZE;
+  }
+
+  return MX66UW1G45G_4BYTES_SIZE;
+}
+
+/**
   * @brief Entry function for the LevelX Driver
   * @param nor_flash a pointer to a LX_NOR_FLASH object
   * @retval LX_SUCCESS on success, LX_ERROR otherwise
@@ -61,6 +97,9 @@ UINT stm32_lx_mx66uw1g45g_nor_flash_polling_driver_initialize(LX_NOR_FLASH *nor_
   UINT ret = LX_SUCCESS;
   mx66uw1g45g_info_t nor_flash_info;
   mx66uw1g45g_obj_t *p_mx66uw1g45g_obj;
+  ULONG block_size;
+  ULONG start_address = 0U;
+  ULONG available_flash_size;
 
   /* initialize the LX_NOR_FLASH object with relevant data */
   STM32_LX_NOR_FLASH_DRIVER_CONTEXT *nor_ctx = (STM32_LX_NOR_FLASH_DRIVER_CONTEXT *) nor_flash->lx_nor_flash_driver_info_ptr;
@@ -82,11 +121,43 @@ UINT stm32_lx_mx66uw1g45g_nor_flash_polling_driver_initialize(LX_NOR_FLASH *nor_
   /* get the memory part characteristics */
   mx66uw1g45g_get_info(p_mx66uw1g45g_obj, &nor_flash_info);
 
-  /* to customize the flash configuration use the fields in the STM32_LX_NOR_FLASH_DRIVER_CONTEXT */
-  nor_flash->lx_nor_flash_base_address = (ULONG *)0;
-  nor_flash->lx_nor_flash_total_blocks = nor_flash_info.erase_block_number;
+  /* customize the flash start address */
+  if (nor_ctx->nor_flash_flags & STM32_LX_NOR_FLAG_START_ADDRESS)
+  {
+    /* ensure base address is within the flash address range. */
+    if (nor_ctx->nor_flash_start_address >= nor_flash_info.erase_block_number)
+    {
+      return LX_ERROR;
+    }
 
-  nor_flash->lx_nor_flash_words_per_block = (nor_flash_info.erase_block_size) / sizeof(ULONG);
+    start_address = nor_ctx->nor_flash_start_address;
+  }
+
+  /* compute the available flash size from the selected start address to the end of the NOR flash. */
+  block_size = nor_flash_info.erase_block_size;
+  available_flash_size = nor_flash_info.flash_size - (start_address * block_size);
+
+  /* customize the flash size limit. */
+  if (nor_ctx->nor_flash_flags & STM32_LX_NOR_FLAG_FLASH_SIZE)
+  {
+    /* ensure the configured sub-range is non-zero, block-aligned, and does not exceed the available space. */
+    if ((nor_ctx->nor_flash_size == 0U) ||
+        ((nor_ctx->nor_flash_size % block_size) != 0U) ||
+        (nor_ctx->nor_flash_size > available_flash_size))
+    {
+      return LX_ERROR;
+    }
+
+    /* restrict the managed region to the requested size. */
+    available_flash_size = nor_ctx->nor_flash_size;
+  }
+
+  /* set the flash base address. */
+  nor_flash->lx_nor_flash_base_address = (ULONG *)(start_address * block_size);
+  /* set the total number of managed flash blocks. */
+  nor_flash->lx_nor_flash_total_blocks = available_flash_size / block_size;
+  /* set the number of ULONG words per flash block. */
+  nor_flash->lx_nor_flash_words_per_block = block_size / sizeof(ULONG);
 
   /* set the intermediate read buffer */
   nor_flash->lx_nor_flash_sector_buffer = nor_ctx->nor_flash_read_buffer;
@@ -114,6 +185,8 @@ static UINT stm32_lx_nor_flash_driver_read(LX_NOR_FLASH *nor_flash, ULONG *flash
 {
   UINT status = LX_SUCCESS;
   mx66uw1g45g_obj_t *p_mx66uw1g45g_obj;
+  mx66uw1g45g_addr_size_t addr_size;
+  uint32_t size_byte;
 
   STM32_LX_NOR_FLASH_DRIVER_CONTEXT *nor_ctx = (STM32_LX_NOR_FLASH_DRIVER_CONTEXT *) nor_flash->lx_nor_flash_driver_info_ptr;
 
@@ -129,9 +202,12 @@ static UINT stm32_lx_nor_flash_driver_read(LX_NOR_FLASH *nor_flash, ULONG *flash
   }
   else
   {
+    size_byte = (uint32_t)(words * sizeof(ULONG));
+    addr_size = stm32_lx_mx66uw1g45g_get_addr_size(p_mx66uw1g45g_obj, (uint32_t)flash_address, size_byte);
+
     /* perform the read operation */
-    status = mx66uw1g45g_read(p_mx66uw1g45g_obj, MX66UW1G45G_4BYTES_SIZE, (uint8_t *) destination,
-                              (uint32_t)flash_address, words * sizeof(ULONG));
+    status = mx66uw1g45g_read(p_mx66uw1g45g_obj, addr_size, (uint8_t *) destination,
+                              (uint32_t)flash_address, size_byte);
     if (status != MX66UW1G45G_OK)
     {
       return LX_ERROR;
@@ -153,6 +229,8 @@ static UINT stm32_lx_nor_flash_driver_write(LX_NOR_FLASH *nor_flash, ULONG *flas
 {
   UINT status = LX_SUCCESS;
   mx66uw1g45g_obj_t *p_mx66uw1g45g_obj;
+  mx66uw1g45g_addr_size_t addr_size;
+  uint32_t size_byte;
 
   STM32_LX_NOR_FLASH_DRIVER_CONTEXT *nor_ctx = (STM32_LX_NOR_FLASH_DRIVER_CONTEXT *) nor_flash->lx_nor_flash_driver_info_ptr;
 
@@ -168,9 +246,12 @@ static UINT stm32_lx_nor_flash_driver_write(LX_NOR_FLASH *nor_flash, ULONG *flas
   }
   else
   {
+    size_byte = (uint32_t)(words * sizeof(ULONG));
+    addr_size = stm32_lx_mx66uw1g45g_get_addr_size(p_mx66uw1g45g_obj, (uint32_t)flash_address, size_byte);
+
     /* perform the write operation */
-    status = mx66uw1g45g_write(p_mx66uw1g45g_obj, MX66UW1G45G_4BYTES_SIZE, (uint8_t *) source,
-                               (uint32_t)flash_address, words * sizeof(ULONG));
+    status = mx66uw1g45g_write(p_mx66uw1g45g_obj, addr_size, (uint8_t *) source,
+                               (uint32_t)flash_address, size_byte);
     if (status != MX66UW1G45G_OK)
     {
       return LX_ERROR;
@@ -227,6 +308,8 @@ static UINT stm32_lx_nor_flash_driver_block_erased_verify(LX_NOR_FLASH *nor_flas
   UINT status = LX_SUCCESS;
   ULONG *block_address;
   mx66uw1g45g_obj_t *p_mx66uw1g45g_obj;
+  mx66uw1g45g_addr_size_t addr_size;
+  uint32_t verify_addr;
   ULONG i;
 
   STM32_LX_NOR_FLASH_DRIVER_CONTEXT *nor_ctx = (STM32_LX_NOR_FLASH_DRIVER_CONTEXT *) nor_flash->lx_nor_flash_driver_info_ptr;
@@ -241,8 +324,11 @@ static UINT stm32_lx_nor_flash_driver_block_erased_verify(LX_NOR_FLASH *nor_flas
     return status;
   }
 
+  verify_addr = (uint32_t)(block * MX66UW1G45G_BLOCK_SIZE);
+  addr_size = stm32_lx_mx66uw1g45g_get_addr_size(p_mx66uw1g45g_obj, verify_addr, MX66UW1G45G_BLOCK_SIZE);
+
   /* enable memory mapped mode to be able to read the block content without any need for intermediate buffers */
-  status = mx66uw1g45g_enable_memory_mapped(p_mx66uw1g45g_obj, MX66UW1G45G_4BYTES_SIZE);
+  status = mx66uw1g45g_enable_memory_mapped(p_mx66uw1g45g_obj, addr_size);
   if (status != MX66UW1G45G_OK)
   {
     return LX_ERROR;

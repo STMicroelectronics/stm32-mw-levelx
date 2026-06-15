@@ -197,19 +197,21 @@ static UINT stm32_lx_nand_flash_driver_pages_read(LX_NAND_FLASH *nand_flash, ULO
     }
   }
 
-  /* perform the read operation for spare buffer */
-  status = w25n01gvxx_read_spare_area_dma(p_w25n01gvxx_obj, (uint16_t)block, (uint8_t) page, 1, (uint8_t *)spare_buffer);
-  if (status != W25N01GVXX_OK)
+  /* perform the read operation for the spare buffer only when LevelX requires it; some read operations use main_area only. */
+  if (spare_buffer != NULL)
   {
-    return LX_ERROR;
-  }
+    status = w25n01gvxx_read_spare_area_dma(p_w25n01gvxx_obj, (uint16_t)block, (uint8_t) page, 1, (uint8_t *)spare_buffer);
+    if (status != W25N01GVXX_OK)
+    {
+      return LX_ERROR;
+    }
 
-  status = xSemaphoreTake(nand_ctx->spare_data_rx_cplt_semaphore.semaphore_handle, pdMS_TO_TICKS(nand_ctx->nand_flash_op_timeout));
-  if (status != pdTRUE)
-  {
-    return LX_ERROR;
+    status = xSemaphoreTake(nand_ctx->spare_data_rx_cplt_semaphore.semaphore_handle, pdMS_TO_TICKS(nand_ctx->nand_flash_op_timeout));
+    if (status != pdTRUE)
+    {
+      return LX_ERROR;
+    }
   }
-
   return LX_SUCCESS;
 }
 

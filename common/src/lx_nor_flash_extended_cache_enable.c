@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2026-present Eclipse ThreadX contributors
  * Copyright (c) 2025-2026 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
@@ -66,28 +67,6 @@
 /*  CALLED BY                                                             */
 /*                                                                        */
 /*    Application Code                                                    */
-/*                                                                        */
-/*  RELEASE HISTORY                                                       */
-/*                                                                        */
-/*    DATE              NAME                      DESCRIPTION             */
-/*                                                                        */
-/*  05-19-2020     William E. Lamie         Initial Version 6.0           */
-/*  09-30-2020     William E. Lamie         Modified comment(s),          */
-/*                                            resulting in version 6.1    */
-/*  12-31-2020     William E. Lamie         Modified comment(s),          */
-/*                                            fixed compiler warnings,    */
-/*                                            resulting in version 6.1.3  */
-/*  06-02-2021     Bhupendra Naphade        Modified comment(s), and      */
-/*                                            updated product constants   */
-/*                                            resulting in version 6.1.7  */
-/*  10-15-2021     Bhupendra Naphade        Modified comment(s), and      */
-/*                                            added check for out of      */
-/*                                            bound memory access,        */
-/*                                            resulting in version 6.1.9  */
-/*  10-31-2023     Xiuwen Cai               Modified comment(s),          */
-/*                                            added mapping bitmap cache, */
-/*                                            added obsolete count cache, */
-/*                                            resulting in version 6.3.0  */
 /*                                                                        */
 /**************************************************************************/
 UINT  _lx_nor_flash_extended_cache_enable(LX_NOR_FLASH *nor_flash, VOID *memory, ULONG size)

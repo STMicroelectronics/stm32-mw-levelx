@@ -1,0 +1,243 @@
+{{~assign "levelxFilter" (JSONparse '{"cgroup": "STM32CubeMX2 Config", "csub": "LevelX"}')~}}
+{{~assign 'levelx_context' (@root.SWConfigurationAPI.getInstancesConfiguration @root.levelxFilter)~}}
+{{~assign 'levelx_cxt' @root.levelx_context.[0].settings.parameters~}}
+{{~log "LevelX Config template levelx_cxt:" (toJSON @root.levelx_cxt)~}}
+{{~assign 'used_components_levelx' (@root.SWProjectAPI.getUsedComponents 'asObject' cgroup="LevelX")~}}
+{{!
+/**
+  ******************************************************************************
+  * file           : mx_levelx_interfaces.c.hbs
+  * brief          : generate functions to initialize flash interface
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2026 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+~}}
+/**
+  ******************************************************************************
+  * @file           : mx_levelx_interfaces.c
+  * @brief          : generate functions to initialize flash interface
+{{> LICENSE}}
+
+/* Includes ------------------------------------------------------------------*/
+#include "mx_levelx_interfaces.h"
+{{~#each levelx_cxt.interfaces~}}
+  {{~#with logical_config~}}
+
+  {{!-- Assign interface prefixes --}}
+  {{~#if (eq interface_type "MX66UW1G45G_NOR_FLASH_INTERFACE")~}}
+    {{~assign "ifacePrefix" "mx66uw1g45g"~}}
+    {{~assign "ifaceConstPrefix" "MX66UW1G45G"~}}
+  {{~else if (eq interface_type "MX25LM51245G_NOR_FLASH_INTERFACE")~}}
+    {{~assign "ifacePrefix" "mx25lm51245g"~}}
+    {{~assign "ifaceConstPrefix" "MX25LM51245G"~}}
+  {{~else if (eq interface_type "W25Q128J_NOR_FLASH_INTERFACE")~}}
+      {{~assign "ifacePrefix" "w25q128j"~}}
+      {{~assign "ifaceConstPrefix" "W25Q128J"~}}
+  {{~else if (eq interface_type "W25N01GVXX_NAND_FLASH_INTERFACE")~}}
+    {{~assign "ifacePrefix" "w25n01gvxx"~}}
+    {{~assign "ifaceConstPrefix" "W25N01GVXX"~}}
+  {{~else~}}
+    {{~assign "ifacePrefix" "unknown"~}}
+    {{~assign "ifaceConstPrefix" "UNKNOWN"~}}
+    {{~log "Warning: interface_type unknown, assigned ifacePrefix='unknown'"~}}
+  {{~/if~}}
+
+  {{!-- Assign mode and rate suffixes --}}
+  {{~#if (eq interface_mode 0)~}}
+    {{~assign "interfaceModeSuffix" "SPI_MODE"~}}
+  {{~else~}}
+    {{~assign "interfaceModeSuffix" "OPI_MODE"~}}
+  {{~/if~}}
+
+  {{~#if (eq transfer_rate 0)~}}
+    {{~assign "transferRateSuffix" "STR_TRANSFER"~}}
+  {{~else~}}
+    {{~assign "transferRateSuffix" "DTR_TRANSFER"~}}
+  {{~/if~}}
+
+  {{!-- Assign transfer mode suffix for function call --}}
+  {{~#if (eq transfer_mode "POLLING")~}}
+    {{~assign "transferModeSuffix" "polling"~}}
+  {{~else if (eq transfer_mode "DMA_NO_OS")~}}
+    {{~assign "transferModeSuffix" "dma_no_os"~}}
+  {{~else if (eq transfer_mode "DMA_OS")~}}
+    {{~assign "transferModeSuffix" "dma_os"~}}
+  {{~/if}}
+
+{{#if (or (eq interface_type "MX66UW1G45G_NOR_FLASH_INTERFACE") (eq interface_type "MX25LM51245G_NOR_FLASH_INTERFACE") (eq interface_type "W25Q128J_NOR_FLASH_INTERFACE"))}}
+static STM32_LX_NOR_FLASH_DRIVER_CONTEXT nor_flash_driver_{{@index}}_ctx;
+
+{{#if (eq interface_type "W25Q128J_NOR_FLASH_INTERFACE")}}
+static ULONG nor_flash_driver_{{@index}}_read_buffer[W25Q128J_PAGE_SIZE];
+{{else}}
+static ULONG nor_flash_driver_{{@index}}_read_buffer[LX_NOR_SECTOR_SIZE];
+{{/if}}
+
+/**
+ * mx_lx_nor_flash_driver_{{@index}}_get_ctx()
+ */
+VOID *mx_lx_nor_flash_driver_{{@index}}_get_ctx(VOID)
+{
+  {{@root.ifacePrefix}}_obj_t *pFlashObj;
+
+  /* Retrieve the NOR flash object pointer */
+  pFlashObj = mx_{{@root.ifacePrefix}}_0_getobject();
+
+  /* Initialize the memory part */
+  if ({{@root.ifacePrefix}}_init(pFlashObj, {{@root.ifaceConstPrefix}}_0) != {{@root.ifaceConstPrefix}}_OK)
+  {
+    return NULL;
+  }
+
+  {{#if (not (eq interface_type "W25Q128J_NOR_FLASH_INTERFACE"))}}
+  if ({{@root.ifacePrefix}}_set_memconfig(pFlashObj, {{@root.ifaceConstPrefix}}_{{@root.interfaceModeSuffix}}, {{@root.ifaceConstPrefix}}_{{@root.transferRateSuffix}}) != {{@root.ifaceConstPrefix}}_OK)
+  {
+    return NULL;
+  }
+  {{/if}}
+
+  /* Setup the levelx nor flash context */
+{{#if nor_flash_flags.stm32_lx_nor_flag_all}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags = STM32_LX_NOR_FLAG_ALL;
+{{else if nor_flash_flags.stm32_lx_nor_flag_start_address}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags = STM32_LX_NOR_FLAG_START_ADDRESS;
+    {{!-- OR the rest except START_ADDRESS --}}
+    {{#if nor_flash_flags.stm32_lx_nor_flag_block_size}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_BLOCK_SIZE;
+    {{/if}}
+    {{#if nor_flash_flags.stm32_lx_nor_flag_flash_size}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_FLASH_SIZE;
+    {{/if}}
+    {{#if nor_flash_flags.stm32_lx_nor_flag_cache_maintenance}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_CACHE_MAINTENANCE;
+    {{/if}}
+{{else if nor_flash_flags.stm32_lx_nor_flag_block_size}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags = STM32_LX_NOR_FLAG_BLOCK_SIZE;
+    {{!-- OR the rest except BLOCK_SIZE --}}
+    {{#if nor_flash_flags.stm32_lx_nor_flag_start_address}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_START_ADDRESS;
+    {{/if}}
+    {{#if nor_flash_flags.stm32_lx_nor_flag_flash_size}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_FLASH_SIZE;
+    {{/if}}
+    {{#if nor_flash_flags.stm32_lx_nor_flag_cache_maintenance}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_CACHE_MAINTENANCE;
+    {{/if}}
+{{else if nor_flash_flags.stm32_lx_nor_flag_flash_size}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags = STM32_LX_NOR_FLAG_FLASH_SIZE;
+    {{!-- OR the rest except FLASH_SIZE --}}
+    {{#if nor_flash_flags.stm32_lx_nor_flag_start_address}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_START_ADDRESS;
+    {{/if}}
+    {{#if nor_flash_flags.stm32_lx_nor_flag_block_size}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_BLOCK_SIZE;
+    {{/if}}
+    {{#if nor_flash_flags.stm32_lx_nor_flag_cache_maintenance}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_CACHE_MAINTENANCE;
+    {{/if}}
+{{else if nor_flash_flags.stm32_lx_nor_flag_cache_maintenance}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags = STM32_LX_NOR_FLAG_CACHE_MAINTENANCE;
+    {{!-- OR the rest except CACHE_MAINTENANCE --}}
+    {{#if nor_flash_flags.stm32_lx_nor_flag_start_address}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_START_ADDRESS;
+    {{/if}}
+    {{#if nor_flash_flags.stm32_lx_nor_flag_block_size}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_BLOCK_SIZE;
+    {{/if}}
+    {{#if nor_flash_flags.stm32_lx_nor_flag_flash_size}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_FLASH_SIZE;
+    {{/if}}
+{{else}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags = STM32_LX_NOR_FLAG_NONE;
+{{/if}}
+{{#if (or nor_flash_flags.stm32_lx_nor_flag_start_address nor_flash_flags.stm32_lx_nor_flag_all)}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_start_address     = {{start_address}};
+{{/if}}
+{{#if (or nor_flash_flags.stm32_lx_nor_flag_block_size nor_flash_flags.stm32_lx_nor_flag_all)}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_block_size        = {{block_size}};
+{{/if}}
+{{#if (or nor_flash_flags.stm32_lx_nor_flag_flash_size nor_flash_flags.stm32_lx_nor_flag_all)}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_size              = {{flash_size}};
+{{/if}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_read_buffer       = nor_flash_driver_{{@index}}_read_buffer;
+  nor_flash_driver_{{@index}}_ctx.nor_flash_get_driver_object = (nor_flash_get_object *)mx_{{@root.ifacePrefix}}_0_getobject;
+  nor_flash_driver_{{@index}}_ctx.nor_flash_op_timeout        = {{op_timeout}};
+
+  return (VOID *)&nor_flash_driver_{{@index}}_ctx;
+}
+{{/if}}
+{{#if (eq interface_type "W25N01GVXX_NAND_FLASH_INTERFACE")}}
+static STM32_LX_NAND_FLASH_DRIVER_CONTEXT nand_flash_driver_{{@index}}_ctx;
+
+/**
+  * VOID *mx_lx_nand_flash_driver_{{@index}}_get_ctx(VOID)
+  */
+VOID *mx_lx_nand_flash_driver_{{@index}}_get_ctx(VOID)
+{
+  {{@root.ifacePrefix}}_obj_t *pFlashObj;
+
+  /* Retrieve the NAND flash object pointer */
+  pFlashObj = mx_{{@root.ifacePrefix}}_{{@index}}_getobject();
+
+  /* Initialize the memory part */
+  if ({{@root.ifacePrefix}}_init(pFlashObj, {{@root.ifaceConstPrefix}}_0) != {{@root.ifaceConstPrefix}}_OK)
+  {
+    return NULL;
+  }
+
+  /* Setup the levelx nand flash context */
+{{#if nand_flash_flags.stm32_lx_nand_flag_all}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_flags = STM32_LX_NAND_FLAG_ALL;
+  {{else if nand_flash_flags.stm32_lx_nand_flag_start_block}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_flags = STM32_LX_NAND_FLAG_START_BLOCK;
+    {{!-- or the rest except start_block --}}
+    {{#if nand_flash_flags.stm32_lx_nand_flag_total_blocks}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_flags |= STM32_LX_NAND_FLAG_TOTAL_BLOCKS;
+    {{/if}}
+    {{#if nand_flash_flags.stm32_lx_nand_flag_cache_maintenance}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_flags |= STM32_LX_NAND_FLAG_CACHE_MAINTENANCE;
+    {{/if}}
+  {{else if nand_flash_flags.stm32_lx_nand_flag_total_blocks}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_flags = STM32_LX_NAND_FLAG_TOTAL_BLOCKS;
+    {{!-- or the rest except total_blocks --}}
+    {{#if nand_flash_flags.stm32_lx_nand_flag_start_block}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_flags |= STM32_LX_NAND_FLAG_START_BLOCK;
+    {{/if}}
+    {{#if nand_flash_flags.stm32_lx_nand_flag_cache_maintenance}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_flags |= STM32_LX_NAND_FLAG_CACHE_MAINTENANCE;
+    {{/if}}
+  {{else if nand_flash_flags.stm32_lx_nand_flag_cache_maintenance}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_flags = STM32_LX_NAND_FLAG_CACHE_MAINTENANCE;
+    {{!-- or the rest except cache_maintenance --}}
+    {{#if nand_flash_flags.stm32_lx_nand_flag_start_block}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_flags |= STM32_LX_NAND_FLAG_START_BLOCK;
+    {{/if}}
+    {{#if nand_flash_flags.stm32_lx_nand_flag_total_blocks}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_flags |= STM32_LX_NAND_FLAG_TOTAL_BLOCKS;
+    {{/if}}
+  {{else}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_flags = STM32_LX_NAND_FLAG_NONE;
+  {{/if}}
+
+ {{#if (or nand_flash_flags.stm32_lx_nand_flag_start_block nand_flash_flags.stm32_lx_nand_flag_all)}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_start_block = {{start_block}};
+ {{/if}}
+ {{#if (or nand_flash_flags.stm32_lx_nand_flag_total_blocks nand_flash_flags.stm32_lx_nand_flag_all)}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_total_blocks = {{total_blocks}};
+ {{/if}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_get_driver_object = (nand_flash_get_object *)mx_{{@root.ifacePrefix}}_{{@index}}_getobject;
+  nand_flash_driver_{{@index}}_ctx.nand_flash_op_timeout = {{nand_op_timeout}};
+
+  return (VOID *)&nand_flash_driver_{{@index}}_ctx;
+}
+{{/if}}
+{{~/with~}}
+{{~/each~}}

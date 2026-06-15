@@ -6,6 +6,38 @@
     <environment name="STM32Cube">
       <stm32:pack type="MW" friendlyName="levelx" shortDesc="levelx middleware">
         <relocation-info parent="middleware" layer="" element=""/>
+        <compatibility>
+          <release version="2.1.0">
+            <applicable-schema schemaType="sw-configuration" schemaVersion="3.9.0"/>
+            <applicable-api-group apiType="codegen-getters">
+              <applicable-api apiType="clockAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="DmaAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="EnvVarAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="ExtiAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="hwPlatformAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="NvicAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="peripheralsResourceManagerAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="pinoutAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="SWConfigurationAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="SWProjectAPI" apiVersion="1.0.0"/>
+            </applicable-api-group>
+          </release>
+          <release version="2.0.0">
+            <applicable-schema schemaType="sw-configuration" schemaVersion="3.8.0"/>
+            <applicable-api-group apiType="codegen-getters">
+              <applicable-api apiType="clockAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="DmaAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="EnvVarAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="ExtiAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="hwPlatformAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="NvicAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="peripheralsResourceManagerAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="pinoutAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="SWConfigurationAPI" apiVersion="1.0.0"/>
+              <applicable-api apiType="SWProjectAPI" apiVersion="1.0.0"/>
+            </applicable-api-group>
+          </release>
+        </compatibility>
       </stm32:pack>
     </environment>
   </environments>
@@ -18,11 +50,26 @@
   <url>https://developer.st.com/st-pack-server/api/v1/pack/</url>
   <license>LICENSE.md</license>
   <releases>
+    <release date="2026-05-04" version="2.1.0">
+         Official release of LevelX Middleware based on LevelX v6.5.0.
+         ## Main changes
+         * Release of LevelX SW Pack update:
+             * Bug fixing.
+             * Miscellaneous update of .config files.
+             * Supported interfaces: NOR and NAND flash.
+             * Middleware version updated to 6.5.0.
+         ## Known Limitations
+         * Cache is not supported on NOR and NAND interfaces.
+         * Block size is not customizable on NOR interfaces.
+         * Multi-instance (creating multiple interfaces) is not supported.
+    </release>
     <release date="2026-03-06" version="2.0.0">
          Official release of LevelX Middleware based on LevelX v6.4.1.
          ## Main changes
          * Official release of LevelX aligned with HAL2.
          * Supported interfaces: NOR and NAND flash.
+         ## Known Limitations
+         * Cache is not supported on NOR and NAND interfaces.
     </release>
   </releases>
   <changelogs>
@@ -100,8 +147,6 @@
       <require condition="USE W25Q128J DMA NO OS"/>
       <require condition="USE W25Q128J DMA OS"/>
       <require condition="Operating System Used"/>
-      <accept Cclass="File System" Cgroup="LevelX" Csub="NOR Flash Core"/>
-      <accept Cclass="File System" Cgroup="LevelX" Csub="NAND Flash Core"/>
     </condition>
   </conditions>
   <generators>
@@ -133,7 +178,7 @@
     </generator>
   </generators>
   <components>
-    <component Cclass="File System" Cgroup="LevelX" Csub="NOR Flash Core" condition="Use NOR Flash Core" Cversion="6.4.1" maxInstances="1">
+    <component Cclass="File System" Cgroup="LevelX" Csub="NOR Flash Core" condition="Use NOR Flash Core" Cversion="6.5.0" maxInstances="1">
       <description>Component to support NOR flash</description>
       <files>
         <!-- levelX nor flash core common files -->
@@ -166,7 +211,7 @@
         <file category="include" name="ports/freertos/inc/" condition="levelx freertos condition"/>
       </files>
     </component>
-    <component Cclass="File System" Cgroup="LevelX" Csub="NAND Flash Core" condition="Use NAND Flash Core" Cversion="6.4.1" maxInstances="1">
+    <component Cclass="File System" Cgroup="LevelX" Csub="NAND Flash Core" condition="Use NAND Flash Core" Cversion="6.5.0" maxInstances="1">
       <description>Component to support NAND flash</description>
       <files>
         <!-- levelX nand flash core common files -->
@@ -218,7 +263,7 @@
         <file category="include" name="ports/freertos/inc/" condition="levelx freertos condition"/>
       </files>
     </component>
-    <component Cclass="File System" Cgroup="LevelX" Csub="No_OS" Cversion="6.4.1">
+    <component Cclass="File System" Cgroup="LevelX" Csub="No_OS" Cversion="6.5.0">
       <description>LevelX Standalone Mode </description>
       <files>
         <!-- standalone mode -->
@@ -226,7 +271,7 @@
       </files>
     </component>
     <!-- levelx mx25lm51245g nor flash interface components -->
-    <component Cclass="File System" Cgroup="LevelX" Csub="mx25lm51245g_nor_polling_itf" condition="USE MX25LM51245G POLLING" Cversion="6.4.1" maxInstances="1">
+    <component Cclass="File System" Cgroup="LevelX" Csub="mx25lm51245g_nor_polling_itf" condition="USE MX25LM51245G POLLING" Cversion="6.5.0" maxInstances="1">
       <description>Polling interface for NOR flash mx25lm51245g</description>
       <files>
         <file category="source" name="interfaces/nor/mx25lm51245g/stm32_lx_mx25lm51245g_nor_flash_polling_driver.c"/>
@@ -235,7 +280,7 @@
         <file category="include" name="interfaces/nor/mx25lm51245g/"/>
       </files>
     </component>
-    <component Cclass="File System" Cgroup="LevelX" Csub="mx25lm51245g_nor_dma_no_os_itf" condition="USE MX25LM51245G DMA NO OS" Cversion="6.4.1" maxInstances="1">
+    <component Cclass="File System" Cgroup="LevelX" Csub="mx25lm51245g_nor_dma_no_os_itf" condition="USE MX25LM51245G DMA NO OS" Cversion="6.5.0" maxInstances="1">
       <description>DMA no os interface for NOR flash mx25lm51245g</description>
       <files>
         <file category="source" name="interfaces/nor/mx25lm51245g/stm32_lx_mx25lm51245g_nor_flash_dma_no_os_driver.c"/>
@@ -244,7 +289,7 @@
         <file category="include" name="interfaces/nor/mx25lm51245g/"/>
       </files>
     </component>
-    <component Cclass="File System" Cgroup="LevelX" Csub="mx25lm51245g_nor_dma_os_itf" condition="USE MX25LM51245G DMA OS" Cversion="6.4.1" maxInstances="1">
+    <component Cclass="File System" Cgroup="LevelX" Csub="mx25lm51245g_nor_dma_os_itf" condition="USE MX25LM51245G DMA OS" Cversion="6.5.0" maxInstances="1">
       <description>DMA os interface for NOR flash mx25lm51245g</description>
       <files>
         <file category="source" name="interfaces/nor/mx25lm51245g/stm32_lx_mx25lm51245g_nor_flash_dma_os_driver.c"/>
@@ -254,7 +299,7 @@
       </files>
     </component>
     <!-- levelX w25q128j nor flash interface components -->
-    <component Cclass="File System" Cgroup="LevelX" Csub="w25q128j_nor_polling_itf" condition="USE W25Q128J POLLING" Cversion="6.4.1" maxInstances="1">
+    <component Cclass="File System" Cgroup="LevelX" Csub="w25q128j_nor_polling_itf" condition="USE W25Q128J POLLING" Cversion="6.5.0" maxInstances="1">
       <description>Polling interface for NOR flash w25q128j</description>
       <files>
         <file category="source" name="interfaces/nor/w25q128j/stm32_lx_w25q128j_nor_flash_polling_driver.c"/>
@@ -263,7 +308,7 @@
         <file category="include" name="interfaces/nor/w25q128j/"/>
       </files>
     </component>
-    <component Cclass="File System" Cgroup="LevelX" Csub="w25q128j_nor_dma_no_os_itf" condition="USE W25Q128J DMA NO OS" Cversion="6.4.1" maxInstances="1">
+    <component Cclass="File System" Cgroup="LevelX" Csub="w25q128j_nor_dma_no_os_itf" condition="USE W25Q128J DMA NO OS" Cversion="6.5.0" maxInstances="1">
       <description>DMA no os interface for NOR flash w25q128j</description>
       <files>
         <file category="source" name="interfaces/nor/w25q128j/stm32_lx_w25q128j_nor_flash_dma_no_os_driver.c"/>
@@ -272,7 +317,7 @@
         <file category="include" name="interfaces/nor/w25q128j/"/>
       </files>
     </component>
-    <component Cclass="File System" Cgroup="LevelX" Csub="w25q128j_nor_dma_os_itf" condition="USE W25Q128J DMA OS" Cversion="6.4.1" maxInstances="1">
+    <component Cclass="File System" Cgroup="LevelX" Csub="w25q128j_nor_dma_os_itf" condition="USE W25Q128J DMA OS" Cversion="6.5.0" maxInstances="1">
       <description>DMA os interface for NOR flash w25q128j</description>
       <files>
         <file category="source" name="interfaces/nor/w25q128j/stm32_lx_w25q128j_nor_flash_dma_os_driver.c"/>
@@ -282,7 +327,7 @@
       </files>
     </component>
     <!-- levelX w25n01gvxx nand flash interface components -->
-    <component Cclass="File System" Cgroup="LevelX" Csub="w25n01gvxx_nand_polling_itf" condition="USE W25N01GVXX POLLING" Cversion="6.4.1" maxInstances="1">
+    <component Cclass="File System" Cgroup="LevelX" Csub="w25n01gvxx_nand_polling_itf" condition="USE W25N01GVXX POLLING" Cversion="6.5.0" maxInstances="1">
       <description>Polling interface for NAND flash w25n01gvxx</description>
       <files>
         <file category="source" name="interfaces/nand/w25n01gvxx/stm32_lx_w25n01gvxx_nand_flash_polling_driver.c"/>
@@ -291,7 +336,7 @@
         <file category="include" name="interfaces/nand/w25n01gvxx/"/>
       </files>
     </component>
-    <component Cclass="File System" Cgroup="LevelX" Csub="w25n01gvxx_nand_dma_no_os_itf" condition="USE W25N01GVXX DMA NO OS" Cversion="6.4.1" maxInstances="1">
+    <component Cclass="File System" Cgroup="LevelX" Csub="w25n01gvxx_nand_dma_no_os_itf" condition="USE W25N01GVXX DMA NO OS" Cversion="6.5.0" maxInstances="1">
       <description>DMA no os interface for NAND flash w25n01gvxx</description>
       <files>
         <file category="source" name="interfaces/nand/w25n01gvxx/stm32_lx_w25n01gvxx_nand_flash_dma_no_os_driver.c"/>
@@ -300,7 +345,7 @@
         <file category="include" name="interfaces/nand/w25n01gvxx/"/>
       </files>
     </component>
-    <component Cclass="File System" Cgroup="LevelX" Csub="w25n01gvxx_nand_dma_os_itf" condition="USE W25N01GVXX DMA OS" Cversion="6.4.1" maxInstances="1">
+    <component Cclass="File System" Cgroup="LevelX" Csub="w25n01gvxx_nand_dma_os_itf" condition="USE W25N01GVXX DMA OS" Cversion="6.5.0" maxInstances="1">
       <description>DMA os interface for NAND flash w25n01gvxx</description>
       <files>
         <file category="source" name="interfaces/nand/w25n01gvxx/stm32_lx_w25n01gvxx_nand_flash_dma_os_driver.c"/>
@@ -310,7 +355,7 @@
       </files>
     </component>
     <!-- levelX mx66uw1g45g nor flash interface components -->
-    <component Cclass="File System" Cgroup="LevelX" Csub="mx66uw1g45g_nor_polling_itf" condition="USE MX66UW1G45G POLLING" Cversion="6.4.1" maxInstances="1">
+    <component Cclass="File System" Cgroup="LevelX" Csub="mx66uw1g45g_nor_polling_itf" condition="USE MX66UW1G45G POLLING" Cversion="6.5.0" maxInstances="1">
       <description>Polling interface for NOR flash mx66uw1g45g</description>
       <files>
         <file category="source" name="interfaces/nor/mx66uw1g45g/stm32_lx_mx66uw1g45g_nor_flash_polling_driver.c"/>
@@ -319,7 +364,7 @@
         <file category="include" name="interfaces/nor/mx66uw1g45g/"/>
       </files>
     </component>
-    <component Cclass="File System" Cgroup="LevelX" Csub="mx66uw1g45g_nor_dma_no_os_itf" condition="USE MX66UW1G45G DMA NO OS" Cversion="6.4.1" maxInstances="1">
+    <component Cclass="File System" Cgroup="LevelX" Csub="mx66uw1g45g_nor_dma_no_os_itf" condition="USE MX66UW1G45G DMA NO OS" Cversion="6.5.0" maxInstances="1">
       <description>DMA no os interface for NOR flash mx66uw1g45g</description>
       <files>
         <file category="source" name="interfaces/nor/mx66uw1g45g/stm32_lx_mx66uw1g45g_nor_flash_dma_no_os_driver.c"/>
@@ -328,7 +373,7 @@
         <file category="include" name="interfaces/nor/mx66uw1g45g/"/>
       </files>
     </component>
-    <component Cclass="File System" Cgroup="LevelX" Csub="mx66uw1g45g_nor_dma_os_itf" condition="USE MX66UW1G45G DMA OS" Cversion="6.4.1" maxInstances="1">
+    <component Cclass="File System" Cgroup="LevelX" Csub="mx66uw1g45g_nor_dma_os_itf" condition="USE MX66UW1G45G DMA OS" Cversion="6.5.0" maxInstances="1">
       <description>DMA os interface for NOR flash mx66uw1g45g</description>
       <files>
         <file category="source" name="interfaces/nor/mx66uw1g45g/stm32_lx_mx66uw1g45g_nor_flash_dma_os_driver.c"/>
@@ -338,10 +383,13 @@
       </files>
     </component>
     <!-- START: STMicroelectronics MW LevelX CODE GEN -->
-    <component generator="levelx_mx2codegen" Cclass="File System" Cgroup="STM32CubeMX2 Config" Csub="LevelX" Cversion="2.0.0" condition="LX Core condition">
+    <component generator="levelx_mx2codegen" Cclass="File System" Cgroup="STM32CubeMX2 Config" Csub="LevelX" Cversion="2.1.0" condition="LX Core condition">
       <description>STMicroelectronics: STM32Cube Configuration Code Generation for LevelX</description>
       <environments>
         <environment name="STM32Cube">
+          <stm32:component>
+            <middleware-entry-point id="LevelX" name="LevelX" category="File System"/>
+          </stm32:component>
         </environment>
       </environments>
       <files>

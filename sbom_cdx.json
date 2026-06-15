@@ -1,15 +1,15 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.5",
-    "serialNumber": "urn:uuid:be0c52de-0787-41ff-886c-89920baeb69f",
+    "serialNumber": "urn:uuid:a79618d2-1eb6-4249-ba73-a74f9ccff519",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-03-06T14:18:16Z",
+        "timestamp": "2026-05-20T14:28:06Z",
         "tools": [
             {
                 "vendor": "Black Duck",
                 "name": "Hub",
-                "version": "2025.10.0"
+                "version": "2026.1.1"
             },
             {
                 "vendor": "CycloneDX",
@@ -24,12 +24,12 @@
         ],
         "component": {
             "type": "application",
-            "bom-ref": "60918609-a085-4dea-a084-73b1a4229a6e",
+            "bom-ref": "73500823-4c38-473b-b8fc-685e3e882aa3",
             "supplier": {
-                "name": ""
+                "name": "Organization: LevelX"
             },
             "name": "LevelX",
-            "version": "2.0.0",
+            "version": "2.1.0",
             "licenses": [
                 {
                     "license": {
@@ -47,7 +47,7 @@
                 },
                 {
                     "name": "BlackDuck-ComponentVersion",
-                    "value": "60918609-a085-4dea-a084-73b1a4229a6e"
+                    "value": "73500823-4c38-473b-b8fc-685e3e882aa3"
                 }
             ]
         }
@@ -55,12 +55,12 @@
     "components": [
         {
             "type": "library",
-            "bom-ref": "21b4bb7c-2d37-4829-bafd-e8586332e524",
+            "bom-ref": "73500823-4c38-473b-b8fc-685e3e882aa3---01596721-b529-4d60-b202-04b66e9dc53f",
             "supplier": {
-                "name": ""
+                "name": "Organization: eclipse-threadx/levelx"
             },
             "name": "eclipse-threadx/levelx",
-            "version": "v6.4.1_rel",
+            "version": "v6.5.0.202601_rel",
             "licenses": [
                 {
                     "license": {
@@ -78,19 +78,19 @@
                 },
                 {
                     "name": "BlackDuck-ComponentVersion",
-                    "value": "21b4bb7c-2d37-4829-bafd-e8586332e524"
+                    "value": "01596721-b529-4d60-b202-04b66e9dc53f"
                 }
             ]
         },
         {
             "type": "library",
-            "bom-ref": "2a078aed-eec2-4ba9-88c1-dedc13d3008a",
+            "bom-ref": "73500823-4c38-473b-b8fc-685e3e882aa3---31e4894f-ab4f-4823-ab73-afd9d7d45c7c",
             "supplier": {
-                "name": ""
+                "name": "Organization: eclipse-threadx/levelx_STM32"
             },
             "author": "STMicroelectronics",
             "name": "eclipse-threadx/levelx_STM32",
-            "version": "v6.4.1_rel / ST modified 250224",
+            "version": "v6.5.0_rel / ST modified 260504",
             "licenses": [
                 {
                     "license": {
@@ -108,17 +108,17 @@
                 },
                 {
                     "name": "BlackDuck-ComponentVersion",
-                    "value": "2a078aed-eec2-4ba9-88c1-dedc13d3008a"
+                    "value": "31e4894f-ab4f-4823-ab73-afd9d7d45c7c"
                 }
             ]
         }
     ],
     "dependencies": [
         {
-            "ref": "60918609-a085-4dea-a084-73b1a4229a6e",
+            "ref": "73500823-4c38-473b-b8fc-685e3e882aa3",
             "dependsOn": [
-                "21b4bb7c-2d37-4829-bafd-e8586332e524",
-                "2a078aed-eec2-4ba9-88c1-dedc13d3008a"
+                "73500823-4c38-473b-b8fc-685e3e882aa3---01596721-b529-4d60-b202-04b66e9dc53f",
+                "73500823-4c38-473b-b8fc-685e3e882aa3---31e4894f-ab4f-4823-ab73-afd9d7d45c7c"
             ]
         }
     ]

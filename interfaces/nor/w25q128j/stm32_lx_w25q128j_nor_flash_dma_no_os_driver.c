@@ -66,6 +66,9 @@ UINT stm32_lx_w25q128j_nor_flash_dma_no_os_driver_initialize(LX_NOR_FLASH *nor_f
 
   w25q128j_info_t nor_flash_info;
   w25q128j_obj_t *p_w25q128j_obj;
+  ULONG block_size;
+  ULONG start_address = 0U;
+  ULONG available_flash_size;
 
   /* initialize the LX_NOR_FLASH object with relevant data */
   STM32_LX_NOR_FLASH_DRIVER_CONTEXT *nor_ctx = (STM32_LX_NOR_FLASH_DRIVER_CONTEXT *) nor_flash->lx_nor_flash_driver_info_ptr;
@@ -94,11 +97,43 @@ UINT stm32_lx_w25q128j_nor_flash_dma_no_os_driver_initialize(LX_NOR_FLASH *nor_f
   /* get the memory part characteristics */
   w25q128j_get_info(p_w25q128j_obj, &nor_flash_info);
 
-  /* to customize the flash configuration use the fields in the STM32_LX_NOR_FLASH_DRIVER_CONTEXT */
-  nor_flash->lx_nor_flash_base_address = (ULONG *)0;
-  nor_flash->lx_nor_flash_total_blocks = nor_flash_info.erase_block_64k_number;
+  /* customize the flash start address. */
+  if (nor_ctx->nor_flash_flags & STM32_LX_NOR_FLAG_START_ADDRESS)
+  {
+    /* ensure base address is within the flash address range. */
+    if (nor_ctx->nor_flash_start_address >= nor_flash_info.erase_block_64k_number)
+    {
+      return LX_ERROR;
+    }
 
-  nor_flash->lx_nor_flash_words_per_block = (nor_flash_info.erase_block_64k_size / sizeof(ULONG));
+    start_address = nor_ctx->nor_flash_start_address;
+  }
+
+  /* compute the available flash size from the selected start address to the end of the NOR flash. */
+  block_size = nor_flash_info.erase_block_64k_size;
+  available_flash_size = nor_flash_info.flash_size - (start_address * block_size);
+
+  /* customize the flash size limit. */
+  if (nor_ctx->nor_flash_flags & STM32_LX_NOR_FLAG_FLASH_SIZE)
+  {
+    /* ensure the configured sub-range is non-zero, block-aligned, and does not exceed the available space. */
+    if ((nor_ctx->nor_flash_size == 0U) ||
+        ((nor_ctx->nor_flash_size % block_size) != 0U) ||
+        (nor_ctx->nor_flash_size > available_flash_size))
+    {
+      return LX_ERROR;
+    }
+
+    /* restrict the managed region to the requested size. */
+    available_flash_size = nor_ctx->nor_flash_size;
+  }
+
+  /* set the flash base address. */
+  nor_flash->lx_nor_flash_base_address = (ULONG *)(start_address * block_size);
+  /* set the total number of managed flash blocks. */
+  nor_flash->lx_nor_flash_total_blocks = available_flash_size / block_size;
+  /* set the number of ULONG words per flash block. */
+  nor_flash->lx_nor_flash_words_per_block = block_size / sizeof(ULONG);
 
   /* set the intermediate read buffer */
   nor_flash->lx_nor_flash_sector_buffer = nor_ctx->nor_flash_read_buffer;

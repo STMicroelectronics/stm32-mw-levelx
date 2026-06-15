@@ -131,7 +131,7 @@ static UINT stm32_lx_nand_flash_driver_pages_read(LX_NAND_FLASH *nand_flash, ULO
   {
     return LX_ERROR;
   }
-  /* check that the nor_flash_get_driver_object function pointer is correctly set */
+  /* check that the nand_flash_get_driver_object function pointer is correctly set */
   if (nand_ctx->nand_flash_get_driver_object == NULL)
   {
     return LX_ERROR;
@@ -170,12 +170,15 @@ static UINT stm32_lx_nand_flash_driver_pages_read(LX_NAND_FLASH *nand_flash, ULO
     return LX_ERROR;
   }
 
-  /* perform the read operation for spare buffer */
-  nand_ctx->spare_data_rx_cplt = 0;
-  status = w25n01gvxx_read_spare_area_dma(p_w25n01gvxx_obj, (uint16_t)block, (uint8_t) page, 1, (uint8_t *)spare_buffer);
-  if (status != W25N01GVXX_OK)
+  /* perform the read operation for the spare buffer only when LevelX requires it; some read operations use main_area only. */
+  if (spare_buffer != NULL)
   {
-    return LX_ERROR;
+    nand_ctx->spare_data_rx_cplt = 0;
+    status = w25n01gvxx_read_spare_area_dma(p_w25n01gvxx_obj, (uint16_t)block, (uint8_t) page, 1, (uint8_t *)spare_buffer);
+    if (status != W25N01GVXX_OK)
+    {
+      return LX_ERROR;
+    }
   }
 
   timeout_start = HAL_GetTick();
@@ -220,7 +223,7 @@ static UINT stm32_lx_nand_flash_driver_pages_write(LX_NAND_FLASH *nand_flash, UL
   {
     return LX_ERROR;
   }
-  /* check that the nor_flash_get_driver_object function pointer is correctly set */
+  /* check that the nand_flash_get_driver_object function pointer is correctly set */
   if (nand_ctx->nand_flash_get_driver_object == NULL)
   {
     return LX_ERROR;
@@ -306,7 +309,7 @@ static UINT stm32_lx_nand_flash_driver_pages_copy(LX_NAND_FLASH *nand_flash, ULO
     return LX_ERROR;
   }
 
-  /* check that the nor_flash_get_driver_object function pointer is correctly set */
+  /* check that the nand_flash_get_driver_object function pointer is correctly set */
   if (nand_ctx->nand_flash_get_driver_object == NULL)
   {
     return LX_ERROR;
@@ -352,7 +355,7 @@ static UINT stm32_lx_nand_flash_driver_block_status_get(LX_NAND_FLASH *nand_flas
   {
     return LX_ERROR;
   }
-  /* check that the nor_flash_get_driver_object function pointer is correctly set */
+  /* check that the nand_flash_get_driver_object function pointer is correctly set */
   if (nand_ctx->nand_flash_get_driver_object == NULL)
   {
     return LX_ERROR;
@@ -400,7 +403,7 @@ static UINT stm32_lx_nand_flash_driver_block_status_set(LX_NAND_FLASH *nand_flas
   {
     return LX_ERROR;
   }
-  /* check that the nor_flash_get_driver_object function pointer is correctly set */
+  /* check that the nand_flash_get_driver_object function pointer is correctly set */
   if (nand_ctx->nand_flash_get_driver_object == NULL)
   {
     return LX_ERROR;
@@ -450,7 +453,7 @@ static UINT stm32_lx_nand_flash_driver_block_erase(LX_NAND_FLASH *nand_flash, UL
   {
     return LX_ERROR;
   }
-  /* check that the nor_flash_get_driver_object function pointer is correctly set */
+  /* check that the nand_flash_get_driver_object function pointer is correctly set */
   if (nand_ctx->nand_flash_get_driver_object == NULL)
   {
     return LX_ERROR;

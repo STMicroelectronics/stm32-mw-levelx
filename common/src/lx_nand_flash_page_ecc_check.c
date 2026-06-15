@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2026-present Eclipse ThreadX contributors
  * Copyright (c) 2025-2026 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
@@ -68,16 +69,6 @@
 /*                                                                        */
 /*    NAND flash driver                                                   */
 /*                                                                        */
-/*  RELEASE HISTORY                                                       */
-/*                                                                        */
-/*    DATE              NAME                      DESCRIPTION             */
-/*                                                                        */
-/*  05-19-2020     William E. Lamie         Initial Version 6.0           */
-/*  09-30-2020     William E. Lamie         Modified comment(s),          */
-/*                                            resulting in version 6.1    */
-/*  06-02-2021     Bhupendra Naphade        Modified comment(s),          */
-/*                                            resulting in version 6.1.7  */
-/*                                                                        */
 /**************************************************************************/
 UINT  _lx_nand_flash_page_ecc_check(LX_NAND_FLASH *nand_flash, UCHAR *page_buffer, UCHAR *ecc_buffer)
 {
@@ -91,7 +82,6 @@ UINT    return_status =  LX_SUCCESS;
     {
       return(LX_ERROR);
     }
-
     /* Loop to check the entire NAND flash page.  */
     bytes_checked =  0;
     while (bytes_checked < nand_flash -> lx_nand_flash_bytes_per_page)
