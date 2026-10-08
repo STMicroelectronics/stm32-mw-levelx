@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2026-present Eclipse ThreadX contributors
  * Copyright (c) 2025-2026 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
@@ -77,12 +78,6 @@
 /*                                                                        */
 /*    Application Code                                                    */
 /*                                                                        */
-/*  RELEASE HISTORY                                                       */
-/*                                                                        */
-/*    DATE              NAME                      DESCRIPTION             */
-/*                                                                        */
-/*  03-08-2023     Xiuwen Cai               Initial Version 6.2.1        */
-/*                                                                        */
 /**************************************************************************/
 UINT  _lx_nand_flash_block_data_move(LX_NAND_FLASH *nand_flash, ULONG new_block)
 {
@@ -114,6 +109,33 @@ ULONG       block_mapping_index;
         /* Return an error.  */
         return(LX_ERROR);
     }
+
+#ifdef LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE
+    /* If this logical group has a pending compaction source, redirect the
+       data move to a full logical-group compact to correctly merge data from
+       both source blocks.  */
+    if (nand_flash -> lx_nand_flash_block_compaction_table[block_mapping_index] != (USHORT)LX_NAND_BLOCK_UNMAPPED)
+    {
+
+        /* Return the pre-allocated new_block to the free list.  */
+        status = _lx_nand_flash_block_status_set(nand_flash, new_block, LX_NAND_BLOCK_STATUS_FREE);
+
+        if (status)
+        {
+            _lx_nand_flash_system_error(nand_flash, status, new_block, 0);
+            return(LX_ERROR);
+        }
+
+        _lx_nand_flash_free_block_list_add(nand_flash, new_block);
+
+        /* Restore block_mapping_index to the mapped list; mapped_block_list_get
+           already removed it before this function was called.  */
+        _lx_nand_flash_mapped_block_list_add(nand_flash, block_mapping_index);
+
+        /* Perform full compaction merge of both source blocks.  */
+        return(_lx_nand_flash_logical_group_compact(nand_flash, block_mapping_index));
+    }
+#endif /* LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE */
 
     /* Set new block status to allocated for now.  */
     new_block_status = LX_NAND_BLOCK_STATUS_ALLOCATED;

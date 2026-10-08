@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2026-present Eclipse ThreadX contributors
  *
  * This program and the accompanying materials are made available under the
  * terms of the MIT License which is available at
@@ -278,11 +279,16 @@ UINT    ecc_status = LX_SUCCESS;
                 break;
             }
         }
+
+        if (spare_buffer)
+        {
+
 #ifdef LX_NAND_ENABLE_CONTROL_BLOCK_FOR_DRIVER_INTERFACE
-        status = _lx_nand_flash_simulator_extra_bytes_get(nand_flash, block, page + i, spare_buffer + i * SPARE_BYTES_PER_PAGE, SPARE_BYTES_PER_PAGE);
+            status = _lx_nand_flash_simulator_extra_bytes_get(nand_flash, block, page + i, spare_buffer + i * SPARE_BYTES_PER_PAGE, SPARE_BYTES_PER_PAGE);
 #else
-        status = _lx_nand_flash_simulator_extra_bytes_get(block, page + i, spare_buffer + i * SPARE_BYTES_PER_PAGE, SPARE_BYTES_PER_PAGE);
+            status = _lx_nand_flash_simulator_extra_bytes_get(block, page + i, spare_buffer + i * SPARE_BYTES_PER_PAGE, SPARE_BYTES_PER_PAGE);
 #endif
+        }
     }
     return (ecc_status);
 }

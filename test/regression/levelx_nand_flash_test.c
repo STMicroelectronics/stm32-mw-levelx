@@ -1,3 +1,14 @@
+/***************************************************************************/
+/* Copyright (c) 2024 Microsoft Corporation                                */
+/* Copyright (c) 2026 Eclipse ThreadX contributors                         */
+/*                                                                         */
+/* This program and the accompanying materials are made available under    */
+/* the terms of the MIT License which is available at                      */
+/* https://opensource.org/licenses/MIT.                                    */
+/*                                                                         */
+/* SPDX-License-Identifier: MIT                                            */
+/***************************************************************************/
+
 /* Basic NOR flash tests...  */
 
 #include <stdio.h>
@@ -64,7 +75,7 @@ INT  CorrectPageECC(UCHAR *data, INT size, UCHAR *code);
 
 int main()
 {
-  
+
     /* Enter the ThreadX kernel.  */
 #ifndef LX_STANDALONE_ENABLE
     tx_kernel_enter();
@@ -82,8 +93,8 @@ void    tx_application_define(void *first_unused_memory)
 
 
     /* Create the main thread.  */
-    tx_thread_create(&thread_0, "thread 0", thread_0_entry, 0,  
-            thread_0_stack, DEMO_STACK_SIZE, 
+    tx_thread_create(&thread_0, "thread 0", thread_0_entry, 0,
+            thread_0_stack, DEMO_STACK_SIZE,
             1, 1, TX_NO_TIME_SLICE, TX_AUTO_START);
 }
 #endif
@@ -109,10 +120,10 @@ UINT    status;
 ULONG   *word_ptr;
 UCHAR   *byte_ptr;
 
-  
+
     /* Erase the simulated NOR flash.  */
     _lx_nand_flash_simulator_erase_all();
-    
+
     /* Initialize LevelX.  */
     _lx_nand_flash_initialize();
 
@@ -145,15 +156,15 @@ UCHAR   *byte_ptr;
 #ifdef EXTENDED_CACHE
     lx_nand_flash_extended_cache_enable(&nand_sim_flash, cache_memory, sizeof(cache_memory));
 #endif
-    
+
     /* Write 520 sectors....  */
     for (i = 0; i < 520; i++)
     {
         for (j = 0; j < 512; j++)
           buffer[j] =  i;
-        
+
         status =  lx_nand_flash_sector_write(&nand_sim_flash, i, buffer);
-      
+
         if (status != LX_SUCCESS)
         {
           printf("FAILED!\n");
@@ -165,7 +176,7 @@ UCHAR   *byte_ptr;
           }
         }
     }
-    
+
     /* Close and reopen the flash. */
     lx_nand_flash_close(&nand_sim_flash);
 
@@ -187,9 +198,9 @@ UCHAR   *byte_ptr;
     /* Read back 520 sectors...  */
     for (i = 0; i < 520; i++)
     {
-        
+
         status =  lx_nand_flash_sector_read(&nand_sim_flash, i, buffer);
-      
+
         if (status != LX_SUCCESS)
         {
 #ifdef BATCH_TEST
@@ -200,10 +211,10 @@ UCHAR   *byte_ptr;
           {
           }
         }
-        
+
         for (j = 0; j < 128; j++)
         {
-          
+
           if (buffer[j] !=  i)
           {
             printf("FAILED!\n");
@@ -222,11 +233,11 @@ UCHAR   *byte_ptr;
 
     /* Test 2: Write same sector 320 times.  */
     printf("Test 2: Write same sector 320 times.............");
-    
-    /* Reinitialize...  */    
+
+    /* Reinitialize...  */
     _lx_nand_flash_simulator_erase_all();
-    
-    
+
+
     lx_nand_flash_initialize();
 
     status = lx_nand_flash_format(&nand_sim_flash, "sim nand flash", _lx_nand_flash_simulator_initialize, nand_memory_space, sizeof(nand_memory_space));
@@ -236,20 +247,20 @@ UCHAR   *byte_ptr;
 #ifdef EXTENDED_CACHE
     lx_nand_flash_extended_cache_enable(&nand_sim_flash, cache_memory, sizeof(cache_memory));
 #endif
-    
+
     for (j = 0; j < 512; j++)
          buffer[j] =  0xFFFFFFFF;
-    
+
     /* Write same sector 320 sectors....  */
     for (i = 0; i < 320; i++)
     {
         for (j = 0; j < 512; j++)
           buffer[j] =  i;
-      
+
         if (i == 319)
             buffer[j-1]--;
         status =  lx_nand_flash_sector_write(&nand_sim_flash, 7, buffer);
-      
+
         if (status != LX_SUCCESS)
         {
           printf("FAILED!\n");
@@ -260,9 +271,9 @@ UCHAR   *byte_ptr;
           {
           }
         }
-        
+
         status =  lx_nand_flash_sector_read(&nand_sim_flash, 7, readbuffer);
-      
+
         if (status != LX_SUCCESS)
         {
           printf("FAILED!\n");
@@ -273,10 +284,10 @@ UCHAR   *byte_ptr;
           {
           }
         }
-        
+
         for (j = 0; j < 128; j++)
         {
-          
+
           if (buffer[j] !=  readbuffer[j])
           {
             printf("FAILED!\n");
@@ -288,7 +299,7 @@ UCHAR   *byte_ptr;
             }
           }
         }
-        
+
         /* Write other sectors just to have additional sectors to manage.  */
         if (i == 1)
           lx_nand_flash_sector_write(&nand_sim_flash, 1, buffer);
@@ -310,7 +321,7 @@ UCHAR   *byte_ptr;
 
     status =  lx_nand_flash_defragment(&nand_sim_flash);
 
-    
+
     status =  lx_nand_flash_sector_read(&nand_sim_flash, 7, readbuffer);
         if (status != LX_SUCCESS)
         {
@@ -502,7 +513,7 @@ UCHAR   *byte_ptr;
         }
 
     status =  lx_nand_flash_defragment(&nand_sim_flash);
-    
+
     if (status != LX_NOT_SUPPORTED)
     {
           printf("FAILED!\n");
@@ -513,9 +524,9 @@ UCHAR   *byte_ptr;
           {
           }
     }
-   
+
     status =  lx_nand_flash_close(&nand_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -527,7 +538,7 @@ UCHAR   *byte_ptr;
           }
     }
     printf("SUCCESS!\n");
-  
+
     printf("Test 3: Page copy test..........................");
 
     /* Reinitialize...  */
@@ -612,9 +623,9 @@ UCHAR   *byte_ptr;
         {
         }
     }
-    
+
     status =  lx_nand_flash_close(&nand_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -760,7 +771,7 @@ UCHAR   *byte_ptr;
 
             while (sector_count--)
             {
-                
+
 #ifdef FULL_SECTOR_DATA_VERIFY
                 LX_MEMSET((local_data_buffer + sector_number * SECTOR_SIZE), data_byte, SECTOR_SIZE);
 #else
@@ -816,25 +827,25 @@ UCHAR   *byte_ptr;
 #if 0
     /* Point at the simulated NOR flash memory.  */
     word_ptr =  nand_flash_memory;
-    
-   
-    /* Test 3: Corrupt block 0, simulate a power interruption during erase of block 0, 
+
+
+    /* Test 3: Corrupt block 0, simulate a power interruption during erase of block 0,
        after the erase, but before the erase count is setup.  */
     printf("Test 3: Block erase-initialize interrupted......");
     word_ptr[0] =  0xFFFFFFFF;
     word_ptr[3] =  0x00000000;  /* This simulates a non-erased block.  */
 
-    /* Open the flash and see if we recover properly.  */    
+    /* Open the flash and see if we recover properly.  */
     status =  lx_nand_flash_open(&nand_sim_flash, "sim nor flash", _lx_nand_flash_simulator_initialize, nand_memory_space, sizeof(nand_memory_space));
 #ifdef EXTENDED_CACHE
     status += lx_nand_flash_extended_cache_enable(&nand_sim_flash, cache_memory, sizeof(cache_memory));
 #endif
-    
+
     if ((status != LX_SUCCESS) ||
         (nand_sim_flash.lx_nand_flash_free_pages != 111) ||
         (nand_sim_flash.lx_nand_flash_mapped_pages != 9))
     {
-      
+
           printf("FAILED!\n");
 #ifdef BATCH_TEST
     exit(1);
@@ -843,9 +854,9 @@ UCHAR   *byte_ptr;
           {
           }
     }
-    
+
     status =  lx_nand_flash_close(&nand_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -857,22 +868,22 @@ UCHAR   *byte_ptr;
           }
     }
 
-   
-    /* Corrupt block 0, simulate a power interruption after erase of block 0, 
+
+    /* Corrupt block 0, simulate a power interruption after erase of block 0,
        but before erase count is setup.  */
     word_ptr[0] =  0xFFFFFFFF;
 
-    /* Open the flash and see if we recover properly.  */    
+    /* Open the flash and see if we recover properly.  */
     status =  lx_nand_flash_open(&nand_sim_flash, "sim nor flash", _lx_nand_flash_simulator_initialize, nand_memory_space, sizeof(nand_memory_space));
 #ifdef EXTENDED_CACHE
     status += lx_nand_flash_extended_cache_enable(&nand_sim_flash, cache_memory, sizeof(cache_memory));
 #endif
-    
+
     if ((status != LX_SUCCESS) ||
         (nand_sim_flash.lx_nand_flash_free_pages != 111) ||
         (nand_sim_flash.lx_nand_flash_mapped_pages != 9))
     {
-      
+
           printf("FAILED!\n");
 #ifdef BATCH_TEST
     exit(1);
@@ -883,7 +894,7 @@ UCHAR   *byte_ptr;
     }
 
     status =  lx_nand_flash_close(&nand_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -899,23 +910,23 @@ UCHAR   *byte_ptr;
 
     /* Test 4: simulate a power interruption while a new page is being setup.  */
     printf("Test 4: Power interrupted new page setup........");
-    
+
     /* Partially setup new page.  */
     byte_ptr =  (UCHAR *) word_ptr;
     byte_ptr[2053] = 0xBF;      /* Set block 0/page 0 extra bytes to indicate block not empty.  */
     word_ptr[528] =  0x60;
 
-    /* Open the flash and see if we recover properly.  We should mark this page as obsolete. */    
+    /* Open the flash and see if we recover properly.  We should mark this page as obsolete. */
     status =  lx_nand_flash_open(&nand_sim_flash, "sim nor flash", _lx_nand_flash_simulator_initialize, nand_memory_space, sizeof(nand_memory_space));
 #ifdef EXTENDED_CACHE
     status += lx_nand_flash_extended_cache_enable(&nand_sim_flash, cache_memory, sizeof(cache_memory));
 #endif
-    
+
     if ((status != LX_SUCCESS) ||
         (nand_sim_flash.lx_nand_flash_free_pages != 110) ||
         (nand_sim_flash.lx_nand_flash_mapped_pages != 9))
     {
-      
+
           printf("FAILED!\n");
 #ifdef BATCH_TEST
     exit(1);
@@ -924,9 +935,9 @@ UCHAR   *byte_ptr;
           {
           }
     }
-    
+
     status =  lx_nand_flash_close(&nand_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -940,30 +951,30 @@ UCHAR   *byte_ptr;
 
 
     /* Simulate a power interruption after a new sector is allocated, after data
-       had been copied, and the superseded bit is clear, but before the new entry can be
+    had been copied, and the superseded bit is clear, but before the new entry can be
        setup.  */
-       
+
     /* Copy data block and reset spare.  */
     byte_ptr[2053] = 0xBF;          /* Set block 0/page 0 extra bytes to indicate block not empty.  */
     for (i = 1; i < 512; i++)       /* Fill block 0, page 1 data  */
-        word_ptr[i+528] = 0x60; 
+        word_ptr[i+528] = 0x60;
     word_ptr[i+528] =  0xFFFFFFFF;  /* Reset extra bytes for block 0, page 1 */
-    word_ptr[i+529] =  0xFFFFFFFF;  /* Reset extra bytes for block 0, page 1 */ 
-    
+    word_ptr[i+529] =  0xFFFFFFFF;  /* Reset extra bytes for block 0, page 1 */
+
     /* Set the superseded bit in block 1/page 1.   */
     byte_ptr[37957] = 0x80;
-    
-    /* Open the flash and see if we recover properly.  */    
+
+    /* Open the flash and see if we recover properly.  */
     status =  lx_nand_flash_open(&nand_sim_flash, "sim nor flash", _lx_nand_flash_simulator_initialize, nand_memory_space, sizeof(nand_memory_space));
 #ifdef EXTENDED_CACHE
     lx_nand_flash_extended_cache_enable(&nand_sim_flash, cache_memory, sizeof(cache_memory));
 #endif
-    
+
     if ((status != LX_SUCCESS) ||
         (nand_sim_flash.lx_nand_flash_free_pages != 110) ||
         (nand_sim_flash.lx_nand_flash_mapped_pages != 9))
     {
-      
+
           printf("FAILED!\n");
 #ifdef BATCH_TEST
     exit(1);
@@ -976,14 +987,14 @@ UCHAR   *byte_ptr;
     lx_nand_flash_close(&nand_sim_flash);
 
     /* Simulate a power interruption after a new sector is allocated, after data
-       had been copied, and the superseded bit is clear, the new entry is setup, but the old entry
+    had been copied, and the superseded bit is clear, the new entry is setup, but the old entry
        has not been invalidated.  */
     byte_ptr[2053] = 0xBF;          /* Set block 0/page 0 extra bytes to indicate block not empty.  */
     for (i = 1; i < 512; i++)       /* Fill block 0, page 1 data  */
-        word_ptr[i+528] = 0x60;     
+        word_ptr[i+528] = 0x60;
     word_ptr[i+528] =  0xFFFFFFFF;  /* Reset extra bytes for block 0, page 1 */
     word_ptr[i+529] =  0xFFFFFFFF;  /* Reset extra bytes for block 0, page 1 */
-    
+
     byte_ptr =  (UCHAR *) word_ptr;
 
     /* set the spare info in the new page.  */
@@ -995,17 +1006,17 @@ UCHAR   *byte_ptr;
     /* Set the superseded bit in block 1/page 1.   */
     byte_ptr[37957] = 0x80;
 
-    /* Open the flash and see if we recover properly.  */    
+    /* Open the flash and see if we recover properly.  */
     status =  lx_nand_flash_open(&nand_sim_flash, "sim nor flash", _lx_nand_flash_simulator_initialize, nand_memory_space, sizeof(nand_memory_space));
 #ifdef EXTENDED_CACHE
     status += lx_nand_flash_extended_cache_enable(&nand_sim_flash, cache_memory, sizeof(cache_memory));
 #endif
-    
+
     if ((status != LX_SUCCESS) ||
         (nand_sim_flash.lx_nand_flash_free_pages != 110) ||
         (nand_sim_flash.lx_nand_flash_mapped_pages != 9))
     {
-      
+
           printf("FAILED!\n");
 #ifdef BATCH_TEST
     exit(1);
@@ -1206,7 +1217,7 @@ UCHAR   *byte_ptr;
         }
 
     status =  lx_nand_flash_defragment(&nand_sim_flash);
-    
+
     if (status != LX_NOT_SUPPORTED)
     {
           printf("FAILED!\n");
@@ -1217,10 +1228,10 @@ UCHAR   *byte_ptr;
           {
           }
     }
-    
-   
+
+
     status =  lx_nand_flash_defragment(&nand_sim_flash);
-    
+
     if (status != LX_NOT_SUPPORTED)
     {
           printf("FAILED!\n");
@@ -1231,7 +1242,7 @@ UCHAR   *byte_ptr;
           {
           }
     }
-    
+
     status =  lx_nand_flash_sector_read(&nand_sim_flash, 7, readbuffer);
         if (status != LX_SUCCESS)
         {
@@ -1612,7 +1623,7 @@ UCHAR   *byte_ptr;
           {
           }
         }
-        
+
     status =  lx_nand_flash_sector_release(&nand_sim_flash, 7);
     if (status != LX_SUCCESS)
         {
@@ -1635,9 +1646,9 @@ UCHAR   *byte_ptr;
           {
           }
         }
-        
+
     status =  lx_nand_flash_defragment(&nand_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -1661,7 +1672,7 @@ UCHAR   *byte_ptr;
           {
           }
     }
-   
+
     printf("SUCCESS!\n");
 #endif
 #if 0
@@ -1670,15 +1681,15 @@ UCHAR   *byte_ptr;
     /* Erase the simulated NOR flash.  */
     _lx_nand_flash_simulator_erase_all();
 
-    /* Open the flash.  */    
+    /* Open the flash.  */
     status =  lx_nand_flash_open(&nand_sim_flash, "sim nor flash", _lx_nand_flash_simulator_initialize, nand_memory_space, sizeof(nand_memory_space));
 #ifdef EXTENDED_CACHE
     status += lx_nand_flash_extended_cache_enable(&nand_sim_flash, cache_memory, sizeof(cache_memory));
 #endif
-    
-    if (status != LX_SUCCESS) 
+
+    if (status != LX_SUCCESS)
     {
-      
+
           printf("FAILED!\n");
 #ifdef BATCH_TEST
     exit(1);
@@ -1687,15 +1698,15 @@ UCHAR   *byte_ptr;
           {
           }
     }
-    
+
     /* Write 100 sectors....  */
     for (i = 0; i < 100; i++)
     {
         for (j = 0; j < 512; j++)
           buffer[j] =  i;
-        
+
         status =  lx_nand_flash_sector_write(&nand_sim_flash, i, buffer);
-      
+
         if (status != LX_SUCCESS)
         {
           printf("FAILED!\n");
@@ -1707,13 +1718,13 @@ UCHAR   *byte_ptr;
           }
         }
     }
-    
+
     /* Read back 100 sectors...  */
     for (i = 0; i < 100; i++)
     {
-        
+
         status =  lx_nand_flash_sector_read(&nand_sim_flash, i, buffer);
-      
+
         if (status != LX_SUCCESS)
         {
           printf("FAILED!\n");
@@ -1724,10 +1735,10 @@ UCHAR   *byte_ptr;
           {
           }
         }
-        
+
         for (j = 0; j < 512; j++)
         {
-          
+
           if (buffer[j] !=  i)
           {
             printf("FAILED!\n");
@@ -1740,18 +1751,18 @@ UCHAR   *byte_ptr;
           }
         }
     }
-    
+
     /* Now, perform 1000 sector writes to randomly selected sectors, each time
        reading first to make sure the previous contents are valid.  */
     for (i = 0; i < 1000; i++)
     {
-    
+
         /* Pickup random sector.  */
         sector =  (rand() % 100);
 
         /* Read that sector.  */
         status =  lx_nand_flash_sector_read(&nand_sim_flash, sector, buffer);
-      
+
         if (status != LX_SUCCESS)
         {
           printf("FAILED!\n");
@@ -1762,10 +1773,10 @@ UCHAR   *byte_ptr;
           {
           }
         }
-        
+
         for (j = 0; j < 512; j++)
         {
-          
+
           if ((buffer[j] & 0x0000FFFF) !=  sector)
           {
             printf("FAILED!\n");
@@ -1781,10 +1792,10 @@ UCHAR   *byte_ptr;
         /* Include the itteraction in the buffer to generate a new write.  */
         for (j = 0; j < 512; j++)
         {
- 
+
             buffer[j] =  (buffer[j] & 0x0000FFFF) | (i << 16);
         }
-        
+
         status =  lx_nand_flash_sector_write(&nand_sim_flash, sector, buffer);
 
         if (status != LX_SUCCESS)
@@ -1798,9 +1809,9 @@ UCHAR   *byte_ptr;
           }
         }
     }
-    
+
     status =  lx_nand_flash_close(&nand_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -1813,22 +1824,22 @@ UCHAR   *byte_ptr;
     }
     printf("SUCCESS!\n");
 #endif
-    
+
 #if 0
-    
+
   for (i = 0; i < 256; i++)
   {
-  
+
       /* Setup buffer.  */
       for (j = 0; j < 2048; j++)
           byte_buffer[j] =  (UCHAR) (rand() % 256);
-      
+
       /* Call the ECC calculate routine.  */
       ComputePageECC(byte_buffer, 2048, ecc_bytes);
       status =  (UINT) CorrectPageECC(byte_buffer, 2048, ecc_bytes);
       if (status != 0)
       {
-        
+
           /* Check for corrected return value.  */
           if (status != 1)
           {
@@ -1837,7 +1848,7 @@ UCHAR   *byte_ptr;
             }
           }
       }
-      
+
       /* Call LevelX ECC routines to do the same thing.  */
       status =  lx_nand_flash_page_ecc_compute(&nand_sim_flash, byte_buffer, lx_ecc_buffer);
 
@@ -1851,17 +1862,17 @@ UCHAR   *byte_ptr;
 
 //      ComputePageECC(byte_buffer, 2048, ecc_bytes);
 
-      
+
       /* Determine if there is any difference between the original and the new ECC routine.  */
-      if ((ecc_bytes[0] != lx_ecc_buffer[0]) || 
+      if ((ecc_bytes[0] != lx_ecc_buffer[0]) ||
           (ecc_bytes[1] != lx_ecc_buffer[1]) ||
           (ecc_bytes[2] != lx_ecc_buffer[2]) ||
           (ecc_bytes[3] != lx_ecc_buffer[3]) ||
           (ecc_bytes[4] != lx_ecc_buffer[4]) ||
           (ecc_bytes[5] != lx_ecc_buffer[5]) ||
           (ecc_bytes[6] != lx_ecc_buffer[6]) ||
-          (ecc_bytes[7] != lx_ecc_buffer[7]) ||  
-          (ecc_bytes[8] != lx_ecc_buffer[8]) ||  
+          (ecc_bytes[7] != lx_ecc_buffer[7]) ||
+          (ecc_bytes[8] != lx_ecc_buffer[8]) ||
           (ecc_bytes[9] != lx_ecc_buffer[9]) ||
           (ecc_bytes[10] != lx_ecc_buffer[10]) ||
           (ecc_bytes[11] != lx_ecc_buffer[11]))
@@ -1875,7 +1886,7 @@ UCHAR   *byte_ptr;
 
       if (status != LX_SUCCESS)
       {
-        
+
           /* Is it the corrected status?  */
           if (status !=  LX_NAND_ERROR_CORRECTED)
           {
@@ -1888,23 +1899,23 @@ UCHAR   *byte_ptr;
   }
 #endif
 
-#if 0  
+#if 0
   for (i = 0; i < 256; i++)
   {
-  
+
       /* Setup buffer.  */
       for (j = 0; j < 2048; j++)
           byte_buffer[j] =  (UCHAR) (rand() % 256);
-      
+
       /* Call the ECC calculate routine.  */
       ComputePageECC(byte_buffer, 2048, ecc_bytes);
-      
+
       /* Corrupt a bit in each 256 byte page.  */
       if (byte_buffer[7] & 1)
           byte_buffer[7] =  byte_buffer[7] & 0xFE;
       else
           byte_buffer[7] =  byte_buffer[7] | 1;
- 
+
       if (byte_buffer[277] & 1)
           byte_buffer[277] =  byte_buffer[277] & 0xFE;
       else
@@ -1914,12 +1925,12 @@ UCHAR   *byte_ptr;
           byte_buffer[577] =  byte_buffer[577] & 0xFE;
       else
           byte_buffer[577] =  byte_buffer[577] | 1;
-      
+
       if (byte_buffer[777] & 1)
           byte_buffer[777] =  byte_buffer[777] & 0xFE;
       else
           byte_buffer[777] =  byte_buffer[777] | 1;
-      
+
       if (byte_buffer[1077] & 1)
           byte_buffer[1077] =  byte_buffer[1077] & 0xFE;
       else
@@ -1929,7 +1940,7 @@ UCHAR   *byte_ptr;
           byte_buffer[1297] =  byte_buffer[1297] & 0xFE;
       else
           byte_buffer[1297] =  byte_buffer[1297] | 1;
-      
+
       if (byte_buffer[1636] & 1)
           byte_buffer[1636] =  byte_buffer[1636] & 0xFE;
       else
@@ -1939,12 +1950,12 @@ UCHAR   *byte_ptr;
           byte_buffer[1892] =  byte_buffer[1892] & 0xFE;
       else
           byte_buffer[1892] =  byte_buffer[1892] | 1;
-     
-      
+
+
       status =  (UINT) CorrectPageECC(byte_buffer, 2048, ecc_bytes);
       if (status != 0)
       {
-        
+
           /* Check for corrected return value.  */
           if (status != 1)
           {
@@ -1953,7 +1964,7 @@ UCHAR   *byte_ptr;
             }
           }
       }
-      
+
       /* Call LevelX ECC routines to do the same thing.  */
       status =  lx_nand_flash_page_ecc_compute(&nand_sim_flash, byte_buffer, lx_ecc_buffer);
 
@@ -1966,17 +1977,17 @@ UCHAR   *byte_ptr;
       }
 
 
-      
+
       /* Determine if there is any difference between the original and the new ECC routine.  */
-      if ((ecc_bytes[0] != lx_ecc_buffer[0]) || 
+      if ((ecc_bytes[0] != lx_ecc_buffer[0]) ||
           (ecc_bytes[1] != lx_ecc_buffer[1]) ||
           (ecc_bytes[2] != lx_ecc_buffer[2]) ||
           (ecc_bytes[3] != lx_ecc_buffer[3]) ||
           (ecc_bytes[4] != lx_ecc_buffer[4]) ||
           (ecc_bytes[5] != lx_ecc_buffer[5]) ||
           (ecc_bytes[6] != lx_ecc_buffer[6]) ||
-          (ecc_bytes[7] != lx_ecc_buffer[7]) ||  
-          (ecc_bytes[8] != lx_ecc_buffer[8]) ||  
+          (ecc_bytes[7] != lx_ecc_buffer[7]) ||
+          (ecc_bytes[8] != lx_ecc_buffer[8]) ||
           (ecc_bytes[9] != lx_ecc_buffer[9]) ||
           (ecc_bytes[10] != lx_ecc_buffer[10]) ||
           (ecc_bytes[11] != lx_ecc_buffer[11]))
@@ -1991,7 +2002,7 @@ UCHAR   *byte_ptr;
           byte_buffer[7] =  byte_buffer[7] & 0xFE;
       else
           byte_buffer[7] =  byte_buffer[7] | 1;
- 
+
       if (byte_buffer[277] & 1)
           byte_buffer[277] =  byte_buffer[277] & 0xFE;
       else
@@ -2001,12 +2012,12 @@ UCHAR   *byte_ptr;
           byte_buffer[577] =  byte_buffer[577] & 0xFE;
       else
           byte_buffer[577] =  byte_buffer[577] | 1;
-      
+
       if (byte_buffer[777] & 1)
           byte_buffer[777] =  byte_buffer[777] & 0xFE;
       else
           byte_buffer[777] =  byte_buffer[777] | 1;
-      
+
       if (byte_buffer[1077] & 1)
           byte_buffer[1077] =  byte_buffer[1077] & 0xFE;
       else
@@ -2016,7 +2027,7 @@ UCHAR   *byte_ptr;
           byte_buffer[1297] =  byte_buffer[1297] & 0xFE;
       else
           byte_buffer[1297] =  byte_buffer[1297] | 1;
-      
+
       if (byte_buffer[1636] & 1)
           byte_buffer[1636] =  byte_buffer[1636] & 0xFE;
       else
@@ -2026,12 +2037,12 @@ UCHAR   *byte_ptr;
           byte_buffer[1892] =  byte_buffer[1892] & 0xFE;
       else
           byte_buffer[1892] =  byte_buffer[1892] | 1;
-      
+
       status =  lx_nand_flash_page_ecc_check(&nand_sim_flash, byte_buffer, lx_ecc_buffer);
 
       if (status != LX_SUCCESS)
       {
-        
+
           /* Is it the corrected status?  */
           if (status !=  LX_NAND_ERROR_CORRECTED)
           {
@@ -2064,22 +2075,22 @@ UCHAR   *byte_ptr;
 
 
 #endif
-    
-#if 0  
+
+#if 0
 
   /* Corrupting ECC code is detected and returns a failure... this test is not valid!  */
 
   for (i = 0; i < 256; i++)
   {
-  
+
       /* Setup buffer.  */
       for (j = 0; j < 2048; j++)
           byte_buffer[j] =  (UCHAR) (rand() % 256);
-      
+
       /* Call the ECC calculate routine.  */
       ComputePageECC(byte_buffer, 2048, ecc_bytes);
-      
-      
+
+
       /* Call LevelX ECC routines to do the same thing.  */
       status =  lx_nand_flash_page_ecc_compute(&nand_sim_flash, byte_buffer, lx_ecc_buffer);
 
@@ -2092,15 +2103,15 @@ UCHAR   *byte_ptr;
       }
 
       /* Determine if there is any difference between the original and the new ECC routine.  */
-      if ((ecc_bytes[0] != lx_ecc_buffer[0]) || 
+      if ((ecc_bytes[0] != lx_ecc_buffer[0]) ||
           (ecc_bytes[1] != lx_ecc_buffer[1]) ||
           (ecc_bytes[2] != lx_ecc_buffer[2]) ||
           (ecc_bytes[3] != lx_ecc_buffer[3]) ||
           (ecc_bytes[4] != lx_ecc_buffer[4]) ||
           (ecc_bytes[5] != lx_ecc_buffer[5]) ||
           (ecc_bytes[6] != lx_ecc_buffer[6]) ||
-          (ecc_bytes[7] != lx_ecc_buffer[7]) ||  
-          (ecc_bytes[8] != lx_ecc_buffer[8]) ||  
+          (ecc_bytes[7] != lx_ecc_buffer[7]) ||
+          (ecc_bytes[8] != lx_ecc_buffer[8]) ||
           (ecc_bytes[9] != lx_ecc_buffer[9]) ||
           (ecc_bytes[10] != lx_ecc_buffer[10]) ||
           (ecc_bytes[11] != lx_ecc_buffer[11]))
@@ -2115,7 +2126,7 @@ UCHAR   *byte_ptr;
           ecc_bytes[1] =  ecc_bytes[1] & 0xFE;
       else
           ecc_bytes[1] =  ecc_bytes[1] | 1;
- 
+
       if (ecc_bytes[4] & 1)
           ecc_bytes[4] =  ecc_bytes[4] & 0xFE;
       else
@@ -2125,12 +2136,12 @@ UCHAR   *byte_ptr;
           ecc_bytes[7] =  ecc_bytes[7] & 0xFE;
       else
           ecc_bytes[7] =  ecc_bytes[7] | 1;
-      
+
       if (ecc_bytes[10] & 1)
           ecc_bytes[10] =  ecc_bytes[10] & 0xFE;
       else
           ecc_bytes[10] =  ecc_bytes[10] | 1;
-      
+
       if (ecc_bytes[13] & 1)
           ecc_bytes[13] =  ecc_bytes[13] & 0xFE;
       else
@@ -2140,7 +2151,7 @@ UCHAR   *byte_ptr;
           ecc_bytes[16] =  ecc_bytes[16] & 0xFE;
       else
           ecc_bytes[16] =  ecc_bytes[16] | 1;
-      
+
       if (ecc_bytes[19] & 1)
           ecc_bytes[19] =  ecc_bytes[19] & 0xFE;
       else
@@ -2150,12 +2161,12 @@ UCHAR   *byte_ptr;
           ecc_bytes[22] =  ecc_bytes[22] & 0xFE;
       else
           ecc_bytes[22] =  ecc_bytes[22] | 1;
-     
-      
+
+
       status =  (UINT) CorrectPageECC(byte_buffer, 2048, ecc_bytes);
       if (status != 0)
       {
-        
+
           /* Check for corrected return value.  */
           if (status != 1)
           {
@@ -2170,7 +2181,7 @@ UCHAR   *byte_ptr;
           lx_ecc_buffer[1] =  lx_ecc_buffer[1] & 0xFE;
       else
           lx_ecc_buffer[1] =  lx_ecc_buffer[1] | 1;
- 
+
       if (lx_ecc_buffer[4] & 1)
           lx_ecc_buffer[4] =  lx_ecc_buffer[4] & 0xFE;
       else
@@ -2180,12 +2191,12 @@ UCHAR   *byte_ptr;
           lx_ecc_buffer[7] =  lx_ecc_buffer[7] & 0xFE;
       else
           lx_ecc_buffer[7] =  lx_ecc_buffer[7] | 1;
-      
+
       if (lx_ecc_buffer[10] & 1)
           lx_ecc_buffer[10] =  lx_ecc_buffer[10] & 0xFE;
       else
           lx_ecc_buffer[10] =  lx_ecc_buffer[10] | 1;
-      
+
       if (lx_ecc_buffer[13] & 1)
           lx_ecc_buffer[13] =  lx_ecc_buffer[13] & 0xFE;
       else
@@ -2195,7 +2206,7 @@ UCHAR   *byte_ptr;
           lx_ecc_buffer[16] =  lx_ecc_buffer[16] & 0xFE;
       else
           lx_ecc_buffer[16] =  lx_ecc_buffer[16] | 1;
-      
+
       if (lx_ecc_buffer[19] & 1)
           lx_ecc_buffer[19] =  lx_ecc_buffer[19] & 0xFE;
       else
@@ -2205,14 +2216,14 @@ UCHAR   *byte_ptr;
           lx_ecc_buffer[22] =  lx_ecc_buffer[22] & 0xFE;
       else
           lx_ecc_buffer[22] =  lx_ecc_buffer[22] | 1;
-     
 
-      
+
+
       status =  lx_nand_flash_page_ecc_check(&nand_sim_flash, byte_buffer, lx_ecc_buffer);
 
       if (status != LX_SUCCESS)
       {
-        
+
           /* Is it the corrected status?  */
           if (status !=  LX_NAND_ERROR_CORRECTED)
           {
@@ -2245,24 +2256,24 @@ UCHAR   *byte_ptr;
 
 
 #endif
- 
-  
-    
+
+
+
 #if 0
 /* TEST FileX packing routines.  */
 
     /* Erase the simulated NAND flash.  */
     _lx_nand_flash_simulator_erase_all();
 
-    /* Open the flash.  */    
+    /* Open the flash.  */
     status =  lx_nand_flash_open(&nand_sim_flash, "sim nor flash", _lx_nand_flash_simulator_initialize);
 #ifdef EXTENDED_CACHE
     status += lx_nand_flash_extended_cache_enable(&nand_sim_flash, cache_memory, sizeof(cache_memory));
 #endif
-    
-    if (status != LX_SUCCESS) 
+
+    if (status != LX_SUCCESS)
     {
-      
+
           printf("FAILED!\n");
           while(1)
           {
@@ -2294,7 +2305,7 @@ UCHAR   *byte_ptr;
   {
        _fx_nand_flash_read_sectors(i, 1, (UCHAR *) &test_read[i].words[0]);
   }
-  
+
   /* Setup the read buffer.  */
   for (i = 0; i < 8; i++)
   {
@@ -2315,9 +2326,9 @@ UCHAR   *byte_ptr;
 
   _fx_nand_flash_read_sectors(0, 8, (UCHAR *) &test_read[0].words[0]);
 
-  
+
     status =  lx_nand_flash_close(&nand_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -2329,15 +2340,15 @@ UCHAR   *byte_ptr;
     /* Erase the simulated NAND flash.  */
     _lx_nand_flash_simulator_erase_all();
 
-    /* Open the flash.  */    
+    /* Open the flash.  */
     status =  lx_nand_flash_open(&nand_sim_flash, "sim nor flash", _lx_nand_flash_simulator_initialize);
 #ifdef EXTENDED_CACHE
     status += lx_nand_flash_extended_cache_enable(&nand_sim_flash, cache_memory, sizeof(cache_memory));
 #endif
-    
-    if (status != LX_SUCCESS) 
+
+    if (status != LX_SUCCESS)
     {
-      
+
           printf("FAILED!\n");
           while(1)
           {
@@ -2360,7 +2371,7 @@ UCHAR   *byte_ptr;
     _fx_nand_flash_read_sectors(3, 5, (UCHAR *) &test_read[3].words[0]);
 
     status =  lx_nand_flash_close(&nand_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -2369,9 +2380,9 @@ UCHAR   *byte_ptr;
           }
     }
 
-  /* End */    
-#endif    
-    
+  /* End */
+#endif
+
 #ifdef BATCH_TEST
     exit(0);
 #endif

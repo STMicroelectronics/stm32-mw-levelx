@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2026-present Eclipse ThreadX contributors
  *
  * This program and the accompanying materials are made available under the
  * terms of the MIT License which is available at
@@ -66,12 +67,6 @@
 /*  CALLED BY                                                             */
 /*                                                                        */
 /*    Internal LevelX                                                     */
-/*                                                                        */
-/*  RELEASE HISTORY                                                       */
-/*                                                                        */
-/*    DATE              NAME                      DESCRIPTION             */
-/*                                                                        */
-/*  03-08-2023     Xiuwen Cai               Initial Version 6.2.1        */
 /*                                                                        */
 /**************************************************************************/
 UINT  _lx_nand_flash_memory_initialize(LX_NAND_FLASH  *nand_flash, ULONG* memory_ptr, UINT memory_size)
@@ -185,6 +180,48 @@ UINT    buffer_size;
         /* No enough memory, return error.  */
         return(LX_NO_MEMORY);
     }
+
+#ifdef LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE
+    {
+
+    ULONG   i;
+    ULONG   compaction_table_entries;
+
+    /* Set memory size for block compaction table.  Same element type as block_mapping_table.  */
+    buffer_size = nand_flash -> lx_nand_flash_total_blocks * sizeof(*nand_flash -> lx_nand_flash_block_compaction_table);
+
+    /* Make sure the size is at least one page size.  */
+    if (buffer_size < nand_flash -> lx_nand_flash_bytes_per_page)
+    {
+        buffer_size = nand_flash -> lx_nand_flash_bytes_per_page;
+    }
+
+    /* Assign memory for block compaction table.  */
+    nand_flash -> lx_nand_flash_block_compaction_table = (USHORT*)(((UCHAR*)memory_ptr) + memory_offset);
+
+    /* Update block compaction table size.  */
+    nand_flash -> lx_nand_flash_block_compaction_table_size = buffer_size;
+
+    /* Update memory offset.  */
+    memory_offset += buffer_size;
+
+    /* Check if there is enough memory.  */
+    if (memory_offset > memory_size)
+    {
+
+        /* No enough memory, return error.  */
+        return(LX_NO_MEMORY);
+    }
+
+    /* Initialize all compaction table entries to unmapped.  (LX_MEMSET zero-fills the buffer
+       above, but LX_NAND_BLOCK_UNMAPPED is 0xFFFF, so explicit initialisation is required.)  */
+    compaction_table_entries = buffer_size / sizeof(*nand_flash -> lx_nand_flash_block_compaction_table);
+    for (i = 0; i < compaction_table_entries; i++)
+    {
+        nand_flash -> lx_nand_flash_block_compaction_table[i] = (USHORT)LX_NAND_BLOCK_UNMAPPED;
+    }
+    }
+#endif
 
     /* Assign memory for page buffer.  */
     nand_flash -> lx_nand_flash_page_buffer = ((UCHAR*)memory_ptr) + memory_offset;

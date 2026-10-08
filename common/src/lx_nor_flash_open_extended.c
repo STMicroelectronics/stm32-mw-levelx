@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2026-present Eclipse ThreadX contributors
  * Portion Copyright (c) 2025-2026 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
@@ -75,34 +76,6 @@
 /*  CALLED BY                                                             */
 /*                                                                        */
 /*    Application Code                                                    */
-/*                                                                        */
-/*  RELEASE HISTORY                                                       */
-/*                                                                        */
-/*    DATE              NAME                      DESCRIPTION             */
-/*                                                                        */
-/*  05-19-2020     William E. Lamie         Initial Version 6.0           */
-/*  09-30-2020     William E. Lamie         Modified comment(s),          */
-/*                                            resulting in version 6.1    */
-/*  11-09-2020     William E. Lamie         Modified comment(s),          */
-/*                                            fixed compiler warnings,    */
-/*                                            resulting in version 6.1.2  */
-/*  12-30-2020     William E. Lamie         Modified comment(s),          */
-/*                                            fixed compiler warnings,    */
-/*                                            resulting in version 6.1.3  */
-/*  06-02-2021     Bhupendra Naphade        Modified comment(s), and      */
-/*                                            updated product constants   */
-/*                                            resulting in version 6.1.7  */
-/*  03-08-2023     Xiuwen Cai               Modified comment(s),          */
-/*                                            added new driver interface, */
-/*                                            resulting in version 6.2.1  */
-/*  10-31-2023     Xiuwen Cai               Modified comment(s),          */
-/*                                            added count for minimum     */
-/*                                            erased blocks, added        */
-/*                                            obsolete count cache,       */
-/*                                            avoided clearing user       */
-/*                                            extension in flash control  */
-/*                                            block,                      */
-/*                                            resulting in version 6.3.0  */
 /*                                                                        */
 /**************************************************************************/
 

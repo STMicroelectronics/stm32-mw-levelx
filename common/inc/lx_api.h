@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2026-present Eclipse ThreadX contributors
  * Copyright (c) 2025-2026 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
@@ -37,62 +38,6 @@
 /*    high-performance LevelX. All service prototypes and data structure  */
 /*    definitions are defined in this file.                               */
 /*                                                                        */
-/*  RELEASE HISTORY                                                       */
-/*                                                                        */
-/*    DATE              NAME                      DESCRIPTION             */
-/*                                                                        */
-/*  05-19-2020     William E. Lamie         Initial Version 6.0           */
-/*  09-30-2020     William E. Lamie         Modified comment(s), and      */
-/*                                            updated product constants,  */
-/*                                            resulting in version 6.1    */
-/*  11-09-2020     William E. Lamie         Modified comment(s), and      */
-/*                                            added support for lx_user.h */
-/*                                            so user can specify values, */
-/*                                            resulting in version 6.1.2  */
-/*  12-31-2020     William E. Lamie         Modified comment(s), and      */
-/*                                            updated product constants,  */
-/*                                            resulting in version 6.1.3  */
-/*  06-02-2021     Bhupendra Naphade        Modified comment(s),          */
-/*                                            added standalone support,   */
-/*                                            resulting in version 6.1.7  */
-/*  08-02-2021     William E. Lamie         Modified comment(s), and      */
-/*                                            updated product constants,  */
-/*                                            resulting in version 6.1.8  */
-/*  10-15-2021     Bhupendra Naphade        Modified comment(s),          */
-/*                                            updated configuration for   */
-/*                                            nand flash                  */
-/*                                            resulting in version 6.1.9  */
-/*  01-31-2022     Bhupendra Naphade        Modified comment(s),          */
-/*                                            updated include order for   */
-/*                                            standalone mode,            */
-/*                                            resulting in version 6.1.10 */
-/*  04-25-2022     William E. Lamie         Modified comment(s), and      */
-/*                                            updated product constants,  */
-/*                                            resulting in version 6.1.11 */
-/*  07-29-2022     William E. Lamie         Modified comment(s), and      */
-/*                                            updated product constants,  */
-/*                                            resulting in version 6.1.12 */
-/*  10-31-2022     Xiuwen Cai               Modified comment(s), and      */
-/*                                            updated product constants,  */
-/*                                            resulting in version 6.2.0  */
-/*  03-08-2023     Xiuwen Cai               Modified comment(s),          */
-/*                                            modified NAND logic,        */
-/*                                            added new driver interface  */
-/*                                            and user extension,         */
-/*                                            resulting in version 6.2.1  */
-/*  10-31-2023     Xiuwen Cai               Modified comment(s),          */
-/*                                            made LX_NOR_SECTOR_SIZE     */
-/*                                            configurable, added mapping */
-/*                                            bitmap and obsolete count   */
-/*                                            cache for NOR flash,        */
-/*                                            resulting in version 6.3.0  */
-/*  12-31-2023     Xiuwen Cai               Modified comment(s),          */
-/*                                            added configuration checks, */
-/*                                            resulting in version 6.4.0  */
-/*  03-01-2024      Tiejun Zhou             Modified comment(s),          */
-/*                                            update version number,      */
-/*                                            resulting in version 6.4.1  */
-/*                                                                        */
 /**************************************************************************/
 
 #ifndef LX_API_H
@@ -120,8 +65,10 @@ extern   "C" {
 /* Define basic constants for the LevelX Stack.  */
 #define AZURE_RTOS_LEVELX
 #define LEVELX_MAJOR_VERSION                        6
-#define LEVELX_MINOR_VERSION                        4
+#define LEVELX_MINOR_VERSION                        5
 #define LEVELX_PATCH_VERSION                        1
+#define LEVELX_BUILD_VERSION                        202602
+#define LEVELX_HOTFIX_VERSION                       ' '
 
 
 /* Define general LevelX Constants.  */
@@ -244,6 +191,17 @@ extern   "C" {
 #define LX_NAND_FLASH_MAX_METADATA_BLOCKS           4
 #endif
 
+/* When LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE is defined, sector releases from full blocks
+   are deferred when free block count exceeds the threshold below (opt-in, default: off).
+   Requires pages_per_block <= 4095 (bit 12 is reserved for COMPACTION_PENDING flag).  */
+/* #define LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE */
+
+#ifdef LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE
+#ifndef LX_NAND_FLASH_SECTOR_RELEASE_LAZY_THRESHOLD
+#define LX_NAND_FLASH_SECTOR_RELEASE_LAZY_THRESHOLD 10u
+#endif
+#endif
+
 #ifndef LX_UTILITY_SHORT_SET
 #define LX_UTILITY_SHORT_SET(address, value)        *((USHORT*)(address)) = (USHORT)(value)
 #endif
@@ -298,6 +256,11 @@ extern   "C" {
 #define LX_NAND_BLOCK_STATUS_FULL                   0x4000u
 #define LX_NAND_BLOCK_STATUS_NON_SEQUENTIAL         0x2000u
 #define LX_NAND_BLOCK_STATUS_MAPPING_PRESENT        0x1000u
+#ifdef LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE
+/* Repurpose the otherwise-unused MAPPING_PRESENT bit to signal a block whose compaction
+   has been deferred.  Only valid when pages_per_block <= 4095.  */
+#define LX_NAND_BLOCK_STATUS_COMPACTION_PENDING     LX_NAND_BLOCK_STATUS_MAPPING_PRESENT
+#endif
 #define LX_NAND_BLOCK_STATUS_PAGE_NUMBER_MASK       0x0FFFu
 #define LX_NAND_BLOCK_STATUS_FREE                   0xFFFFu
 #define LX_NAND_BLOCK_STATUS_BAD                    0xFF00u
@@ -372,6 +335,12 @@ typedef struct LX_NAND_FLASH_STRUCT
     USHORT                         *lx_nand_flash_block_list;
     ULONG                           lx_nand_flash_block_list_size;
     ULONG                           lx_nand_flash_free_block_list_tail;
+#ifdef LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE
+    /* Parallel to block_mapping_table: physical block with pending compaction for a group,
+       or LX_NAND_BLOCK_UNMAPPED when no compaction is pending.  */
+    USHORT                         *lx_nand_flash_block_compaction_table;
+    ULONG                           lx_nand_flash_block_compaction_table_size;
+#endif
     ULONG                           lx_nand_flash_mapped_block_list_head;
 
     ULONG                           lx_nand_flash_metadata_block_number;
@@ -453,9 +422,9 @@ typedef struct LX_NAND_FLASH_STRUCT
        a higher layer.  */
     LX_MUTEX                        lx_nand_flash_mutex;
 #endif
+
     /* user data pointer optionally passed by the application to the driver via the lx_nand_flash_open_extended */
     VOID                            *lx_nand_flash_driver_info_ptr;
-
     /* Define the NAND flash control block open next/previous pointers.  */
     struct LX_NAND_FLASH_STRUCT     *lx_nand_flash_open_next,
                                     *lx_nand_flash_open_previous;
@@ -585,10 +554,9 @@ typedef struct LX_NOR_FLASH_STRUCT
        a higher layer.  */
     LX_MUTEX                        lx_nor_flash_mutex;
 #endif
-
     /* user data pointer optionally passed by the application to the driver via the lx_nor_flash_open_extended */
     VOID                            *lx_nor_flash_driver_info_ptr;
-   /* Define the NOR flash control block open next/previous pointers.  */
+    /* Define the NOR flash control block open next/previous pointers.  */
     struct LX_NOR_FLASH_STRUCT      *lx_nor_flash_open_next,
                                     *lx_nor_flash_open_previous;
 
@@ -688,7 +656,9 @@ UINT    _lx_nand_flash_format_extended(LX_NAND_FLASH* nand_flash, CHAR* name,
                                 UINT(*nand_driver_initialize)(LX_NAND_FLASH*), VOID *nand_driver_info_ptr,
                                 ULONG* memory_ptr, UINT memory_size);
 UINT    _lx_nand_flash_open(LX_NAND_FLASH  *nand_flash, CHAR *name, UINT (*nand_driver_initialize)(LX_NAND_FLASH *), ULONG* memory_ptr, UINT memory_size);
-UINT    _lx_nand_flash_open_extended(LX_NAND_FLASH  *nand_flash, CHAR *name, UINT (*nand_driver_initialize)(LX_NAND_FLASH *), VOID *nand_driver_info_ptr, ULONG* memory_ptr, UINT memory_size);
+UINT    _lx_nand_flash_open_extended(LX_NAND_FLASH  *nand_flash, CHAR *name,
+                                     UINT (*nand_driver_initialize)(LX_NAND_FLASH *), VOID *nand_driver_info_ptr,
+                                     ULONG* memory_ptr, UINT memory_size);
 UINT    _lx_nand_flash_page_ecc_check(LX_NAND_FLASH *nand_flash, UCHAR *page_buffer, UCHAR *ecc_buffer);
 UINT    _lx_nand_flash_page_ecc_compute(LX_NAND_FLASH *nand_flash, UCHAR *page_buffer, UCHAR *ecc_buffer);
 UINT    _lx_nand_flash_partial_defragment(LX_NAND_FLASH *nand_flash, UINT max_blocks);
@@ -740,6 +710,9 @@ UINT    _lx_nand_flash_metadata_write(LX_NAND_FLASH *nand_flash, UCHAR* main_buf
 VOID    _lx_nand_flash_system_error(LX_NAND_FLASH *nand_flash, UINT error_code, ULONG block, ULONG page);
 UINT    _lx_nand_flash_256byte_ecc_check(UCHAR *page_buffer, UCHAR *ecc_buffer);
 UINT    _lx_nand_flash_256byte_ecc_compute(UCHAR *page_buffer, UCHAR *ecc_buffer);
+#ifdef LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE
+UINT    _lx_nand_flash_logical_group_compact(LX_NAND_FLASH *nand_flash, ULONG logical_group);
+#endif
 
 UINT    _lx_nor_flash_block_reclaim(LX_NOR_FLASH *nor_flash);
 UINT    _lx_nor_flash_driver_block_erase(LX_NOR_FLASH *nor_flash, ULONG block, ULONG erase_count);

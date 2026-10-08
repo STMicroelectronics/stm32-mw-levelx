@@ -1,3 +1,14 @@
+/***************************************************************************/
+/* Copyright (c) 2024 Microsoft Corporation                                */
+/* Copyright (c) 2026 Eclipse ThreadX contributors                         */
+/*                                                                         */
+/* This program and the accompanying materials are made available under    */
+/* the terms of the MIT License which is available at                      */
+/* https://opensource.org/licenses/MIT.                                    */
+/*                                                                         */
+/* SPDX-License-Identifier: MIT                                            */
+/***************************************************************************/
+
 /* Basic NOR flash tests...  */
 
 #include <stdio.h>
@@ -21,7 +32,6 @@ ULONG           readbuffer[128];
 
 /* Define LevelX NOR flash simulator prototoypes.  */
 
-UINT  _lx_nor_flash_simulator_erase_all(VOID);
 UINT  _lx_nor_flash_simulator_initialize(LX_NOR_FLASH *nor_flash);
 
 
@@ -36,7 +46,7 @@ void    thread_0_entry(ULONG thread_input);
 
 int main()
 {
-  
+
     /* Enter the ThreadX kernel.  */
 #ifndef LX_STANDALONE_ENABLE
     tx_kernel_enter();
@@ -53,8 +63,8 @@ void    tx_application_define(void *first_unused_memory)
 
 
     /* Create the main thread.  */
-    tx_thread_create(&thread_0, "thread 0", thread_0_entry, 0,  
-            thread_0_stack, DEMO_STACK_SIZE, 
+    tx_thread_create(&thread_0, "thread 0", thread_0_entry, 0,
+            thread_0_stack, DEMO_STACK_SIZE,
             1, 1, TX_NO_TIME_SLICE, TX_AUTO_START);
 }
 #endif
@@ -69,26 +79,27 @@ UINT    status;
 
 ULONG   *word_ptr;
 
-  
-    /* Erase the simulated NOR flash.  */
-    _lx_nor_flash_simulator_erase_all();
-    
+
+    /* format the simulated NOR flash.  */
+
     /* Initialize LevelX.  */
     _lx_nor_flash_initialize();
-    
+
+    lx_nor_flash_format(&nor_sim_flash, "sim nor flash", _lx_nor_flash_simulator_initialize, NULL);
+
     /* Test 1: Simple write 100 sectors and read 100 sectors.  */
     printf("Test 1: Simple write-read 100 sectors...........");
-    
+
     lx_nor_flash_open(&nor_sim_flash, "sim nor flash", _lx_nor_flash_simulator_initialize);
-    
+
     /* Write 100 sectors....  */
     for (i = 0; i < 100; i++)
     {
         for (j = 0; j < 128; j++)
           buffer[j] =  i;
-        
+
         status =  lx_nor_flash_sector_write(&nor_sim_flash, i, buffer);
-      
+
         if (status != LX_SUCCESS)
         {
           printf("FAILED!\n");
@@ -100,13 +111,13 @@ ULONG   *word_ptr;
           }
         }
     }
-    
+
     /* Read back 100 sectors...  */
     for (i = 0; i < 100; i++)
     {
-        
+
         status =  lx_nor_flash_sector_read(&nor_sim_flash, i, buffer);
-      
+
         if (status != LX_SUCCESS)
         {
           printf("FAILED!\n");
@@ -117,10 +128,10 @@ ULONG   *word_ptr;
           {
           }
         }
-        
+
         for (j = 0; j < 128; j++)
         {
-          
+
           if (buffer[j] !=  i)
           {
             printf("FAILED!\n");
@@ -139,25 +150,25 @@ ULONG   *word_ptr;
 
     /* Test 2: Write same sector 120 times.  */
     printf("Test 2: Write same sector 120 times.............");
-    
-    /* Reinitialize...  */    
-    _lx_nor_flash_simulator_erase_all();
-    
-    
+
+    /* Reinitialize...  */
+
     lx_nor_flash_initialize();
+    lx_nor_flash_format(&nor_sim_flash, "sim nor flash", _lx_nor_flash_simulator_initialize, NULL);
+
     lx_nor_flash_open(&nor_sim_flash, "sim nor flash", _lx_nor_flash_simulator_initialize);
 
     for (j = 0; j < 128; j++)
          buffer[j] =  0xFFFFFFFF;
-    
+
     /* Write same sector 120 sectors....  */
     for (i = 0; i < 120; i++)
     {
         for (j = 0; j < 128; j++)
           buffer[j] =  i;
-      
+
         status =  lx_nor_flash_sector_write(&nor_sim_flash, 7, buffer);
-      
+
         if (status != LX_SUCCESS)
         {
           printf("FAILED!\n");
@@ -168,9 +179,9 @@ ULONG   *word_ptr;
           {
           }
         }
-        
+
         status =  lx_nor_flash_sector_read(&nor_sim_flash, 7, readbuffer);
-      
+
         if (status != LX_SUCCESS)
         {
           printf("FAILED!\n");
@@ -181,10 +192,10 @@ ULONG   *word_ptr;
           {
           }
         }
-        
+
         for (j = 0; j < 128; j++)
         {
-          
+
           if (buffer[j] !=  readbuffer[j])
           {
             printf("FAILED!\n");
@@ -196,7 +207,7 @@ ULONG   *word_ptr;
             }
           }
         }
-        
+
         /* Write other sectors just to have additional sectors to manage.  */
         if (i == 1)
           lx_nor_flash_sector_write(&nor_sim_flash, 1, buffer);
@@ -218,7 +229,7 @@ ULONG   *word_ptr;
 
     status =  lx_nor_flash_defragment(&nor_sim_flash);
 
-    
+
     status =  lx_nor_flash_sector_read(&nor_sim_flash, 7, readbuffer);
         if (status != LX_SUCCESS)
         {
@@ -410,7 +421,7 @@ ULONG   *word_ptr;
         }
 
     status =  lx_nor_flash_defragment(&nor_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -421,13 +432,13 @@ ULONG   *word_ptr;
           {
           }
     }
-   
-    
+
+
     /* Point at the simulated NOR flash memory.  */
     word_ptr =  nor_sim_flash.lx_nor_flash_base_address;
-    
+
     status =  lx_nor_flash_close(&nor_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -439,21 +450,21 @@ ULONG   *word_ptr;
           }
     }
     printf("SUCCESS!\n");
-   
-    /* Test 3: Corrupt block 0, simulate a power interruption during erase of block 0, 
+
+    /* Test 3: Corrupt block 0, simulate a power interruption during erase of block 0,
        after the erase, but before the free bit map and erase count is setup.  */
     printf("Test 3: Block erase-initialize interrupted......");
     word_ptr[0] =  0xFFFFFFFF;
     word_ptr[3] =  0xFFFFFFFF;
 
-    /* Open the flash and see if we recover properly.  */    
+    /* Open the flash and see if we recover properly.  */
     status =  lx_nor_flash_open(&nor_sim_flash, "sim nor flash", _lx_nor_flash_simulator_initialize);
 
     if ((status != LX_SUCCESS) ||
         (nor_sim_flash.lx_nor_flash_free_physical_sectors != 111) ||
         (nor_sim_flash.lx_nor_flash_mapped_physical_sectors != 9))
     {
-      
+
           printf("FAILED!\n");
 #ifdef BATCH_TEST
     exit(1);
@@ -462,9 +473,9 @@ ULONG   *word_ptr;
           {
           }
     }
-    
+
     status =  lx_nor_flash_close(&nor_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -475,19 +486,19 @@ ULONG   *word_ptr;
           {
           }
     }
-   
-    /* Corrupt block 0, simulate a power interruption during erase of block 0, 
+
+    /* Corrupt block 0, simulate a power interruption during erase of block 0,
        after the erase, and after the free bit map setup, but before erase count is setup.  */
     word_ptr[0] =  0xFFFFFFFF;
 
-    /* Open the flash and see if we recover properly.  */    
+    /* Open the flash and see if we recover properly.  */
     status =  lx_nor_flash_open(&nor_sim_flash, "sim nor flash", _lx_nor_flash_simulator_initialize);
 
     if ((status != LX_SUCCESS) ||
         (nor_sim_flash.lx_nor_flash_free_physical_sectors != 111) ||
         (nor_sim_flash.lx_nor_flash_mapped_physical_sectors != 9))
     {
-      
+
           printf("FAILED!\n");
 #ifdef BATCH_TEST
     exit(1);
@@ -498,7 +509,7 @@ ULONG   *word_ptr;
     }
 
     status =  lx_nor_flash_close(&nor_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -516,14 +527,14 @@ ULONG   *word_ptr;
     printf("Test 4: Power interrupted new block allocation..");
     word_ptr[3] =  word_ptr[3] & ~((ULONG) 1);
 
-    /* Open the flash and see if we recover properly.  */    
+    /* Open the flash and see if we recover properly.  */
     status =  lx_nor_flash_open(&nor_sim_flash, "sim nor flash", _lx_nor_flash_simulator_initialize);
 
     if ((status != LX_SUCCESS) ||
         (nor_sim_flash.lx_nor_flash_free_physical_sectors != 110) ||
         (nor_sim_flash.lx_nor_flash_mapped_physical_sectors != 9))
     {
-      
+
           printf("FAILED!\n");
 #ifdef BATCH_TEST
     exit(1);
@@ -532,9 +543,9 @@ ULONG   *word_ptr;
           {
           }
     }
-    
+
     status =  lx_nor_flash_close(&nor_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -550,14 +561,14 @@ ULONG   *word_ptr;
        anything else can be done.  */
     word_ptr[(16*128)+3] =  0x7C00;
 
-    /* Open the flash and see if we recover properly.  */    
+    /* Open the flash and see if we recover properly.  */
     status =  lx_nor_flash_open(&nor_sim_flash, "sim nor flash", _lx_nor_flash_simulator_initialize);
 
     if ((status != LX_SUCCESS) ||
         (nor_sim_flash.lx_nor_flash_free_physical_sectors != 109) ||
         (nor_sim_flash.lx_nor_flash_mapped_physical_sectors != 9))
     {
-      
+
           printf("FAILED!\n");
 #ifdef BATCH_TEST
     exit(1);
@@ -568,7 +579,7 @@ ULONG   *word_ptr;
     }
 
     status =  lx_nor_flash_close(&nor_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -581,19 +592,19 @@ ULONG   *word_ptr;
     }
 
     /* Simulate a power interruption after a new sector is allocated, after data
-       had been copied, and the superseded bit is clear, but before the new entry can be
+      had been copied, and the superseded bit is clear, but before the new entry can be
        setup.  */
     word_ptr[3] =  0x7FFC;
     word_ptr[(16*128)+6] =  word_ptr[(16*128)+6] & ~((ULONG) 0x40000000);
-    
-    /* Open the flash and see if we recover properly.  */    
+
+    /* Open the flash and see if we recover properly.  */
     status =  lx_nor_flash_open(&nor_sim_flash, "sim nor flash", _lx_nor_flash_simulator_initialize);
 
     if ((status != LX_SUCCESS) ||
         (nor_sim_flash.lx_nor_flash_free_physical_sectors != 108) ||
         (nor_sim_flash.lx_nor_flash_mapped_physical_sectors != 9))
     {
-      
+
           printf("FAILED!\n");
 #ifdef BATCH_TEST
     exit(1);
@@ -604,9 +615,9 @@ ULONG   *word_ptr;
     }
 
     lx_nor_flash_close(&nor_sim_flash);
-    
+
     /* Simulate a power interruption after a new sector is allocated, after data
-       had been copied, and the superseded bit is clear, the new entry is setup, but the old entry
+      had been copied, and the superseded bit is clear, the new entry is setup, but the old entry
        has not been invalidated.  */
     word_ptr[3] =  0x7FF8;
     word_ptr[6] =  0xC0000070;
@@ -614,15 +625,15 @@ ULONG   *word_ptr;
     {
         word_ptr[(3*128)+i] =  0x70;
     }
-    
-    /* Open the flash and see if we recover properly.  */    
+
+    /* Open the flash and see if we recover properly.  */
     status =  lx_nor_flash_open(&nor_sim_flash, "sim nor flash", _lx_nor_flash_simulator_initialize);
 
     if ((status != LX_SUCCESS) ||
         (nor_sim_flash.lx_nor_flash_free_physical_sectors != 107) ||
         (nor_sim_flash.lx_nor_flash_mapped_physical_sectors != 9))
     {
-      
+
           printf("FAILED!\n");
 #ifdef BATCH_TEST
     exit(1);
@@ -823,7 +834,7 @@ ULONG   *word_ptr;
         }
 
     status =  lx_nor_flash_defragment(&nor_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -834,10 +845,10 @@ ULONG   *word_ptr;
           {
           }
     }
-    
-   
+
+
     status =  lx_nor_flash_defragment(&nor_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -848,7 +859,7 @@ ULONG   *word_ptr;
           {
           }
     }
-    
+
     status =  lx_nor_flash_sector_read(&nor_sim_flash, 7, readbuffer);
         if (status != LX_SUCCESS)
         {
@@ -1229,7 +1240,7 @@ ULONG   *word_ptr;
           {
           }
         }
-        
+
     status =  lx_nor_flash_sector_release(&nor_sim_flash, 7);
     if (status != LX_SUCCESS)
         {
@@ -1252,9 +1263,9 @@ ULONG   *word_ptr;
           {
           }
         }
-        
+
     status =  lx_nor_flash_defragment(&nor_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");
@@ -1278,20 +1289,20 @@ ULONG   *word_ptr;
           {
           }
     }
-   
+
     printf("SUCCESS!\n");
 
     printf("Test 5: Randow write/read sector................");
 
-    /* Erase the simulated NOR flash.  */
-    _lx_nor_flash_simulator_erase_all();
+    /* format the simulated NOR flash.  */
 
-    /* Open the flash.  */    
+    lx_nor_flash_format(&nor_sim_flash, "sim nor flash", _lx_nor_flash_simulator_initialize, NULL);
+    /* Open the flash.  */
     status =  lx_nor_flash_open(&nor_sim_flash, "sim nor flash", _lx_nor_flash_simulator_initialize);
 
-    if (status != LX_SUCCESS) 
+    if (status != LX_SUCCESS)
     {
-      
+
           printf("FAILED!\n");
 #ifdef BATCH_TEST
     exit(1);
@@ -1300,15 +1311,15 @@ ULONG   *word_ptr;
           {
           }
     }
-    
+
     /* Write 100 sectors....  */
     for (i = 0; i < 100; i++)
     {
         for (j = 0; j < 128; j++)
           buffer[j] =  i;
-        
+
         status =  lx_nor_flash_sector_write(&nor_sim_flash, i, buffer);
-      
+
         if (status != LX_SUCCESS)
         {
           printf("FAILED!\n");
@@ -1320,13 +1331,13 @@ ULONG   *word_ptr;
           }
         }
     }
-    
+
     /* Read back 100 sectors...  */
     for (i = 0; i < 100; i++)
     {
-        
+
         status =  lx_nor_flash_sector_read(&nor_sim_flash, i, buffer);
-      
+
         if (status != LX_SUCCESS)
         {
           printf("FAILED!\n");
@@ -1337,10 +1348,10 @@ ULONG   *word_ptr;
           {
           }
         }
-        
+
         for (j = 0; j < 128; j++)
         {
-          
+
           if (buffer[j] !=  i)
           {
             printf("FAILED!\n");
@@ -1353,18 +1364,18 @@ ULONG   *word_ptr;
           }
         }
     }
-    
+
     /* Now, perform 1000 sector writes to randomly selected sectors, each time
        reading first to make sure the previous contents are valid.  */
     for (i = 0; i < 1000; i++)
     {
-    
+
         /* Pickup random sector.  */
         sector =  (rand() % 100);
 
         /* Read that sector.  */
         status =  lx_nor_flash_sector_read(&nor_sim_flash, sector, buffer);
-      
+
         if (status != LX_SUCCESS)
         {
           printf("FAILED!\n");
@@ -1375,10 +1386,10 @@ ULONG   *word_ptr;
           {
           }
         }
-        
+
         for (j = 0; j < 128; j++)
         {
-          
+
           if ((buffer[j] & 0x0000FFFF) !=  sector)
           {
             printf("FAILED!\n");
@@ -1394,10 +1405,10 @@ ULONG   *word_ptr;
         /* Include the itteraction in the buffer to generate a new write.  */
         for (j = 0; j < 128; j++)
         {
- 
+
             buffer[j] =  (buffer[j] & 0x0000FFFF) | (i << 16);
         }
-        
+
         status =  lx_nor_flash_sector_write(&nor_sim_flash, sector, buffer);
 
         if (status != LX_SUCCESS)
@@ -1411,9 +1422,9 @@ ULONG   *word_ptr;
           }
         }
     }
-    
+
     status =  lx_nor_flash_close(&nor_sim_flash);
-    
+
     if (status != LX_SUCCESS)
     {
           printf("FAILED!\n");

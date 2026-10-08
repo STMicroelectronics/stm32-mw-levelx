@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2026-present Eclipse ThreadX contributors
  * Copyright (c) 2025-2026 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
@@ -73,12 +74,6 @@
 /*                                                                        */
 /*    Application Code                                                    */
 /*                                                                        */
-/*  RELEASE HISTORY                                                       */
-/*                                                                        */
-/*    DATE              NAME                      DESCRIPTION             */
-/*                                                                        */
-/*  03-08-2023     Xiuwen Cai               Initial Version 6.2.1        */
-/*                                                                        */
 /**************************************************************************/
 UINT  _lx_nand_flash_sector_read(LX_NAND_FLASH *nand_flash, ULONG logical_sector, VOID *buffer)
 {
@@ -103,7 +98,6 @@ LONG        page;
     {
       return(LX_ERROR);
     }
-
     /* Increment the number of read requests.  */
     nand_flash -> lx_nand_flash_diagnostic_sector_read_requests++;
 
@@ -150,9 +144,9 @@ LONG        page;
 
                 /* Read a page.  */
 #ifdef LX_NAND_ENABLE_CONTROL_BLOCK_FOR_DRIVER_INTERFACE
-                status = (nand_flash -> lx_nand_flash_driver_pages_read)(nand_flash, block, (ULONG)page, (UCHAR*)buffer, spare_buffer_ptr, 1);
+                status = (nand_flash -> lx_nand_flash_driver_pages_read)(nand_flash, block, (ULONG)page, (UCHAR*)NULL, spare_buffer_ptr, 1);
 #else
-                status = (nand_flash -> lx_nand_flash_driver_pages_read)(block, (ULONG)page, (UCHAR*)buffer, spare_buffer_ptr, 1);
+                status = (nand_flash -> lx_nand_flash_driver_pages_read)(block, (ULONG)page, (UCHAR*)NULL, spare_buffer_ptr, 1);
 #endif
 
                 /* Check for an error from flash driver.   */
@@ -173,6 +167,26 @@ LONG        page;
                 /* Get the logical sector number from spare bytes, and check if it matches the addressed sector number.  */
                 if ((LX_UTILITY_LONG_GET(&spare_buffer_ptr[nand_flash -> lx_nand_flash_spare_data1_offset]) & LX_NAND_PAGE_TYPE_USER_DATA_MASK) == logical_sector)
                 {
+#ifdef LX_NAND_ENABLE_CONTROL_BLOCK_FOR_DRIVER_INTERFACE
+                    status = (nand_flash -> lx_nand_flash_driver_pages_read)(nand_flash, block, (ULONG)page, (UCHAR*)buffer, NULL, 1);
+#else
+                    status = (nand_flash -> lx_nand_flash_driver_pages_read)(block, (ULONG)page, (UCHAR*)buffer, NULL, 1);
+#endif
+
+                    /* Check for an error from flash driver.   */
+                    if (status)
+                    {
+
+                        /* Call system error handler.  */
+                        _lx_nand_flash_system_error(nand_flash, status, block, 0);
+#ifdef LX_THREAD_SAFE_ENABLE
+
+                        /* Release the thread safe mutex.  */
+                        lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+#endif
+                        /* Return an error.  */
+                        return(LX_ERROR);
+                    }
 #ifdef LX_THREAD_SAFE_ENABLE
 
                     /* Release the thread safe mutex.  */
@@ -222,6 +236,76 @@ LONG        page;
             }
         }
     }
+
+#ifdef LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE
+    {
+
+    ULONG   logical_group;
+    ULONG   old_block;
+
+    /* Check the compaction table for a deferred source block that might hold
+       the requested sector.  The primary block (tombstone block) was already
+       scanned above; fall back to the old full block here.  */
+    logical_group = logical_sector / nand_flash -> lx_nand_flash_pages_per_block;
+
+    if (nand_flash -> lx_nand_flash_block_compaction_table[logical_group] != (USHORT)LX_NAND_BLOCK_UNMAPPED)
+    {
+
+        old_block = nand_flash -> lx_nand_flash_block_compaction_table[logical_group];
+
+        /* Set spare buffer pointer.  */
+        spare_buffer_ptr = (UCHAR*)nand_flash -> lx_nand_flash_page_buffer;
+
+        /* The compaction-pending block is always FULL; scan all pages in reverse.  */
+        for (page = (LONG)nand_flash -> lx_nand_flash_pages_per_block - 1; page >= 0; page--)
+        {
+
+#ifdef LX_NAND_ENABLE_CONTROL_BLOCK_FOR_DRIVER_INTERFACE
+            status = (nand_flash -> lx_nand_flash_driver_pages_read)(nand_flash, old_block, (ULONG)page, (UCHAR*)NULL, spare_buffer_ptr, 1);
+#else
+            status = (nand_flash -> lx_nand_flash_driver_pages_read)(old_block, (ULONG)page, (UCHAR*)NULL, spare_buffer_ptr, 1);
+#endif
+
+            /* Check for an error from flash driver.  */
+            if (status)
+            {
+                _lx_nand_flash_system_error(nand_flash, status, old_block, 0);
+#ifdef LX_THREAD_SAFE_ENABLE
+                lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+#endif
+                return(LX_ERROR);
+            }
+
+            /* Check if this page matches the requested sector.  */
+            if ((LX_UTILITY_LONG_GET(&spare_buffer_ptr[nand_flash -> lx_nand_flash_spare_data1_offset]) & LX_NAND_PAGE_TYPE_USER_DATA_MASK) == logical_sector)
+            {
+
+#ifdef LX_NAND_ENABLE_CONTROL_BLOCK_FOR_DRIVER_INTERFACE
+                status = (nand_flash -> lx_nand_flash_driver_pages_read)(nand_flash, old_block, (ULONG)page, (UCHAR*)buffer, NULL, 1);
+#else
+                status = (nand_flash -> lx_nand_flash_driver_pages_read)(old_block, (ULONG)page, (UCHAR*)buffer, NULL, 1);
+#endif
+
+                /* Check for an error from flash driver.  */
+                if (status)
+                {
+                    _lx_nand_flash_system_error(nand_flash, status, old_block, 0);
+#ifdef LX_THREAD_SAFE_ENABLE
+                    lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+#endif
+                    return(LX_ERROR);
+                }
+
+#ifdef LX_THREAD_SAFE_ENABLE
+                lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+#endif
+                return(LX_SUCCESS);
+            }
+        }
+    }
+
+    }
+#endif /* LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE */
 
     /* Sector hasn't been written. Simply fill the destination buffer with ones and return success.  */
 

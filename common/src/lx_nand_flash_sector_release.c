@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2026-present Eclipse ThreadX contributors
  * Copyright (c) 2025-2026 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
@@ -82,12 +83,6 @@
 /*                                                                        */
 /*    Application Code                                                    */
 /*                                                                        */
-/*  RELEASE HISTORY                                                       */
-/*                                                                        */
-/*    DATE              NAME                      DESCRIPTION             */
-/*                                                                        */
-/*  03-08-2023     Xiuwen Cai               Initial Version 6.2.1        */
-/*                                                                        */
 /**************************************************************************/
 UINT  _lx_nand_flash_sector_release(LX_NAND_FLASH *nand_flash, ULONG logical_sector)
 {
@@ -113,7 +108,6 @@ USHORT      new_block_status;
     {
       return(LX_ERROR);
     }
-
     /* Increment the number of release requests.  */
     nand_flash -> lx_nand_flash_diagnostic_sector_release_requests++;
 
@@ -216,6 +210,119 @@ USHORT      new_block_status;
             /* Check if the block is full.  */
             if (block_status & LX_NAND_BLOCK_STATUS_FULL)
             {
+
+#ifdef LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE
+                /* Lazy path: defer the copy+erase when enough free blocks are available.
+                   The old block is kept as a compaction source; a new block holds only
+                   the tombstone for the released sector.  */
+                if (nand_flash -> lx_nand_flash_free_block_list_tail >
+                    (ULONG)LX_NAND_FLASH_SECTOR_RELEASE_LAZY_THRESHOLD)
+                {
+
+                    /* Allocate a new block for the tombstone.  */
+                    status = _lx_nand_flash_block_allocate(nand_flash, &new_block);
+
+                    /* Check return status.   */
+                    if (status != LX_SUCCESS)
+                    {
+
+                        /* Call system error handler.  */
+                        _lx_nand_flash_system_error(nand_flash, status, new_block, 0);
+#ifdef LX_THREAD_SAFE_ENABLE
+
+                        /* Release the thread safe mutex.  */
+                        lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+#endif
+                        /* Return an error.  */
+                        return(LX_ERROR);
+                    }
+
+                    /* Set page buffer to all 0xFF (data = erased, sector is released).  */
+                    LX_MEMSET(nand_flash -> lx_nand_flash_page_buffer, 0xFF,
+                              nand_flash -> lx_nand_flash_bytes_per_page +
+                              nand_flash -> lx_nand_flash_spare_total_length);
+
+                    /* Setup spare buffer pointer.  */
+                    spare_buffer_ptr = nand_flash -> lx_nand_flash_page_buffer +
+                                       nand_flash -> lx_nand_flash_bytes_per_page;
+
+                    /* Save metadata block number in spare bytes if space allows.  */
+                    if (nand_flash -> lx_nand_flash_spare_data2_length >= sizeof(USHORT))
+                    {
+                        LX_UTILITY_SHORT_SET(&spare_buffer_ptr[nand_flash -> lx_nand_flash_spare_data2_offset],
+                                             nand_flash -> lx_nand_flash_metadata_block_number);
+                    }
+
+                    /* Set page type to USER_DATA_RELEASED.  */
+                    LX_UTILITY_LONG_SET(&spare_buffer_ptr[nand_flash -> lx_nand_flash_spare_data1_offset],
+                                        LX_NAND_PAGE_TYPE_USER_DATA_RELEASED | logical_sector);
+
+                    /* Write the tombstone page to page 0 of the new block.  */
+#ifdef LX_NAND_ENABLE_CONTROL_BLOCK_FOR_DRIVER_INTERFACE
+                    status = (nand_flash -> lx_nand_flash_driver_pages_write)(nand_flash, new_block, 0,
+                                  (UCHAR*)nand_flash -> lx_nand_flash_page_buffer, spare_buffer_ptr, 1);
+#else
+                    status = (nand_flash -> lx_nand_flash_driver_pages_write)(new_block, 0,
+                                  (UCHAR*)nand_flash -> lx_nand_flash_page_buffer, spare_buffer_ptr, 1);
+#endif
+
+                    /* Check for an error from flash driver.   */
+                    if (status)
+                    {
+                        _lx_nand_flash_system_error(nand_flash, status, new_block, 0);
+#ifdef LX_THREAD_SAFE_ENABLE
+                        lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+#endif
+                        return(LX_ERROR);
+                    }
+
+                    /* Set new block status: allocated, non-sequential, 1 page written.  */
+                    new_block_status = (USHORT)(LX_NAND_BLOCK_STATUS_ALLOCATED |
+                                                LX_NAND_BLOCK_STATUS_NON_SEQUENTIAL | 1u);
+                    status = _lx_nand_flash_block_status_set(nand_flash, new_block, new_block_status);
+                    if (status)
+                    {
+                        _lx_nand_flash_system_error(nand_flash, status, new_block, 0);
+#ifdef LX_THREAD_SAFE_ENABLE
+                        lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+#endif
+                        return(LX_ERROR);
+                    }
+
+                    /* Mark old block as compaction-pending (persisted to flash).
+                              Write order: tombstone written -> new_block status set ->
+                              COMPACTION_PENDING set -> mapping updated.
+                       This ordering ensures safe crash recovery at open time.  */
+                    status = _lx_nand_flash_block_status_set(nand_flash, block,
+                                 (USHORT)(block_status | LX_NAND_BLOCK_STATUS_COMPACTION_PENDING));
+                    if (status)
+                    {
+                        _lx_nand_flash_system_error(nand_flash, status, block, 0);
+#ifdef LX_THREAD_SAFE_ENABLE
+                        lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+#endif
+                        return(LX_ERROR);
+                    }
+
+                    /* Remove old mapping before updating to new block.  */
+                    _lx_nand_flash_mapped_block_list_remove(nand_flash,
+                                                             logical_sector / nand_flash -> lx_nand_flash_pages_per_block);
+
+                    /* Update logical-to-physical mapping to the new tombstone block.  */
+                    _lx_nand_flash_block_mapping_set(nand_flash, logical_sector, new_block);
+
+                    /* Record the old block as the compaction source (RAM only; rebuilt at open).  */
+                    nand_flash -> lx_nand_flash_block_compaction_table[logical_sector / nand_flash -> lx_nand_flash_pages_per_block] = (USHORT)block;
+
+                    /* Add new tombstone block to the mapped list.  */
+                    _lx_nand_flash_mapped_block_list_add(nand_flash,
+                                                          logical_sector / nand_flash -> lx_nand_flash_pages_per_block);
+                }
+                else
+#endif /* LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE */
+                {
+
+                /* Eager path (existing): allocate a new block and copy + erase immediately.  */
 
                 /* Allocate a new block.  */
                 status = _lx_nand_flash_block_allocate(nand_flash, &new_block);
@@ -399,6 +506,7 @@ USHORT      new_block_status;
                     /* Add the new block to mapped block list.  */
                     _lx_nand_flash_mapped_block_list_add(nand_flash, logical_sector / nand_flash -> lx_nand_flash_pages_per_block);
                 }
+                } /* end eager path else block */
             }
             else
             {

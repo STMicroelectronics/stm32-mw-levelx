@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2026-present Eclipse ThreadX contributors
  * Copyright (c) 2025-2026 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
@@ -68,27 +69,41 @@
 /*    Application Code                                                    */
 /*    Internal LevelX                                                     */
 /*                                                                        */
-/*  RELEASE HISTORY                                                       */
-/*                                                                        */
-/*    DATE              NAME                      DESCRIPTION             */
-/*                                                                        */
-/*  05-19-2020     William E. Lamie         Initial Version 6.0           */
-/*  09-30-2020     William E. Lamie         Modified comment(s),          */
-/*                                            resulting in version 6.1    */
-/*  06-02-2021     Bhupendra Naphade        Modified comment(s),          */
-/*                                            resulting in version 6.1.7  */
-/*  03-08-2023     Xiuwen Cai               Modified comment(s),          */
-/*                                            deprecated this API,        */
-/*                                            resulting in version 6.2.1 */
-/*                                                                        */
 /**************************************************************************/
 UINT  _lx_nand_flash_defragment(LX_NAND_FLASH *nand_flash)
 {
+
+#ifdef LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE
+
+UINT    status;
+ULONG   lg;
+
+    /* Compact every logical group that has a deferred compaction pending.  */
+    for (lg = 0; lg < nand_flash -> lx_nand_flash_total_blocks; lg++)
+    {
+
+        if (nand_flash -> lx_nand_flash_block_compaction_table[lg] != (USHORT)LX_NAND_BLOCK_UNMAPPED)
+        {
+
+            status = _lx_nand_flash_logical_group_compact(nand_flash, lg);
+
+            /* On error, continue to compact remaining groups.  */
+            if (status)
+            {
+                _lx_nand_flash_system_error(nand_flash, status, lg, 0);
+            }
+        }
+    }
+
+    return(LX_SUCCESS);
+
+#else
 
     LX_PARAMETER_NOT_USED(nand_flash);
 
     /* Return not supported.  */
     return(LX_NOT_SUPPORTED);
+#endif /* LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE */
 }
 
 

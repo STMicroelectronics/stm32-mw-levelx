@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2026-present Eclipse ThreadX contributors
  *
  * This program and the accompanying materials are made available under the
  * terms of the MIT License which is available at
@@ -38,23 +39,6 @@
 /*    LevelX library are built with LX_INCLUDE_USER_DEFINE_FILE defined.  */
 /*    Note that all the defines in this file may also be made on the      */
 /*    command line when building LevelX library and application objects.  */
-/*                                                                        */
-/*  RELEASE HISTORY                                                       */
-/*                                                                        */
-/*    DATE              NAME                      DESCRIPTION             */
-/*                                                                        */
-/*  11-09-2020     William E. Lamie         Initial Version 6.1.2         */
-/*  06-02-2021     Bhupendra Naphade        Modified comment(s), and      */
-/*                                            added standalone support,   */
-/*                                            resulting in version 6.1.7  */
-/*  03-08-2023     Xiuwen Cai               Modified comment(s), and      */
-/*                                            added new NAND options,     */
-/*                                            resulting in version 6.2.1  */
-/*  10-31-2023     Xiuwen Cai               Modified comment(s),          */
-/*                                            added options for mapping , */
-/*                                            bitmap cache and obsolete   */
-/*                                            count cache,                */
-/*                                            resulting in version 6.3.0  */
 /*                                                                        */
 /**************************************************************************/
 

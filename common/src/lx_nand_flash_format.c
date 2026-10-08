@@ -1,19 +1,20 @@
 /***************************************************************************
- * Copyright (c) 2024 Microsoft Corporation 
+ * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2026-present Eclipse ThreadX contributors
  * Copyright (c) 2025-2026 STMicroelectronics
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the MIT License which is available at
  * https://opensource.org/licenses/MIT.
- * 
+ *
  * SPDX-License-Identifier: MIT
  **************************************************************************/
 
 
 /**************************************************************************/
 /**************************************************************************/
-/**                                                                       */ 
-/** LevelX Component                                                      */ 
+/**                                                                       */
+/** LevelX Component                                                      */
 /**                                                                       */
 /**   NAND Flash                                                          */
 /**                                                                       */
@@ -35,42 +36,42 @@
 #include "lx_api.h"
 
 
-/**************************************************************************/ 
-/*                                                                        */ 
-/*  FUNCTION                                               RELEASE        */ 
-/*                                                                        */ 
-/*    _lx_nand_flash_format                               PORTABLE C      */ 
+/**************************************************************************/
+/*                                                                        */
+/*  FUNCTION                                               RELEASE        */
+/*                                                                        */
+/*    _lx_nand_flash_format                               PORTABLE C      */
 /*                                                                        */
 /*  AUTHOR                                                                */
 /*                                                                        */
 /*    Xiuwen Cai, Microsoft Corporation                                   */
 /*                                                                        */
-/*  DESCRIPTION                                                           */ 
-/*                                                                        */ 
-/*    This function erases and formats a NAND flash.                      */ 
-/*                                                                        */ 
-/*  INPUT                                                                 */ 
-/*                                                                        */ 
-/*    nand_flash                            NAND flash instance           */ 
-/*    name                                  Name of NAND flash instance   */ 
-/*    nand_driver_initialize                Driver initialize             */ 
+/*  DESCRIPTION                                                           */
+/*                                                                        */
+/*    This function erases and formats a NAND flash.                      */
+/*                                                                        */
+/*  INPUT                                                                 */
+/*                                                                        */
+/*    nand_flash                            NAND flash instance           */
+/*    name                                  Name of NAND flash instance   */
+/*    nand_driver_initialize                Driver initialize             */
 /*    memory_ptr                            Pointer to memory used by the */
 /*                                            LevelX for this NAND.       */
 /*    memory_size                           Size of memory - must at least*/
 /*                                            7 * total block count +     */
 /*                                            2 * page size               */
-/*                                                                        */ 
-/*  OUTPUT                                                                */ 
-/*                                                                        */ 
-/*    return status                                                       */ 
-/*                                                                        */ 
-/*  CALLS                                                                 */ 
+/*                                                                        */
+/*  OUTPUT                                                                */
+/*                                                                        */
+/*    return status                                                       */
+/*                                                                        */
+/*  CALLS                                                                 */
 /*  _lx_nand_flash_format_extended                                        */
 /*                                                                        */
-/*  CALLED BY                                                             */ 
-/*                                                                        */ 
-/*    Application Code                                                    */ 
-/*                                                                        */ 
+/*  CALLED BY                                                             */
+/*                                                                        */
+/*    Application Code                                                    */
+/*                                                                        */
 /**************************************************************************/
 UINT  _lx_nand_flash_format(LX_NAND_FLASH* nand_flash, CHAR* name,
                             UINT(*nand_driver_initialize)(LX_NAND_FLASH*),

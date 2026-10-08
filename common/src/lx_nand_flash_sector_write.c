@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2026-present Eclipse ThreadX contributors
  * Copyright (c) 2025-2026 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
@@ -84,12 +85,6 @@
 /*                                                                        */
 /*    Application Code                                                    */
 /*                                                                        */
-/*  RELEASE HISTORY                                                       */
-/*                                                                        */
-/*    DATE              NAME                      DESCRIPTION             */
-/*                                                                        */
-/*  03-08-2023     Xiuwen Cai               Initial Version 6.2.1        */
-/*                                                                        */
 /**************************************************************************/
 UINT  _lx_nand_flash_sector_write(LX_NAND_FLASH *nand_flash, ULONG logical_sector, VOID *buffer)
 {
@@ -115,7 +110,6 @@ UINT                                copy_block = LX_FALSE;
     {
       return(LX_ERROR);
     }
-
     /* Increment the number of write requests.  */
     nand_flash -> lx_nand_flash_diagnostic_sector_write_requests++;
 
@@ -142,6 +136,42 @@ UINT                                copy_block = LX_FALSE;
             return(LX_ERROR);
         }
     }
+
+#ifdef LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE
+    /* If the block is full and has a pending compaction source, compact it now
+       before writing so the new data merges correctly with a single source block.  */
+    if ((block != LX_NAND_BLOCK_UNMAPPED) && (block_status & LX_NAND_BLOCK_STATUS_FULL) &&
+        (nand_flash -> lx_nand_flash_block_compaction_table[logical_sector / nand_flash -> lx_nand_flash_pages_per_block] != (USHORT)LX_NAND_BLOCK_UNMAPPED))
+    {
+
+        status = _lx_nand_flash_logical_group_compact(nand_flash,
+                     logical_sector / nand_flash -> lx_nand_flash_pages_per_block);
+
+        if (status)
+        {
+            _lx_nand_flash_system_error(nand_flash, status, block, 0);
+#ifdef LX_THREAD_SAFE_ENABLE
+            lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+#endif
+            return(LX_ERROR);
+        }
+
+        /* Refresh block and block_status after compaction.  */
+        status = _lx_nand_flash_block_find(nand_flash, logical_sector, &block, &block_status);
+
+        if (status != LX_SUCCESS)
+        {
+
+            if (status != LX_NAND_ERROR_CORRECTED)
+            {
+#ifdef LX_THREAD_SAFE_ENABLE
+                lx_os_mutex_put(&nand_flash -> lx_nand_flash_mutex);
+#endif
+                return(LX_ERROR);
+            }
+        }
+    }
+#endif /* LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE */
 
     /* Check if block is unmapped or block is full.  */
     if (block == LX_NAND_BLOCK_UNMAPPED || block_status & LX_NAND_BLOCK_STATUS_FULL)

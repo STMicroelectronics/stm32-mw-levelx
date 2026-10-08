@@ -1,4 +1,15 @@
-/* This is a small demo of the high-performance FileX FAT file system with LevelX 
+/***************************************************************************/
+/* Copyright (c) 2024 Microsoft Corporation                                */
+/* Copyright (c) 2026 Eclipse ThreadX contributors                         */
+/*                                                                         */
+/* This program and the accompanying materials are made available under    */
+/* the terms of the MIT License which is available at                      */
+/* https://opensource.org/licenses/MIT.                                    */
+/*                                                                         */
+/* SPDX-License-Identifier: MIT                                            */
+/***************************************************************************/
+
+/* This is a small demo of the high-performance FileX FAT file system with LevelX
    and the NOR simulated driver.  */
 
 #include "fx_api.h"
@@ -8,7 +19,7 @@
 #define DEMO_STACK_SIZE 2048
 
 
-/* Buffer for FileX FX_MEDIA sector cache. This must be large enough for at least one 
+/* Buffer for FileX FX_MEDIA sector cache. This must be large enough for at least one
    sector, which are typically 512 bytes in size.  */
 
 unsigned char media_memory[512];
@@ -22,8 +33,8 @@ VOID  _fx_nor_flash_simulator_driver(FX_MEDIA *media_ptr);
 /* Define LevelX NOR simulated flash erase.  */
 
 UINT  _lx_nor_flash_simulator_erase_all(VOID);
-      
-       
+
+
 /* Define thread prototypes.  */
 
 void    thread_0_entry(ULONG thread_input);
@@ -53,8 +64,8 @@ int  main(void)
 #else
 
     /* Initialize NOR flash.  */
-    lx_nor_flash_initialize();    
-    
+    lx_nor_flash_initialize();
+
     /* Initialize FileX.  */
     fx_system_initialize();
 
@@ -74,13 +85,13 @@ void    tx_application_define(void *first_unused_memory)
        create information.  */
 
     /* Create the main thread.  */
-    tx_thread_create(&thread_0, "thread 0", thread_0_entry, 0,  
-            thread_0_stack, DEMO_STACK_SIZE, 
+    tx_thread_create(&thread_0, "thread 0", thread_0_entry, 0,
+            thread_0_stack, DEMO_STACK_SIZE,
             1, 1, TX_NO_TIME_SLICE, TX_AUTO_START);
 
     /* Initialize NOR flash.  */
-    lx_nor_flash_initialize();    
-    
+    lx_nor_flash_initialize();
+
     /* Initialize FileX.  */
     fx_system_initialize();
 }
@@ -96,27 +107,27 @@ ULONG       actual;
 CHAR        local_buffer[30];
 
     LX_PARAMETER_NOT_USED(thread_input);
-    
+
     /* Erase the simulated NOR flash.  */
     _lx_nor_flash_simulator_erase_all();
-    
-    /* Format the NOR disk - the memory for the NOR flash disk is setup in 
+
+    /* Format the NOR disk - the memory for the NOR flash disk is setup in
        the NOR simulator. Note that for best performance, the format of the
        NOR flash should be less than one full NOR flash block of sectors.  */
-    fx_media_format(&nor_disk, 
+    fx_media_format(&nor_disk,
                             _fx_nor_flash_simulator_driver,   // Driver entry
                             FX_NULL,                          // Unused
                             media_memory,                     // Media buffer pointer
-                            sizeof(media_memory),             // Media buffer size 
+                            sizeof(media_memory),             // Media buffer size
                             "MY_NOR_DISK",                    // Volume Name
                             1,                                // Number of FATs
                             32,                               // Directory Entries
                             0,                                // Hidden sectors
-                            120,                              // Total sectors 
-                            512,                              // Sector size   
+                            120,                              // Total sectors
+                            512,                              // Sector size
                             1,                                // Sectors per cluster
                             1,                                // Heads
-                            1);                               // Sectors per track 
+                            1);                               // Sectors per track
 
     /* Loop to repeat the demo over and over!  */
     do
@@ -218,7 +229,7 @@ CHAR        local_buffer[30];
 
         /* Delete the file.  */
         status =  fx_file_delete(&nor_disk, "TEST.TXT");
-        
+
         /* Check the file delete status.  */
         if (status != FX_SUCCESS)
         {
@@ -226,7 +237,7 @@ CHAR        local_buffer[30];
             /* Error deleting the file, break the loop.  */
             break;
         }
-                
+
         /* Close the media.  */
         status =  fx_media_close(&nor_disk);
 

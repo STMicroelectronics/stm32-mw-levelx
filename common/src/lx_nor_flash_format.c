@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2026-present Eclipse ThreadX contributors
  * Copyright (c) 2025-2026 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
@@ -79,7 +80,6 @@ UINT            status;
 
 ULONG           block_word;
 ULONG           *block_word_ptr;
-
 
     LX_PARAMETER_NOT_USED(name);
 

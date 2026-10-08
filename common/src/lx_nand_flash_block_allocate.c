@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2026-present Eclipse ThreadX contributors
  *
  * This program and the accompanying materials are made available under the
  * terms of the MIT License which is available at
@@ -65,12 +66,6 @@
 /*                                                                        */
 /*    Internal LevelX                                                     */
 /*                                                                        */
-/*  RELEASE HISTORY                                                       */
-/*                                                                        */
-/*    DATE              NAME                      DESCRIPTION             */
-/*                                                                        */
-/*  03-08-2023     Xiuwen Cai               Initial Version 6.2.1        */
-/*                                                                        */
 /**************************************************************************/
 UINT  _lx_nand_flash_block_allocate(LX_NAND_FLASH* nand_flash, ULONG* block)
 {
@@ -79,7 +74,42 @@ UINT  _lx_nand_flash_block_allocate(LX_NAND_FLASH* nand_flash, ULONG* block)
     /* Check if the free block list is empty.  */
     if (nand_flash -> lx_nand_flash_free_block_list_tail == 0)
     {
+#ifdef LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE
+        {
 
+        ULONG   lg;
+        UINT    compact_status;
+
+        /* Emergency compaction: find any pending compaction and execute it to
+           reclaim the old full block.  */
+        for (lg = 0; lg < nand_flash -> lx_nand_flash_total_blocks; lg++)
+        {
+
+            if (nand_flash -> lx_nand_flash_block_compaction_table[lg] != (USHORT)LX_NAND_BLOCK_UNMAPPED)
+            {
+
+                compact_status = _lx_nand_flash_logical_group_compact(nand_flash, lg);
+
+                if (compact_status == LX_SUCCESS)
+                {
+
+                    /* Retry the allocation after compaction freed a block.  */
+                    if (nand_flash -> lx_nand_flash_free_block_list_tail > 0)
+                    {
+
+                        nand_flash -> lx_nand_flash_free_block_list_tail--;
+                        *block = nand_flash -> lx_nand_flash_block_list[nand_flash -> lx_nand_flash_free_block_list_tail];
+                        return(LX_SUCCESS);
+                    }
+                }
+
+                /* Attempt only one compaction per allocate call.  */
+                break;
+            }
+        }
+
+        }
+#endif /* LX_NAND_FLASH_ENABLE_LAZY_SECTOR_RELEASE */
         /* Empty list, return error.  */
         return(LX_NO_BLOCKS);
     }

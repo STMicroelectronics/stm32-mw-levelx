@@ -13,6 +13,11 @@
   * SPDX-License-Identifier: MIT
   *****************************************************************************/
 
+
+### V6.5.1 (09-10-2026) ###
+=================================
+- Upgrade to Eclipse ThreadX LevelX v6.5.1.
+
 ### V6.4.1 (03-04-2026) ###
 ============================
 - Add new APIs: lx_nor_flash_format(), lx_nor_flash_open_extended(), lx_nand_flash_open_extended(), lx_nand_flash_format_extended() and lx_nor_flash_format().

@@ -1,5 +1,6 @@
 /***************************************************************************
  * Copyright (c) 2024 Microsoft Corporation
+ * Copyright (c) 2026-present Eclipse ThreadX contributors
  * Copyright (c) 2025-2026 STMicroelectronics
  *
  * This program and the accompanying materials are made available under the
@@ -55,6 +56,7 @@
 /*    nand_flash                            NAND flash instance           */
 /*    name                                  Name of NAND flash instance   */
 /*    nand_driver_initialize                Driver initialize             */
+/*    nand_driver_info_ptr                  User data pointer             */
 /*    memory_ptr                            Pointer to memory used by the */
 /*                                            LevelX for this NAND.       */
 /*    memory_size                           Size of memory - must at least*/
@@ -67,31 +69,11 @@
 /*                                                                        */
 /*  CALLS                                                                 */
 /*                                                                        */
-/*    (nand_driver_initialize)              Driver initialize             */
-/*    _lx_nand_flash_memory_initialize      Initialize buffer             */
-/*    _lx_nand_flash_driver_block_status_get                              */
-/*                                          Get block status              */
-/*    lx_nand_flash_driver_pages_read       Read pages                    */
-/*    _lx_nand_flash_free_block_list_add    Add free block to list        */
-/*    _lx_nand_flash_mapped_block_list_add  Add mapped block to list      */
-/*    _lx_nand_flash_system_error           System error handler          */
-/*    lx_os_mutex_create                    Create thread-safe mutex      */
 /*    lx_nand_flash_open_extended           Pass NULL as driver_info_ptr  */
 /*                                                                        */
 /*  CALLED BY                                                             */
 /*                                                                        */
 /*    Application Code                                                    */
-/*                                                                        */
-/*  RELEASE HISTORY                                                       */
-/*                                                                        */
-/*    DATE              NAME                      DESCRIPTION             */
-/*                                                                        */
-/*  03-08-2023     Xiuwen Cai               Initial Version 6.2.1         */
-/*  10-31-2023     Xiuwen Cai               Modified comment(s),          */
-/*                                            avoided clearing user       */
-/*                                            extension in flash control  */
-/*                                            block,                      */
-/*                                            resulting in version 6.3.0  */
 /*                                                                        */
 /**************************************************************************/
 UINT  _lx_nand_flash_open(LX_NAND_FLASH  *nand_flash, CHAR *name, UINT (*nand_driver_initialize)(LX_NAND_FLASH *),
