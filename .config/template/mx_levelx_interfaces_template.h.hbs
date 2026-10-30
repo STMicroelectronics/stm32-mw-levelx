@@ -87,7 +87,7 @@ VOID *mx_lx_nor_flash_driver_{{@index}}_get_ctx(VOID);
 {{/each}}
 
 {{#if (isFilexNorFlashEnabled used_components_filex)}}
-#define LX_NOR_FLASH_0_SIZE   ({{@root.ifaceConstPrefix}}_FLASH_SIZE - {{@root.ifaceConstPrefix}}_BLOCK_SIZE)
+#define LX_NOR_FLASH_0_SIZE   ({{@root.ifaceConstPrefix}}_FLASH_SIZE - {{#if (eq @root.ifaceConstPrefix "MX25LM51245G")}}{{@root.ifaceConstPrefix}}_BLOCK_64K{{else}}{{@root.ifaceConstPrefix}}_BLOCK_SIZE{{/if}})
 
 #ifndef LX_NOR_DISABLE_EXTENDED_CACHE
 
@@ -101,7 +101,7 @@ VOID *mx_lx_nor_flash_driver_{{@index}}_get_ctx(VOID);
 
 #ifdef LX_NOR_ENABLE_OBSOLETE_COUNT_CACHE
 
-#define LX_NOR_FLASH_0_OBSOLETE_COUNT_CACHE_SIZE  ({{@root.ifaceConstPrefix}}_FLASH_SIZE/{{@root.ifaceConstPrefix}}_BLOCK_64K)*sizeof(LX_NOR_OBSOLETE_COUNT_CACHE_TYPE) / 4
+#define LX_NOR_FLASH_0_OBSOLETE_COUNT_CACHE_SIZE  ({{@root.ifaceConstPrefix}}_FLASH_SIZE/{{#if (eq @root.ifaceConstPrefix "MX25LM51245G")}}{{@root.ifaceConstPrefix}}_BLOCK_64K{{else}}{{@root.ifaceConstPrefix}}_BLOCK_SIZE{{/if}})*sizeof(LX_NOR_OBSOLETE_COUNT_CACHE_TYPE) / 4
 #else
 #define LX_NOR_FLASH_0_OBSOLETE_COUNT_CACHE_SIZE  0
 

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema",
   "version": "0.0.1",
   "type": "object",
-  "grammarVersion": "3.9",
+  "grammarVersion": "3.8.0",
   "componentid": "File System:STM32CubeMX2 Config:LevelX",
   "functions": [
     {
@@ -21,7 +21,7 @@
             "version": {
               "title": "LevelX version",
               "type": "string",
-              "default": "6.4.1",
+              "default": "6.5.1",
               "actions": [
                 {
                   "type": "disable",
@@ -45,21 +45,16 @@
                   "const": "DEFAULT",
                   "title": "Default",
                   "description": "A profile that configures all the flags with their default values."
-                },
-                {
-                  "const": "LOW_FOOTPRINT",
-                  "title": "Low footprint",
-                  "description": "A profile where the size of final binary is optimized.",
-                  "actions": [
-                    {
-                      "type": "disable",
-                      "condition": "true",
-                      "message": "The Low Footprint profile is currently unavailable."
-                    }
-                  ]
                 }
               ],
-              "default": "DEFAULT"
+              "default": "DEFAULT",
+              "actions": [
+                {
+                  "type": "disable",
+                  "condition": "true",
+                  "message": "Only the Default profile is available."
+                }
+              ]
             }
           }
         },
@@ -450,8 +445,54 @@
                         ]
                       },
                       {
+                        "title": "Custom NOR flash interface",
+                        "const": "CUSTOM_NOR_FLASH_INTERFACE",
+                        "actions": [
+                          {
+                            "type": "enable",
+                            "condition": "($core.basic.nor_flash_support.nor_flash_enable)",
+                            "message": "The support of NOR flash must be activated"
+                          },
+                          {
+                            "type": "disable",
+                            "condition": "$item.logical_config.interface_type !== 'CUSTOM_NOR_FLASH_INTERFACE' && $common.countInterfaceType($interfaces, 'CUSTOM_NOR_FLASH_INTERFACE') > 0",
+                            "message": "The Custom NOR flash interface can only be used by a single interface. Another interface is already configured as Custom NOR flash."
+                          }
+                        ]
+                      },
+                      {
+                        "title": "Custom NAND flash interface",
+                        "const": "CUSTOM_NAND_FLASH_INTERFACE",
+                        "actions": [
+                          {
+                            "type": "enable",
+                            "condition": "($core.basic.nand_flash_support.nand_flash_enable)",
+                            "message": "The support of NAND flash must be activated"
+                          },
+                          {
+                            "type": "disable",
+                            "condition": "$item.logical_config.interface_type !== 'CUSTOM_NAND_FLASH_INTERFACE' && $common.countInterfaceType($interfaces, 'CUSTOM_NAND_FLASH_INTERFACE') > 0",
+                            "message": "The Custom NAND flash interface can only be used by a single interface. Another interface is already configured as Custom NAND flash."
+                          }
+                        ]
+                      },
+                      {
                         "title": "",
                         "const": ""
+                      }
+                    ],
+                    "variables": [
+                      {
+                        "on": "update-value",
+                        "condition": "$item.logical_config.interface_type === 'CUSTOM_NOR_FLASH_INTERFACE'",
+                        "name": "generated_nor_custom",
+                        "semaphore": true
+                      },
+                      {
+                        "on": "update-value",
+                        "condition": "$item.logical_config.interface_type === 'CUSTOM_NAND_FLASH_INTERFACE'",
+                        "name": "generated_nand_custom",
+                        "semaphore": true
                       }
                     ],
                     "default": ""
@@ -480,18 +521,18 @@
                             "message": "Select an operating system to use DMA in OS mode."
                           }
                         ]
-                      },
-                      {
-                        "title": "",
-                        "const": ""
                       }
                     ],
-                    "default": "",
+                    "default": "POLLING",
                     "actions": [
                       {
                         "type": "disable",
                         "condition": "$item.logical_config.interface_type == ''",
                         "message": "Select an interface type first."
+                      },
+                      {
+                        "type": "include",
+                        "condition": "$item.logical_config.interface_type != 'CUSTOM_NOR_FLASH_INTERFACE' && $item.logical_config.interface_type != 'CUSTOM_NAND_FLASH_INTERFACE'"
                       }
                     ],
                     "variables": [
@@ -600,7 +641,7 @@
                         "actions": [
                           {
                             "type": "disable",
-                            "condition": "true",
+                            "condition": " $item.logical_config.nor_flash_flags.stm32_lx_nor_flag_all === true",
                             "message": "Disable 'Apply all NOR flash options' to configure this flag individually."
                           }
                         ]
@@ -622,12 +663,16 @@
                         "type": "boolean",
                         "title": "Cache maintenance",
                         "description": "Enables cache maintenance operations for data coherency.",
-                        "default": false,
+                        "default": true,
                         "actions": [
                           {
+                            "type": "include",
+                            "condition": "($get('hwPlatform.device').cores[0].coreType == 'Cortex-M85') || ($get('hwPlatform.device').cores[0].coreType == 'Cortex-M7')"
+                          },
+                          {
                             "type": "disable",
-                            "condition": " $item.logical_config.nor_flash_flags.stm32_lx_nor_flag_all === true",
-                            "message": "Disable 'Apply all NOR flash options' to configure this flag individually."
+                            "condition": "true",
+                            "message": "Cache maintenance is required on this core and is always enabled."
                           }
                         ]
                       }
@@ -655,11 +700,95 @@
                     "title": "Block size",
                     "description": "Define NOR flash block size.",
                     "type": "string",
-                    "default": "4096",
+                    "oneOf": [
+                      {
+                        "const": "MX25LM51245G_SECTOR_4K",
+                        "title": "MX25LM51245G 4K sector",
+                        "description": "Erase granularity: 4K sector. Use for fine-grained wear leveling.",
+                        "actions": [
+                          {
+                            "type": "include",
+                            "condition": "$item.logical_config.interface_type === 'MX25LM51245G_NOR_FLASH_INTERFACE'"
+                          }
+                        ]
+                      },
+                      {
+                        "const": "MX25LM51245G_BLOCK_64K",
+                        "title": "MX25LM51245G 64K block",
+                        "description": "Erase granularity: 64K block. Use for higher throughput with larger erase units.",
+                        "actions": [
+                          {
+                            "type": "include",
+                            "condition": "$item.logical_config.interface_type === 'MX25LM51245G_NOR_FLASH_INTERFACE'"
+                          }
+                        ]
+                      },
+                      {
+                        "const": "MX66UW1G45G_SECTOR_SIZE",
+                        "title": "MX66UW1G45G sector size",
+                        "description": "Erase granularity: 4K sector. Use for fine-grained wear leveling.",
+                        "actions": [
+                          {
+                            "type": "include",
+                            "condition": "$item.logical_config.interface_type === 'MX66UW1G45G_NOR_FLASH_INTERFACE'"
+                          }
+                        ]
+                      },
+                      {
+                        "const": "MX66UW1G45G_BLOCK_SIZE",
+                        "title": "MX66UW1G45G block size",
+                        "description": "Erase granularity: 64K block. Use for higher throughput with larger erase units.",
+                        "actions": [
+                          {
+                            "type": "include",
+                            "condition": "$item.logical_config.interface_type === 'MX66UW1G45G_NOR_FLASH_INTERFACE'"
+                          }
+                        ]
+                      },
+                      {
+                        "const": "W25Q128J_SECTOR_SIZE",
+                        "title": "W25Q128J sector size",
+                        "description": "Erase granularity: 4K sector. Smallest erase unit, suitable for fine-grained wear leveling.",
+                        "actions": [
+                          {
+                            "type": "include",
+                            "condition": "$item.logical_config.interface_type === 'W25Q128J_NOR_FLASH_INTERFACE'"
+                          }
+                        ]
+                      },
+                      {
+                        "const": "W25Q128J_SUBBLOCK_SIZE",
+                        "title": "W25Q128J sub-block size",
+                        "description": "Erase granularity: 32K sub-block. Intermediate erase unit balancing speed and granularity.",
+                        "actions": [
+                          {
+                            "type": "include",
+                            "condition": "$item.logical_config.interface_type === 'W25Q128J_NOR_FLASH_INTERFACE'"
+                          }
+                        ]
+                      },
+                      {
+                        "const": "W25Q128J_BLOCK_SIZE",
+                        "title": "W25Q128J block size",
+                        "description": "Erase granularity: 64K block. Largest erase unit, best throughput for bulk erase operations.",
+                        "actions": [
+                          {
+                            "type": "include",
+                            "condition": "$item.logical_config.interface_type === 'W25Q128J_NOR_FLASH_INTERFACE'"
+                          }
+                        ]
+                      }
+                    ],
                     "actions": [
                       {
                         "type": "include",
                         "condition": "($item.logical_config.interface_type == 'MX25LM51245G_NOR_FLASH_INTERFACE' || $item.logical_config.interface_type == 'MX66UW1G45G_NOR_FLASH_INTERFACE' || $item.logical_config.interface_type == 'W25Q128J_NOR_FLASH_INTERFACE') && ($item.logical_config.nor_flash_flags.stm32_lx_nor_flag_block_size === true || $item.logical_config.nor_flash_flags.stm32_lx_nor_flag_all === true)"
+                      },
+                      {
+                        "type": "set",
+                        "computed": {
+                          "default": "$item.logical_config.interface_type === 'MX25LM51245G_NOR_FLASH_INTERFACE' ? 'MX25LM51245G_BLOCK_64K' : ($item.logical_config.interface_type === 'MX66UW1G45G_NOR_FLASH_INTERFACE' ? 'MX66UW1G45G_BLOCK_SIZE' : 'W25Q128J_BLOCK_SIZE')"
+                        }
                       }
                     ]
                   },
@@ -707,7 +836,7 @@
                     "actions": [
                       {
                         "type": "include",
-                        "condition": "(($item.logical_config.interface_type == 'MX25LM51245G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'MX66UW1G45G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'W25Q128J_NOR_FLASH_INTERFACE'))"
+                        "condition": "(($item.logical_config.interface_type == 'MX25LM51245G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'MX66UW1G45G_NOR_FLASH_INTERFACE'))"
                       }
                     ]
                   },
@@ -731,7 +860,7 @@
                     "actions": [
                       {
                         "type": "include",
-                        "condition": "(($item.logical_config.interface_type == 'MX25LM51245G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'MX66UW1G45G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'W25Q128J_NOR_FLASH_INTERFACE'))"
+                        "condition": "(($item.logical_config.interface_type == 'MX25LM51245G_NOR_FLASH_INTERFACE') || ($item.logical_config.interface_type == 'MX66UW1G45G_NOR_FLASH_INTERFACE'))"
                       }
                     ]
                   },
@@ -775,12 +904,16 @@
                         "type": "boolean",
                         "title": "Cache maintenance",
                         "description": "Enables cache maintenance operations for data coherency.",
-                        "default": false,
+                        "default": true,
                         "actions": [
                           {
+                            "type": "include",
+                            "condition": "($get('hwPlatform.device').cores[0].coreType == 'Cortex-M85') || ($get('hwPlatform.device').cores[0].coreType == 'Cortex-M7')"
+                          },
+                          {
                             "type": "disable",
-                            "condition": " $item.logical_config.nand_flash_flags.stm32_lx_nand_flag_all === true",
-                            "message": "Disable 'Apply all NAND flash options' to configure this flag individually."
+                            "condition": "true",
+                            "message": "Cache maintenance is required on this core and is always enabled."
                           }
                         ]
                       }
@@ -947,11 +1080,7 @@
                       }
                     }
                   }
-                },
-                "required": [
-                  "interface_type",
-                  "transfer_mode"
-                ]
+                }
               },
               "resources_allocation": {
                 "title": "SW resources allocation",
@@ -1013,7 +1142,13 @@
                     ],
                     "default": ""
                   }
-                }
+                },
+                "actions": [
+                  {
+                    "type": "include",
+                    "condition": "$item.logical_config.interface_type != 'CUSTOM_NOR_FLASH_INTERFACE' && $item.logical_config.interface_type != 'CUSTOM_NAND_FLASH_INTERFACE'"
+                  }
+                ]
               }
             }
           }

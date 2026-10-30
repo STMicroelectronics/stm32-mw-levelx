@@ -103,6 +103,7 @@ UINT stm32_lx_mx66uw1g45g_nor_flash_dma_no_os_driver_initialize(LX_NOR_FLASH *no
   mx66uw1g45g_obj_t *p_mx66uw1g45g_obj;
   ULONG block_size;
   ULONG start_address = 0U;
+  ULONG max_block_count;
   ULONG available_flash_size;
 
   /* initialize the LX_NOR_FLASH object with relevant data */
@@ -131,11 +132,30 @@ UINT stm32_lx_mx66uw1g45g_nor_flash_dma_no_os_driver_initialize(LX_NOR_FLASH *no
   /* get the memory part characteristics */
   mx66uw1g45g_get_info(p_mx66uw1g45g_obj, &nor_flash_info);
 
+  /* start with the default erase block size reported by the flash driver (64K) */
+  block_size = nor_flash_info.erase_block_size;
+
+  /* customize the erase block size. */
+  if (nor_ctx->nor_flash_flags & STM32_LX_NOR_FLAG_BLOCK_SIZE)
+  {
+    /* accept only sizes supported by mx66uw1g45g memory: sector size (4K) or block size (64K) */
+    if ((nor_ctx->nor_flash_block_size != nor_flash_info.erase_sector_size) &&
+        (nor_ctx->nor_flash_block_size != nor_flash_info.erase_block_size))
+    {
+      return LX_ERROR;
+    }
+
+    block_size = nor_ctx->nor_flash_block_size;
+  }
+
+  /* compute how many logical erase blocks fit in the full flash with the selected block size */
+  max_block_count = nor_flash_info.flash_size / block_size;
+
   /* customize the flash start address */
   if (nor_ctx->nor_flash_flags & STM32_LX_NOR_FLAG_START_ADDRESS)
   {
-    /* ensure base address is within the flash address range. */
-    if (nor_ctx->nor_flash_start_address >= nor_flash_info.erase_block_number)
+    /* ensure base address is within the flash address range */
+    if (nor_ctx->nor_flash_start_address >= max_block_count)
     {
       return LX_ERROR;
     }
@@ -144,7 +164,6 @@ UINT stm32_lx_mx66uw1g45g_nor_flash_dma_no_os_driver_initialize(LX_NOR_FLASH *no
   }
 
   /* compute the available flash size from the selected start address to the end of the NOR flash */
-  block_size = nor_flash_info.erase_block_size;
   available_flash_size = nor_flash_info.flash_size - (start_address * block_size);
 
   /* customize the flash size limit. */
@@ -164,9 +183,9 @@ UINT stm32_lx_mx66uw1g45g_nor_flash_dma_no_os_driver_initialize(LX_NOR_FLASH *no
 
   /* set the flash base address */
   nor_flash->lx_nor_flash_base_address = (ULONG *)(start_address * block_size);
-  /* set the total number of managed flash blocks. */
+  /* set the total number of managed flash blocks */
   nor_flash->lx_nor_flash_total_blocks = available_flash_size / block_size;
-  /* set the number of ULONG words per flash block. */
+  /* set the number of ULONG words per flash block */
   nor_flash->lx_nor_flash_words_per_block = block_size / sizeof(ULONG);
 
   /* set the intermediate read buffer */
@@ -218,8 +237,8 @@ static UINT stm32_lx_nor_flash_driver_read(LX_NOR_FLASH *nor_flash, ULONG *flash
     addr_size = stm32_lx_mx66uw1g45g_get_addr_size(p_mx66uw1g45g_obj, (uint32_t)flash_address, size_byte);
 
     /* perform the read operation */
-    status = mx66uw1g45g_read_dma(p_mx66uw1g45g_obj, addr_size, (uint8_t *) destination,
-                                  (uint32_t)flash_address, size_byte);
+    status = mx66uw1g45g_read_dma_async(p_mx66uw1g45g_obj, (uint32_t)flash_address, addr_size,
+                                       (uint8_t *) destination, size_byte);
     if (status != MX66UW1G45G_OK)
     {
       return LX_ERROR;
@@ -228,6 +247,7 @@ static UINT stm32_lx_nor_flash_driver_read(LX_NOR_FLASH *nor_flash, ULONG *flash
     timeout_start = HAL_GetTick();
     while (HAL_GetTick() - timeout_start < nor_ctx->nor_flash_op_timeout)
     {
+      mx66uw1g45g_exec_data_handler(p_mx66uw1g45g_obj);
       if (nor_ctx->data_rx_cplt == 1)
       {
         status = LX_SUCCESS;
@@ -276,8 +296,8 @@ static UINT stm32_lx_nor_flash_driver_write(LX_NOR_FLASH *nor_flash, ULONG *flas
     addr_size = stm32_lx_mx66uw1g45g_get_addr_size(p_mx66uw1g45g_obj, (uint32_t)flash_address, size_byte);
 
     /* perform the write operation */
-    status = mx66uw1g45g_write_dma(p_mx66uw1g45g_obj, addr_size, (uint8_t *) source,
-                                   (uint32_t)flash_address, size_byte);
+    status = mx66uw1g45g_write_dma_async(p_mx66uw1g45g_obj, (uint32_t)flash_address, addr_size,
+                                        (uint8_t *) source, size_byte);
     if (status != MX66UW1G45G_OK)
     {
       return LX_ERROR;
@@ -286,6 +306,7 @@ static UINT stm32_lx_nor_flash_driver_write(LX_NOR_FLASH *nor_flash, ULONG *flas
     timeout_start = HAL_GetTick();
     while (HAL_GetTick() - timeout_start < nor_ctx->nor_flash_op_timeout)
     {
+      mx66uw1g45g_exec_data_handler(p_mx66uw1g45g_obj);
       if (nor_ctx->data_tx_cplt == 1)
       {
         status = LX_SUCCESS;
@@ -309,9 +330,27 @@ static UINT stm32_lx_nor_flash_driver_write(LX_NOR_FLASH *nor_flash, ULONG *flas
 static UINT stm32_lx_nor_flash_driver_block_erase(LX_NOR_FLASH *nor_flash, ULONG block, ULONG erase_count)
 {
   UINT status = LX_SUCCESS;
+  ULONG block_size;
+  mx66uw1g45g_erase_t erase_mode;
   ULONG timeout_start;
   mx66uw1g45g_obj_t *p_mx66uw1g45g_obj;
   STM32_LX_NOR_FLASH_DRIVER_CONTEXT *nor_ctx = (STM32_LX_NOR_FLASH_DRIVER_CONTEXT *) nor_flash->lx_nor_flash_driver_info_ptr;
+
+  block_size = nor_flash->lx_nor_flash_words_per_block * sizeof(ULONG);
+
+  /* match the configured LevelX block size with the part erase command */
+  if (block_size == MX66UW1G45G_SECTOR_SIZE)
+  {
+    erase_mode = MX66UW1G45G_ERASE_SECTOR;
+  }
+  else if (block_size == MX66UW1G45G_BLOCK_SIZE)
+  {
+    erase_mode = MX66UW1G45G_ERASE_BLOCK;
+  }
+  else
+  {
+    return LX_ERROR;
+  }
 
   /* retrieve the memory part object */
   p_mx66uw1g45g_obj = (mx66uw1g45g_obj_t *)nor_ctx->nor_flash_get_driver_object();
@@ -332,7 +371,7 @@ static UINT stm32_lx_nor_flash_driver_block_erase(LX_NOR_FLASH *nor_flash, ULONG
     nor_ctx->erase_cplt = 0;
 
     /* perform the block erase operation */
-    status = mx66uw1g45g_erase_it(p_mx66uw1g45g_obj, (block * MX66UW1G45G_BLOCK_SIZE), MX66UW1G45G_ERASE_BLOCK);
+  status = mx66uw1g45g_erase_it(p_mx66uw1g45g_obj, (uint32_t)(block * block_size), erase_mode);
 
     if (status != MX66UW1G45G_OK)
     {
@@ -364,6 +403,7 @@ static UINT stm32_lx_nor_flash_driver_block_erase(LX_NOR_FLASH *nor_flash, ULONG
 static UINT stm32_lx_nor_flash_driver_block_erased_verify(LX_NOR_FLASH *nor_flash, ULONG block)
 {
   UINT status = LX_SUCCESS;
+  ULONG block_size;
   ULONG *block_address;
   mx66uw1g45g_obj_t *p_mx66uw1g45g_obj;
   mx66uw1g45g_addr_size_t addr_size;
@@ -371,6 +411,8 @@ static UINT stm32_lx_nor_flash_driver_block_erased_verify(LX_NOR_FLASH *nor_flas
   ULONG i;
 
   STM32_LX_NOR_FLASH_DRIVER_CONTEXT *nor_ctx = (STM32_LX_NOR_FLASH_DRIVER_CONTEXT *) nor_flash->lx_nor_flash_driver_info_ptr;
+
+  block_size = nor_flash->lx_nor_flash_words_per_block * sizeof(ULONG);
 
   /* retrieve the memory part object */
   p_mx66uw1g45g_obj = (mx66uw1g45g_obj_t *)nor_ctx->nor_flash_get_driver_object();
@@ -382,8 +424,8 @@ static UINT stm32_lx_nor_flash_driver_block_erased_verify(LX_NOR_FLASH *nor_flas
     return status;
   }
 
-  verify_addr = (uint32_t)(block * MX66UW1G45G_BLOCK_SIZE);
-  addr_size = stm32_lx_mx66uw1g45g_get_addr_size(p_mx66uw1g45g_obj, verify_addr, MX66UW1G45G_BLOCK_SIZE);
+  verify_addr = (uint32_t)(block * block_size);
+  addr_size = stm32_lx_mx66uw1g45g_get_addr_size(p_mx66uw1g45g_obj, verify_addr, (uint32_t)block_size);
 
   /* enable memory mapped mode to be able to read the block content without any need for intermediate buffers */
   status = mx66uw1g45g_enable_memory_mapped(p_mx66uw1g45g_obj, addr_size);
@@ -393,10 +435,10 @@ static UINT stm32_lx_nor_flash_driver_block_erased_verify(LX_NOR_FLASH *nor_flas
   }
 
   /* calculate the block address */
-  block_address = (ULONG *)(mx66uw1g45g_get_memory_mapped_base_address(p_mx66uw1g45g_obj) + (block * MX66UW1G45G_BLOCK_SIZE));
+  block_address = (ULONG *)(mx66uw1g45g_get_memory_mapped_base_address(p_mx66uw1g45g_obj) + (block * block_size));
 
   /* verify that all bytes in the block are 0xFFFFFFFF */
-  for (i = 0; i < MX66UW1G45G_BLOCK_SIZE / 4; i++)
+  for (i = 0; i < (block_size / sizeof(ULONG)); i++)
   {
     if (block_address[i] != 0xFFFFFFFF)
     {

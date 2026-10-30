@@ -160,10 +160,10 @@ can be allocated for metadata.
 {{/with}}
 {{#each @root.levelx_cxt.interfaces}}
   {{#with logical_config}}
-    {{#if (eq interface_type "W25N01GVXX_NAND_FLASH_INTERFACE")}}
+    {{#if (or (eq interface_type "W25N01GVXX_NAND_FLASH_INTERFACE") (eq interface_type "CUSTOM_NAND_FLASH_INTERFACE"))}}
       {{assign 'nand_present' true}}
     {{/if}}
-    {{#if (or (eq interface_type "MX66UW1G45G_NOR_FLASH_INTERFACE") (eq interface_type "MX25LM51245G_NOR_FLASH_INTERFACE") (eq interface_type "NOR_FLASH_SIMULATOR_INTERFACE") (eq interface_type "W25Q128J_NOR_FLASH_INTERFACE"))}}
+    {{#if (or (eq interface_type "MX66UW1G45G_NOR_FLASH_INTERFACE") (eq interface_type "MX25LM51245G_NOR_FLASH_INTERFACE") (eq interface_type "NOR_FLASH_SIMULATOR_INTERFACE") (eq interface_type "W25Q128J_NOR_FLASH_INTERFACE") (eq interface_type "CUSTOM_NOR_FLASH_INTERFACE"))}}
       {{assign 'nor_present' true}}
     {{/if}}
   {{/with}}

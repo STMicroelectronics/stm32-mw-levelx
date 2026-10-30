@@ -105,58 +105,19 @@ VOID *mx_lx_nor_flash_driver_{{@index}}_get_ctx(VOID)
   {{/if}}
 
   /* Setup the levelx nor flash context */
-{{#if nor_flash_flags.stm32_lx_nor_flag_all}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags = STM32_LX_NOR_FLAG_ALL;
-{{else if nor_flash_flags.stm32_lx_nor_flag_start_address}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags = STM32_LX_NOR_FLAG_START_ADDRESS;
-    {{!-- OR the rest except START_ADDRESS --}}
-    {{#if nor_flash_flags.stm32_lx_nor_flag_block_size}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_BLOCK_SIZE;
-    {{/if}}
-    {{#if nor_flash_flags.stm32_lx_nor_flag_flash_size}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_FLASH_SIZE;
-    {{/if}}
-    {{#if nor_flash_flags.stm32_lx_nor_flag_cache_maintenance}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_CACHE_MAINTENANCE;
-    {{/if}}
-{{else if nor_flash_flags.stm32_lx_nor_flag_block_size}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags = STM32_LX_NOR_FLAG_BLOCK_SIZE;
-    {{!-- OR the rest except BLOCK_SIZE --}}
-    {{#if nor_flash_flags.stm32_lx_nor_flag_start_address}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_START_ADDRESS;
-    {{/if}}
-    {{#if nor_flash_flags.stm32_lx_nor_flag_flash_size}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_FLASH_SIZE;
-    {{/if}}
-    {{#if nor_flash_flags.stm32_lx_nor_flag_cache_maintenance}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_CACHE_MAINTENANCE;
-    {{/if}}
-{{else if nor_flash_flags.stm32_lx_nor_flag_flash_size}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags = STM32_LX_NOR_FLAG_FLASH_SIZE;
-    {{!-- OR the rest except FLASH_SIZE --}}
-    {{#if nor_flash_flags.stm32_lx_nor_flag_start_address}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_START_ADDRESS;
-    {{/if}}
-    {{#if nor_flash_flags.stm32_lx_nor_flag_block_size}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_BLOCK_SIZE;
-    {{/if}}
-    {{#if nor_flash_flags.stm32_lx_nor_flag_cache_maintenance}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_CACHE_MAINTENANCE;
-    {{/if}}
-{{else if nor_flash_flags.stm32_lx_nor_flag_cache_maintenance}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags = STM32_LX_NOR_FLAG_CACHE_MAINTENANCE;
-    {{!-- OR the rest except CACHE_MAINTENANCE --}}
-    {{#if nor_flash_flags.stm32_lx_nor_flag_start_address}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_START_ADDRESS;
-    {{/if}}
-    {{#if nor_flash_flags.stm32_lx_nor_flag_block_size}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_BLOCK_SIZE;
-    {{/if}}
-    {{#if nor_flash_flags.stm32_lx_nor_flag_flash_size}}
-  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_FLASH_SIZE;
-    {{/if}}
-{{else}}
   nor_flash_driver_{{@index}}_ctx.nor_flash_flags = STM32_LX_NOR_FLAG_NONE;
+{{#if nor_flash_flags.stm32_lx_nor_flag_all}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_ALL;
+{{else}}
+  {{#if nor_flash_flags.stm32_lx_nor_flag_start_address}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_START_ADDRESS;
+  {{/if}}
+  {{#if nor_flash_flags.stm32_lx_nor_flag_block_size}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_BLOCK_SIZE;
+  {{/if}}
+  {{#if nor_flash_flags.stm32_lx_nor_flag_flash_size}}
+  nor_flash_driver_{{@index}}_ctx.nor_flash_flags |= STM32_LX_NOR_FLAG_FLASH_SIZE;
+  {{/if}}
 {{/if}}
 {{#if (or nor_flash_flags.stm32_lx_nor_flag_start_address nor_flash_flags.stm32_lx_nor_flag_all)}}
   nor_flash_driver_{{@index}}_ctx.nor_flash_start_address     = {{start_address}};
@@ -194,38 +155,17 @@ VOID *mx_lx_nand_flash_driver_{{@index}}_get_ctx(VOID)
   }
 
   /* Setup the levelx nand flash context */
-{{#if nand_flash_flags.stm32_lx_nand_flag_all}}
-  nand_flash_driver_{{@index}}_ctx.nand_flash_flags = STM32_LX_NAND_FLAG_ALL;
-  {{else if nand_flash_flags.stm32_lx_nand_flag_start_block}}
-  nand_flash_driver_{{@index}}_ctx.nand_flash_flags = STM32_LX_NAND_FLAG_START_BLOCK;
-    {{!-- or the rest except start_block --}}
-    {{#if nand_flash_flags.stm32_lx_nand_flag_total_blocks}}
-  nand_flash_driver_{{@index}}_ctx.nand_flash_flags |= STM32_LX_NAND_FLAG_TOTAL_BLOCKS;
-    {{/if}}
-    {{#if nand_flash_flags.stm32_lx_nand_flag_cache_maintenance}}
-  nand_flash_driver_{{@index}}_ctx.nand_flash_flags |= STM32_LX_NAND_FLAG_CACHE_MAINTENANCE;
-    {{/if}}
-  {{else if nand_flash_flags.stm32_lx_nand_flag_total_blocks}}
-  nand_flash_driver_{{@index}}_ctx.nand_flash_flags = STM32_LX_NAND_FLAG_TOTAL_BLOCKS;
-    {{!-- or the rest except total_blocks --}}
-    {{#if nand_flash_flags.stm32_lx_nand_flag_start_block}}
-  nand_flash_driver_{{@index}}_ctx.nand_flash_flags |= STM32_LX_NAND_FLAG_START_BLOCK;
-    {{/if}}
-    {{#if nand_flash_flags.stm32_lx_nand_flag_cache_maintenance}}
-  nand_flash_driver_{{@index}}_ctx.nand_flash_flags |= STM32_LX_NAND_FLAG_CACHE_MAINTENANCE;
-    {{/if}}
-  {{else if nand_flash_flags.stm32_lx_nand_flag_cache_maintenance}}
-  nand_flash_driver_{{@index}}_ctx.nand_flash_flags = STM32_LX_NAND_FLAG_CACHE_MAINTENANCE;
-    {{!-- or the rest except cache_maintenance --}}
-    {{#if nand_flash_flags.stm32_lx_nand_flag_start_block}}
-  nand_flash_driver_{{@index}}_ctx.nand_flash_flags |= STM32_LX_NAND_FLAG_START_BLOCK;
-    {{/if}}
-    {{#if nand_flash_flags.stm32_lx_nand_flag_total_blocks}}
-  nand_flash_driver_{{@index}}_ctx.nand_flash_flags |= STM32_LX_NAND_FLAG_TOTAL_BLOCKS;
-    {{/if}}
-  {{else}}
   nand_flash_driver_{{@index}}_ctx.nand_flash_flags = STM32_LX_NAND_FLAG_NONE;
+{{#if nand_flash_flags.stm32_lx_nand_flag_all}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_flags |= STM32_LX_NAND_FLAG_ALL;
+{{else}}
+  {{#if nand_flash_flags.stm32_lx_nand_flag_start_block}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_flags |= STM32_LX_NAND_FLAG_START_BLOCK;
   {{/if}}
+  {{#if nand_flash_flags.stm32_lx_nand_flag_total_blocks}}
+  nand_flash_driver_{{@index}}_ctx.nand_flash_flags |= STM32_LX_NAND_FLAG_TOTAL_BLOCKS;
+  {{/if}}
+{{/if}}
 
  {{#if (or nand_flash_flags.stm32_lx_nand_flag_start_block nand_flash_flags.stm32_lx_nand_flag_all)}}
   nand_flash_driver_{{@index}}_ctx.nand_flash_start_block = {{start_block}};

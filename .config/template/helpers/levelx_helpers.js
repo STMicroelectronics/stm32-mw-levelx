@@ -43,8 +43,43 @@ function isFilexNandFlashEnabled(used_components) {
   }
 }
 
+/**
+ * Counts how many LevelX interfaces currently use the requested interface_type.
+ * Accepts the interfaces array, or an object wrapping it.
+ *
+ * @param {object|Array} levelxInterfaces - interfaces array or wrapper object.
+ * @param {string} expectedInterfaceType - the interface_type const to count.
+ * @returns {number} number of matching interfaces.
+ */
+function countInterfaceType(levelxInterfaces, expectedInterfaceType) {
+  if (typeof expectedInterfaceType !== "string" || expectedInterfaceType.length === 0) {
+    return 0;
+  }
+
+  let array = levelxInterfaces;
+  if (array && typeof array === "object" && !Array.isArray(array) && Array.isArray(array.interfaces)) {
+    array = array.interfaces;
+  }
+
+  if (!Array.isArray(array)) {
+    return 0;
+  }
+
+  let count = 0;
+  for (let i = 0; i < array.length; i++) {
+    const entry = array[i];
+    const type = entry && entry.logical_config ? entry.logical_config.interface_type : undefined;
+    if (type === expectedInterfaceType) {
+      count++;
+    }
+  }
+
+  return count;
+}
+
 module.exports = {
   isPowerOfTwo,
   isFilexNorFlashEnabled,
-  isFilexNandFlashEnabled
+  isFilexNandFlashEnabled,
+  countInterfaceType
 };

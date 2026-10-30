@@ -238,7 +238,17 @@ static UINT stm32_lx_nand_flash_driver_pages_write(LX_NAND_FLASH *nand_flash, UL
 
   /* perform the write operation for main buffer */
   nand_ctx->main_data_tx_cplt = 0;
-  status = w25n01gvxx_write_dma(p_w25n01gvxx_obj, block, page, (uint8_t *)main_buffer, W25N01GVXX_DATA_PAGE_SIZE);
+  status = w25n01gvxx_write_dma_async(p_w25n01gvxx_obj, block, page, (uint8_t *)main_buffer, W25N01GVXX_DATA_PAGE_SIZE);
+  if (status != W25N01GVXX_OK)
+  {
+    return LX_ERROR;
+  }
+
+  do
+  {
+    status = w25n01gvxx_exec_data_handler(p_w25n01gvxx_obj);
+  } while (status == W25N01GVXX_BUSY);
+
   if (status != W25N01GVXX_OK)
   {
     return LX_ERROR;

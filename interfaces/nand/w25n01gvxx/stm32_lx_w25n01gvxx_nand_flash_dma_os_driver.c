@@ -253,11 +253,22 @@ static UINT stm32_lx_nand_flash_driver_pages_write(LX_NAND_FLASH *nand_flash, UL
   p_w25n01gvxx_obj = (w25n01gvxx_obj_t *)nand_ctx->nand_flash_get_driver_object();
 
   /* perform the write operation for main buffer */
-  status = w25n01gvxx_write_dma(p_w25n01gvxx_obj, block, page, (uint8_t *)main_buffer, W25N01GVXX_DATA_PAGE_SIZE);
+  status = w25n01gvxx_write_dma_async(p_w25n01gvxx_obj, block, page, (uint8_t *)main_buffer, W25N01GVXX_DATA_PAGE_SIZE);
   if (status != W25N01GVXX_OK)
   {
     return LX_ERROR;
   }
+
+  do
+  {
+    status = w25n01gvxx_exec_data_handler(p_w25n01gvxx_obj);
+  } while (status == W25N01GVXX_BUSY);
+
+  if (status != W25N01GVXX_OK)
+  {
+    return LX_ERROR;
+  }
+
   status = xSemaphoreTake(nand_ctx->main_data_tx_cplt_semaphore.semaphore_handle, pdMS_TO_TICKS(nand_ctx->nand_flash_op_timeout));
 
   if (status != pdTRUE)

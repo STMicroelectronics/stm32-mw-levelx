@@ -49,8 +49,20 @@
   <conditions>
     {{~assign "conditions" (@root.pdscAPI.getAllPDSCConditionsWithFilters exclude="Use NOR Flash Core, Use NAND Flash Core,
 	USE W25N01GVXX POLLING, USE W25N01GVXX DMA NO OS, USE W25N01GVXX DMA OS, USE MX66UW1G45G POLLING, USE MX66UW1G45G DMA NO OS, USE MX66UW1G45G DMA OS,
-    USE MX25LM51245G POLLING, USE MX25LM51245G DMA NO OS, USE MX25LM51245G DMA OS, USE W25Q128J POLLING, USE W25Q128J DMA NO OS, USE W25Q128J DMA OS, Operating System Used")}}
+    USE MX25LM51245G POLLING, USE MX25LM51245G DMA NO OS, USE MX25LM51245G DMA OS, USE W25Q128J POLLING, USE W25Q128J DMA NO OS, USE W25Q128J DMA OS, Operating System Used, USE NOR CUSTOM INTERFACE ENV, USE NAND CUSTOM INTERFACE ENV")}}
     {{{@root.conditions}}}
+    <condition id="USE NOR CUSTOM INTERFACE ENV">
+      {{#if (@root.EnvVarAPI.getVariableValue 'generated_nor_custom')}}
+      <require Cclass="File System" Cgroup="LevelX" Csub="NOR Flash Core"/>
+      <require Cclass="File System" Cgroup="LevelX" Csub="nor_custom_itf"/>
+      {{/if}}
+    </condition>
+    <condition id="USE NAND CUSTOM INTERFACE ENV">
+      {{#if (@root.EnvVarAPI.getVariableValue 'generated_nand_custom')}}
+      <require Cclass="File System" Cgroup="LevelX" Csub="NAND Flash Core"/>
+      <require Cclass="File System" Cgroup="LevelX" Csub="nand_custom_itf"/>
+      {{/if}}
+    </condition>
     <condition id="Use NOR Flash Core">
       {{#if (@root.EnvVarAPI.getVariableValue 'NOR_Flash')}}
       <require Cclass="File System" Cgroup="LevelX" Csub="NOR Flash Core" />

@@ -18,6 +18,62 @@ More documentation is available at [LevelX SW Pack online documentation](https:/
 
 # Update history
 
+<label for="collapse-section-2.2.0" aria-hidden="true">__2.2.0 / 21-September-2026__</label>
+<div>
+
+## Main changes
+
+Release of LevelX SW Pack update:
+
+  - Bug fixing.
+  - Miscellaneous update of .config files.
+  - Add block size customization for NOR interfaces.
+  - Support cache for W25Q128J NOR flash and W25N01GVXX NAND flash interfaces.
+  - Add NOR and NAND custom interfaces.
+  - Align NOR and NAND flash interfaces with new part deliveries.
+
+This pack is based on LevelX [V6.5.1 version](https://github.com/eclipse-threadx/levelx/releases/tag/v6.5.1.202602_rel)
+
+## Contents
+
+- **LevelX** is RTOS-agnostic (can be used with FreeRTOS or other RTOSs)
+- Supported interfaces: **NOR** and **NAND** flash
+
+## Known limitations
+
+- Multi-instance (creating multiple interfaces) is not supported.
+
+## Development toolchains and compilers
+
+- IAR Embedded Workbench for ARM (EWARM) toolchain V9.60.3 + ST-LINK
+- MDK-ARM Keil uVision V5.42
+- STM32CubeIDE for Visual Studio Code (GCC13 compiler)
+- STM32CubeMX2 V1.1.1
+
+## Supported devices and boards
+
+- STM32C5 series
+- STM32V8 series
+- STM32H7P series
+- STM32G5 series
+
+## Backward compatibility
+
+- None
+
+## Dependencies
+
+- STM32C5xx HAL Drivers V2.1.0
+- STM32V8xx HAL Drivers V2.0.0
+- STM32H7Pxx HAL Drivers V2.0.0
+- STM32G5xx HAL Drivers V2.0.0
+- FreeRTOS SW Pack V2.2.0 (required when selecting RTOS mode)
+- W25Q128J Part Drivers SW Pack V2.2.0
+- W25N01GVXX Part Drivers SW Pack V2.2.0
+- MX66UW1G45G Part Drivers SW Pack V2.0.0
+- MX25LM51245G Part Drivers SW Pack V2.0.0
+</div>
+
 <label for="collapse-section-2.1.0" aria-hidden="true">__2.1.0 / 12-June-2026__</label>
 <div>
 

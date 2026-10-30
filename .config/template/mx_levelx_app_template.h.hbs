@@ -2,6 +2,14 @@
 {{assign 'levelx_context' (@root.SWConfigurationAPI.getInstancesConfiguration @root.levelxFilter)~}}
 {{assign 'levelx_cxt' @root.levelx_context.[0].settings.parameters~}}
 {{assign "generateMainInit" levelx_cxt.core.applicative.generate_levelx_init_code}}
+{{~assign "generateInterfaceInit" false~}}
+{{~#each levelx_cxt.interfaces~}}
+{{~#with logical_config~}}
+{{~#if applicative.generate_levelx_interface_init_code~}}
+{{~assign "generateInterfaceInit" true~}}
+{{~/if~}}
+{{~/with~}}
+{{~/each~}}
 {{!
 /**
   ******************************************************************************
@@ -39,7 +47,7 @@ extern "C" {
 #include "mx_levelx_interfaces.h"
 
 /* Private includes ----------------------------------------------------------*/
-{{#if generateMainInit}}
+{{#if (or generateMainInit generateInterfaceInit)}}
 #include "FreeRTOS.h"
 #include "task.h"
 {{/if}}

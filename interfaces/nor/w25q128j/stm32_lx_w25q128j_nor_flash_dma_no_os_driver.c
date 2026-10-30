@@ -68,6 +68,7 @@ UINT stm32_lx_w25q128j_nor_flash_dma_no_os_driver_initialize(LX_NOR_FLASH *nor_f
   w25q128j_obj_t *p_w25q128j_obj;
   ULONG block_size;
   ULONG start_address = 0U;
+  ULONG max_block_count;
   ULONG available_flash_size;
 
   /* initialize the LX_NOR_FLASH object with relevant data */
@@ -97,11 +98,31 @@ UINT stm32_lx_w25q128j_nor_flash_dma_no_os_driver_initialize(LX_NOR_FLASH *nor_f
   /* get the memory part characteristics */
   w25q128j_get_info(p_w25q128j_obj, &nor_flash_info);
 
-  /* customize the flash start address. */
+  /* start with the default erase block size reported by the flash driver (64K) */
+  block_size = nor_flash_info.erase_block_64k_size;
+
+  /* customize the erase block size */
+  if (nor_ctx->nor_flash_flags & STM32_LX_NOR_FLAG_BLOCK_SIZE)
+  {
+    /* accept only sizes supported by w25q128j memory: sector size (4K), subblock size (32K) or block size (64K) */
+    if ((nor_ctx->nor_flash_block_size != nor_flash_info.erase_sector_size) &&
+        (nor_ctx->nor_flash_block_size != nor_flash_info.erase_block_32k_size) &&
+        (nor_ctx->nor_flash_block_size != nor_flash_info.erase_block_64k_size))
+    {
+      return LX_ERROR;
+    }
+
+    block_size = nor_ctx->nor_flash_block_size;
+  }
+
+  /* compute how many logical erase blocks fit in the full flash with the selected block size */
+  max_block_count = nor_flash_info.flash_size / block_size;
+
+  /* customize the flash start address */
   if (nor_ctx->nor_flash_flags & STM32_LX_NOR_FLAG_START_ADDRESS)
   {
-    /* ensure base address is within the flash address range. */
-    if (nor_ctx->nor_flash_start_address >= nor_flash_info.erase_block_64k_number)
+    /* ensure base address is within the flash address range */
+    if (nor_ctx->nor_flash_start_address >= max_block_count)
     {
       return LX_ERROR;
     }
@@ -109,14 +130,13 @@ UINT stm32_lx_w25q128j_nor_flash_dma_no_os_driver_initialize(LX_NOR_FLASH *nor_f
     start_address = nor_ctx->nor_flash_start_address;
   }
 
-  /* compute the available flash size from the selected start address to the end of the NOR flash. */
-  block_size = nor_flash_info.erase_block_64k_size;
+  /* compute the available flash size from the selected start address to the end of the NOR flash */
   available_flash_size = nor_flash_info.flash_size - (start_address * block_size);
 
-  /* customize the flash size limit. */
+  /* customize the flash size limit */
   if (nor_ctx->nor_flash_flags & STM32_LX_NOR_FLAG_FLASH_SIZE)
   {
-    /* ensure the configured sub-range is non-zero, block-aligned, and does not exceed the available space. */
+    /* ensure the configured sub-range is non-zero, block-aligned, and does not exceed the available space */
     if ((nor_ctx->nor_flash_size == 0U) ||
         ((nor_ctx->nor_flash_size % block_size) != 0U) ||
         (nor_ctx->nor_flash_size > available_flash_size))
@@ -124,15 +144,15 @@ UINT stm32_lx_w25q128j_nor_flash_dma_no_os_driver_initialize(LX_NOR_FLASH *nor_f
       return LX_ERROR;
     }
 
-    /* restrict the managed region to the requested size. */
+    /* restrict the managed region to the requested size */
     available_flash_size = nor_ctx->nor_flash_size;
   }
 
-  /* set the flash base address. */
+  /* set the flash base address */
   nor_flash->lx_nor_flash_base_address = (ULONG *)(start_address * block_size);
-  /* set the total number of managed flash blocks. */
+  /* set the total number of managed flash blocks */
   nor_flash->lx_nor_flash_total_blocks = available_flash_size / block_size;
-  /* set the number of ULONG words per flash block. */
+  /* set the number of ULONG words per flash block */
   nor_flash->lx_nor_flash_words_per_block = block_size / sizeof(ULONG);
 
   /* set the intermediate read buffer */
@@ -236,8 +256,16 @@ static UINT stm32_lx_nor_flash_driver_write(LX_NOR_FLASH *nor_flash, ULONG *flas
     nor_ctx->data_tx_cplt = 0;
 
     /* perform the write operation */
-    status = w25q128j_write_dma(p_w25q128j_obj, (uint8_t *) source,
+    status = w25q128j_write_dma_async(p_w25q128j_obj, (uint8_t *) source,
                                (uint32_t)flash_address, words * sizeof(ULONG));
+    if (status != W25Q128J_OK)
+    {
+      return LX_ERROR;
+    }
+    do
+    {
+      status = w25q128j_exec_data_handler(p_w25q128j_obj);
+    } while (status == W25Q128J_BUSY);
     if (status != W25Q128J_OK)
     {
       return LX_ERROR;
@@ -269,11 +297,33 @@ static UINT stm32_lx_nor_flash_driver_write(LX_NOR_FLASH *nor_flash, ULONG *flas
 static UINT stm32_lx_nor_flash_driver_block_erase(LX_NOR_FLASH *nor_flash, ULONG block, ULONG erase_count)
 {
   UINT status = LX_SUCCESS;
+  ULONG block_size;
+  w25q128j_erase_t erase_mode;
 
   w25q128j_obj_t *p_w25q128j_obj;
 
   /* initialize the LX_NOR_FLASH object with relevant data */
   STM32_LX_NOR_FLASH_DRIVER_CONTEXT *nor_ctx = (STM32_LX_NOR_FLASH_DRIVER_CONTEXT *) nor_flash->lx_nor_flash_driver_info_ptr;
+
+  block_size = nor_flash->lx_nor_flash_words_per_block * sizeof(ULONG);
+
+  /* match the configured LevelX block size with the part erase command */
+  if (block_size == W25Q128J_SECTOR_SIZE)
+  {
+    erase_mode = W25Q128J_ERASE_SECTOR;
+  }
+  else if (block_size == W25Q128J_SUBBLOCK_SIZE)
+  {
+    erase_mode = W25Q128J_ERASE_32K_BLOCK;
+  }
+  else if (block_size == W25Q128J_BLOCK_SIZE)
+  {
+    erase_mode = W25Q128J_ERASE_64K_BLOCK;
+  }
+  else
+  {
+    return LX_ERROR;
+  }
 
   /* retrieve the memory part object */
   p_w25q128j_obj = (w25q128j_obj_t *)nor_ctx->nor_flash_get_driver_object();
@@ -288,7 +338,8 @@ static UINT stm32_lx_nor_flash_driver_block_erase(LX_NOR_FLASH *nor_flash, ULONG
   {
 
     /* perform the block erase operation */
-    status = w25q128j_erase(p_w25q128j_obj, block * W25Q128J_BLOCK_SIZE , W25Q128J_ERASE_64K_BLOCK);
+    status = w25q128j_erase(p_w25q128j_obj, (uint32_t)(block * block_size), erase_mode);
+
     if (status != W25Q128J_OK)
     {
       return LX_ERROR;
@@ -307,6 +358,7 @@ static UINT stm32_lx_nor_flash_driver_block_erase(LX_NOR_FLASH *nor_flash, ULONG
 static UINT stm32_lx_nor_flash_driver_block_erased_verify(LX_NOR_FLASH *nor_flash, ULONG block)
 {
   UINT status = LX_SUCCESS;
+  ULONG block_size;
   ULONG timeout_start;
   ULONG start_address, end_address;
 
@@ -314,6 +366,8 @@ static UINT stm32_lx_nor_flash_driver_block_erased_verify(LX_NOR_FLASH *nor_flas
 
   /* initialize the LX_NOR_FLASH object with relevant data */
   STM32_LX_NOR_FLASH_DRIVER_CONTEXT *nor_ctx = (STM32_LX_NOR_FLASH_DRIVER_CONTEXT *) nor_flash->lx_nor_flash_driver_info_ptr;
+
+  block_size = nor_flash->lx_nor_flash_words_per_block * sizeof(ULONG);
 
   /* retrieve the memory part object */
   p_w25q128j_obj = (w25q128j_obj_t *)nor_ctx->nor_flash_get_driver_object();
@@ -326,8 +380,8 @@ static UINT stm32_lx_nor_flash_driver_block_erased_verify(LX_NOR_FLASH *nor_flas
   }
 
   /* calculate the start and the end block address */
-  start_address = block * W25Q128J_BLOCK_SIZE;
-  end_address = start_address + W25Q128J_BLOCK_SIZE;
+  start_address = block * block_size;
+  end_address = start_address + block_size;
 
   while (start_address < end_address)
   {

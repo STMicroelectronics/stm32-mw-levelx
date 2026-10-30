@@ -20,8 +20,6 @@ Copyrights statements for [eclipse-threadx/levelx]
 
 	Copyright (c) 2024 Microsoft Corporation
 
-	Copyright (c) 2025-2026 STMicroelectronics
-
 	Copyright (c) 2026-present Eclipse ThreadX contributors
 
 <!-- End of Copyrights statements for [eclipse-threadx/levelx] -->
