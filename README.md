@@ -1,6 +1,6 @@
 # Middleware LevelX Component
 
-![tag](https://img.shields.io/badge/tag-v6.4.0_260403-brightgreen.svg)
+![tag](https://img.shields.io/badge/tag-v6.4.0_260911-brightgreen.svg)
 
 ## Overview
 The Middleware LevelX component is a STM32 tailored fork of the [AzureRTOS LevelX](https://github.com/eclipse-threadx/levelx).
@@ -35,4 +35,3 @@ Please refer to the release note in the repository of the STM32Cube **firmware**
 
 ## Troubleshooting
 Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) guide.
-

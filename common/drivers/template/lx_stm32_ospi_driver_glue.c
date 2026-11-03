@@ -122,7 +122,7 @@ INT lx_stm32_ospi_get_status(UINT instance)
   /* USER CODE BEGIN OSPI_HAL_CFG_Get_Status */
   s_command.OperationType         = HAL_OSPI_OPTYPE_COMMON_CFG;
   s_command.FlashId               = HAL_OSPI_FLASH_ID_1;
-  s_command.Instruction           = OCTAL_READ_STATUS_REG_CMD;
+  s_command.Instruction           = LX_STM32_OSPI_OCTAL_READ_STATUS_REG_CMD;
   s_command.InstructionMode       = HAL_OSPI_INSTRUCTION_8_LINES;
   s_command.InstructionSize       = HAL_OSPI_INSTRUCTION_16_BITS;
   s_command.Address               = 0;
@@ -231,7 +231,7 @@ INT lx_stm32_ospi_read(UINT instance, ULONG *address, ULONG *buffer, ULONG words
   s_command.SIOOMode              = HAL_OSPI_SIOO_INST_EVERY_CMD;
 
   /* DTR mode is enabled */
-  s_command.Instruction           = OCTAL_IO_DTR_READ_CMD;
+  s_command.Instruction           = LX_STM32_OSPI_OCTAL_IO_DTR_READ_CMD;
   s_command.InstructionDtrMode    = HAL_OSPI_INSTRUCTION_DTR_ENABLE;
   s_command.AddressDtrMode        = HAL_OSPI_ADDRESS_DTR_ENABLE;
   s_command.DataDtrMode           = HAL_OSPI_DATA_DTR_ENABLE;
@@ -295,7 +295,7 @@ INT lx_stm32_ospi_write(UINT instance, ULONG *address, ULONG *buffer, ULONG word
   /* USER CODE BEGIN OSPI_HAL_CFG_write */
   s_command.OperationType         = HAL_OSPI_OPTYPE_COMMON_CFG;
   s_command.FlashId               = HAL_OSPI_FLASH_ID_1;
-  s_command.Instruction           = OCTAL_PAGE_PROG_CMD;
+  s_command.Instruction           = LX_STM32_OSPI_OCTAL_PAGE_PROG_CMD;
   s_command.InstructionMode       = HAL_OSPI_INSTRUCTION_8_LINES;
   s_command.InstructionSize       = HAL_OSPI_INSTRUCTION_16_BITS;
   s_command.AddressMode           = HAL_OSPI_ADDRESS_8_LINES;
@@ -393,12 +393,12 @@ INT lx_stm32_ospi_erase(UINT instance, ULONG block, ULONG erase_count, UINT full
 
   if(full_chip_erase)
   {
-    s_command.Instruction         = OCTAL_CHIP_ERASE_CMD;
+    s_command.Instruction         = LX_STM32_OSPI_OCTAL_CHIP_ERASE_CMD;
     s_command.AddressMode         = HAL_OSPI_ADDRESS_NONE;
   }
   else
   {
-    s_command.Instruction         = OCTAL_BLOCK_ERASE_CMD;
+    s_command.Instruction         = LX_STM32_OSPI_OCTAL_BLOCK_ERASE_CMD;
     s_command.Address             = (block * LX_STM32_OSPI_SECTOR_SIZE);
     s_command.AddressMode         = HAL_OSPI_ADDRESS_8_LINES;
     s_command.AddressSize         = HAL_OSPI_ADDRESS_32_BITS;
@@ -473,7 +473,7 @@ static uint8_t ospi_memory_reset(OSPI_HandleTypeDef *hospi)
   /* Initialize the reset enable command */
   s_command.OperationType         = HAL_OSPI_OPTYPE_COMMON_CFG;
   s_command.FlashId               = HAL_OSPI_FLASH_ID_1;
-  s_command.Instruction           = RESET_ENABLE_CMD;
+  s_command.Instruction           = LX_STM32_OSPI_RESET_ENABLE_CMD;
   s_command.InstructionMode       = HAL_OSPI_INSTRUCTION_1_LINE;
   s_command.InstructionSize       = HAL_OSPI_INSTRUCTION_8_BITS;
   s_command.InstructionDtrMode    = HAL_OSPI_INSTRUCTION_DTR_DISABLE;
@@ -498,7 +498,7 @@ static uint8_t ospi_memory_reset(OSPI_HandleTypeDef *hospi)
   }
 
   /* Configure automatic polling mode to wait the memory is ready */
-  s_command.Instruction  = READ_STATUS_REG_CMD;
+  s_command.Instruction  = LX_STM32_OSPI_READ_STATUS_REG_CMD;
   s_command.DataMode     = HAL_OSPI_DATA_1_LINE;
   s_command.NbData       = 1;
   s_command.DataDtrMode  = HAL_OSPI_DATA_DTR_DISABLE;
@@ -539,7 +539,7 @@ static uint8_t ospi_set_write_enable(OSPI_HandleTypeDef *hospi)
   /* Enable write operations */
   s_command.OperationType         = HAL_OSPI_OPTYPE_COMMON_CFG;
   s_command.FlashId               = HAL_OSPI_FLASH_ID_1;
-  s_command.Instruction           = OCTAL_WRITE_ENABLE_CMD;
+  s_command.Instruction           = LX_STM32_OSPI_OCTAL_WRITE_ENABLE_CMD;
   s_command.InstructionMode       = HAL_OSPI_INSTRUCTION_8_LINES;
   s_command.InstructionSize       = HAL_OSPI_INSTRUCTION_16_BITS;
   s_command.AddressMode           = HAL_OSPI_ADDRESS_NONE;
@@ -561,7 +561,7 @@ static uint8_t ospi_set_write_enable(OSPI_HandleTypeDef *hospi)
   s_config.Match           = LX_STM32_OSPI_SR_WEL;
   s_config.Mask            = LX_STM32_OSPI_SR_WEL;
 
-  s_command.Instruction    = OCTAL_READ_STATUS_REG_CMD;
+  s_command.Instruction    = LX_STM32_OSPI_OCTAL_READ_STATUS_REG_CMD;
   s_command.Address        = 0x0;
   s_command.AddressMode    = HAL_OSPI_ADDRESS_8_LINES;
   s_command.AddressSize    = HAL_OSPI_ADDRESS_32_BITS;
@@ -611,7 +611,7 @@ static uint8_t ospi_auto_polling_ready(OSPI_HandleTypeDef *hospi, uint32_t timeo
   /* Configure automatic polling mode to wait for memory ready */
   s_command.OperationType         = HAL_OSPI_OPTYPE_COMMON_CFG;
   s_command.FlashId               = HAL_OSPI_FLASH_ID_1;
-  s_command.Instruction           = OCTAL_READ_STATUS_REG_CMD;
+  s_command.Instruction           = LX_STM32_OSPI_OCTAL_READ_STATUS_REG_CMD;
   s_command.InstructionMode       = HAL_OSPI_INSTRUCTION_8_LINES;
   s_command.InstructionSize       = HAL_OSPI_INSTRUCTION_16_BITS;
   s_command.Address               = 0;
@@ -685,7 +685,7 @@ static uint8_t ospi_set_octalmode(OSPI_HandleTypeDef *hospi, uint8_t mode)
   if (mode)
   {
     /* Enable write operations */
-    s_command.Instruction     = WRITE_ENABLE_CMD;
+    s_command.Instruction     = LX_STM32_OSPI_WRITE_ENABLE_CMD;
     s_command.InstructionMode = HAL_OSPI_INSTRUCTION_1_LINE;
     s_command.InstructionSize = HAL_OSPI_INSTRUCTION_8_BITS;
     s_command.AddressMode     = HAL_OSPI_ADDRESS_NONE;
@@ -701,7 +701,7 @@ static uint8_t ospi_set_octalmode(OSPI_HandleTypeDef *hospi, uint8_t mode)
     s_config.Match = LX_STM32_OSPI_SR_WEL;
     s_config.Mask  = LX_STM32_OSPI_SR_WEL;
 
-    s_command.Instruction = READ_STATUS_REG_CMD;
+    s_command.Instruction = LX_STM32_OSPI_READ_STATUS_REG_CMD;
     s_command.DataMode    = HAL_OSPI_DATA_1_LINE;
     s_command.NbData      = 1;
 
@@ -716,7 +716,7 @@ static uint8_t ospi_set_octalmode(OSPI_HandleTypeDef *hospi, uint8_t mode)
     }
 
     /* Write Configuration register 2 (with new dummy cycles) */
-    s_command.Instruction = WRITE_CFG_REG_2_CMD;
+    s_command.Instruction = LX_STM32_OSPI_WRITE_CFG_REG_2_CMD;
     s_command.Address     = LX_STM32_OSPI_CR2_REG3_ADDR;
     s_command.AddressMode = HAL_OSPI_ADDRESS_1_LINE;
     reg[0] = LX_STM32_OSPI_DUMMY_CYCLES_CR_CFG;
@@ -732,7 +732,7 @@ static uint8_t ospi_set_octalmode(OSPI_HandleTypeDef *hospi, uint8_t mode)
     }
 
     /* Enable write operations */
-    s_command.Instruction = WRITE_ENABLE_CMD;
+    s_command.Instruction = LX_STM32_OSPI_WRITE_ENABLE_CMD;
     s_command.AddressMode = HAL_OSPI_ADDRESS_NONE;
     s_command.DataMode    = HAL_OSPI_DATA_NONE;
 
@@ -742,7 +742,7 @@ static uint8_t ospi_set_octalmode(OSPI_HandleTypeDef *hospi, uint8_t mode)
     }
 
     /* Configure automatic polling mode to wait for write enabling */
-    s_command.Instruction = READ_STATUS_REG_CMD;
+    s_command.Instruction = LX_STM32_OSPI_READ_STATUS_REG_CMD;
     s_command.DataMode    = HAL_OSPI_DATA_1_LINE;
 
     if (HAL_OSPI_Command(&hospi1, &s_command, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
@@ -756,8 +756,8 @@ static uint8_t ospi_set_octalmode(OSPI_HandleTypeDef *hospi, uint8_t mode)
     }
 
     /* Write Configuration register 2 (with Octal I/O SPI protocol) */
-    s_command.Instruction = WRITE_CFG_REG_2_CMD;
-    s_command.Address     = LX_STM32_QSPI_CR2_REG1_ADDR;
+    s_command.Instruction = LX_STM32_OSPI_WRITE_CFG_REG_2_CMD;
+    s_command.Address     = LX_STM32_OSPI_CR2_REG1_ADDR;
     s_command.AddressMode = HAL_OSPI_ADDRESS_1_LINE;
 
     /* DTR mode is enabled */
@@ -782,7 +782,7 @@ static uint8_t ospi_set_octalmode(OSPI_HandleTypeDef *hospi, uint8_t mode)
     }
 
     /* Check the configuration has been correctly done */
-    s_command.Instruction     = OCTAL_READ_CFG_REG_2_CMD;
+    s_command.Instruction     = LX_STM32_OSPI_OCTAL_READ_CFG_REG_2_CMD;
     s_command.InstructionMode = HAL_OSPI_INSTRUCTION_8_LINES;
     s_command.InstructionSize = HAL_OSPI_INSTRUCTION_16_BITS;
     s_command.AddressMode     = HAL_OSPI_ADDRESS_8_LINES;
@@ -821,10 +821,10 @@ static uint8_t ospi_set_octalmode(OSPI_HandleTypeDef *hospi, uint8_t mode)
     }
 
     /* Write Configuration register 2 (with Octal I/O SPI protocol) */
-    s_command.Instruction     = OCTAL_WRITE_CFG_REG_2_CMD;
+    s_command.Instruction     = LX_STM32_OSPI_OCTAL_WRITE_CFG_REG_2_CMD;
     s_command.InstructionMode = HAL_OSPI_INSTRUCTION_8_LINES;
     s_command.InstructionSize = HAL_OSPI_INSTRUCTION_16_BITS;
-    s_command.Address         = LX_STM32_QSPI_CR2_REG1_ADDR;
+    s_command.Address         = LX_STM32_OSPI_CR2_REG1_ADDR;
     s_command.AddressMode     = HAL_OSPI_ADDRESS_8_LINES;
     s_command.DataMode        = HAL_OSPI_DATA_8_LINES;
     s_command.NbData          = 2;
@@ -850,7 +850,7 @@ static uint8_t ospi_set_octalmode(OSPI_HandleTypeDef *hospi, uint8_t mode)
     /* Wait that the configuration is effective and check that memory is ready */
     HAL_Delay(LX_STM32_OSPI_WRITE_REG_MAX_TIME);
 
-    s_command.Instruction     = READ_STATUS_REG_CMD;
+    s_command.Instruction     = LX_STM32_OSPI_READ_STATUS_REG_CMD;
     s_command.InstructionMode = HAL_OSPI_INSTRUCTION_1_LINE;
     s_command.InstructionSize = HAL_OSPI_INSTRUCTION_8_BITS;
     s_command.AddressMode     = HAL_OSPI_ADDRESS_NONE;
@@ -877,8 +877,8 @@ static uint8_t ospi_set_octalmode(OSPI_HandleTypeDef *hospi, uint8_t mode)
     }
 
     /* Check the configuration has been correctly done */
-    s_command.Instruction = READ_CFG_REG_2_CMD;
-    s_command.Address     = LX_STM32_QSPI_CR2_REG1_ADDR;
+    s_command.Instruction = LX_STM32_OSPI_READ_CFG_REG_2_CMD;
+    s_command.Address     = LX_STM32_OSPI_CR2_REG1_ADDR;
     s_command.AddressMode = HAL_OSPI_ADDRESS_1_LINE;
 
     if (HAL_OSPI_Command(&hospi1, &s_command, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)

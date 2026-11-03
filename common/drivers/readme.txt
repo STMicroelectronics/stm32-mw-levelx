@@ -7,6 +7,17 @@
   ******************************************************************************
   */
 
+## V3.2.4 / 11-09-2026 ###
+=================================
+Main changes
+-------------
+-  Add the missing extended-cache memory definition to the LevelX NOR custom driver
+ + template/lx_stm32_nor_driver.c
+ + template/lx_stm32_nor_driver.h
+-  Update the OSPI driver header and glue templates to align them with the FTL files
+ + template/lx_stm32_ospi_driver_glue.c
+ + template/lx_stm32_ospi_driver.h
+
 ## V3.2.3 / 03-10-2025 ###
 =================================
 Main changes
